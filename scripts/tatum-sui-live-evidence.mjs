@@ -25,20 +25,29 @@ async function rpc(method, params) {
 try {
   const height = await rpc("sui_getLatestCheckpointSequenceNumber", []);
   if (!/^\d+$/.test(String(height))) throw new Error("Invalid checkpoint sequence number");
-  let checkpoint;
-  for (let offset = 0; offset < 5; offset++) {
-    checkpoint = await rpc("sui_getCheckpoint", [String(BigInt(height) - BigInt(offset))]);
-    if (Array.isArray(checkpoint?.transactions) && checkpoint.transactions.length) break;
+  let checkpoint, tx;
+  const zeroSender = "0x" + "0".repeat(64);
+  let inspected = 0;
+  for (let offset = 0; offset < 5 && !tx; offset++) {
+    const candidateCheckpoint = await rpc("sui_getCheckpoint", [String(BigInt(height) - BigInt(offset))]);
+    for (const digest of (candidateCheckpoint?.transactions ?? []).slice(0, 30)) {
+      inspected++;
+      const candidate = await rpc("sui_getTransactionBlock", [digest, {
+        showInput: true, showEffects: true, showBalanceChanges: true, showEvents: false,
+      }]);
+      const sender = candidate?.transaction?.data?.sender;
+      if (candidate?.digest === digest && typeof sender === "string" && sender !== zeroSender && Array.isArray(candidate.balanceChanges) && candidate.balanceChanges.length > 0) {
+        checkpoint = candidateCheckpoint;
+        tx = candidate;
+        break;
+      }
+    }
   }
-  if (!checkpoint?.transactions?.length) throw new Error("No transactions found in the last five checkpoints");
-  const digest = checkpoint.transactions[0];
-  const tx = await rpc("sui_getTransactionBlock", [digest, {
-    showInput: true, showEffects: true, showBalanceChanges: true, showEvents: false,
-  }]);
-  if (tx?.digest !== digest) throw new Error("Transaction digest did not match the checkpoint");
+  if (!tx) throw new Error(`No non-system transaction with balance changes found among ${inspected} inspected transactions; no evidence fabricated`);
+  const digest = tx.digest;
   console.log(JSON.stringify({
     status: "verified", provider: "tatum", network: "sui-mainnet",
-    checkpoint: checkpoint.sequenceNumber, digest,
+    checkpoint: checkpoint.sequenceNumber, digest, transactionKind: tx.transaction?.data?.transaction?.kind ?? null,
     sender: tx.transaction?.data?.sender ?? null,
     executionStatus: tx.effects?.status?.status ?? null,
     timestampMs: tx.timestampMs ?? null,
