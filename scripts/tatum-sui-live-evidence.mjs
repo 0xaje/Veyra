@@ -4,7 +4,13 @@ const key = process.env.TATUM_API_KEY;
 if (!key) { console.error("TATUM_API_KEY missing. Set it privately in this terminal."); process.exit(2); }
 const endpoint = new URL(process.env.TATUM_SUI_RPC_URL || "https://sui-mainnet.gateway.tatum.io");
 if (endpoint.protocol !== "https:") throw new Error("RPC endpoint must use HTTPS");
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+let nextRequestAt = 0;
 async function rpc(method, params) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const waitMs = Math.max(0, nextRequestAt - Date.now());
+    if (waitMs) await sleep(waitMs);
+    nextRequestAt = Date.now() + 650;
   let response;
   try {
     response = await fetch(endpoint, {
@@ -19,8 +25,16 @@ async function rpc(method, params) {
   let body;
   try { body = await response.json(); }
   catch { throw new Error(`Non-JSON response (HTTP ${response.status}) from ${method}`); }
-  if (!response.ok || body.error) throw new Error(`${method} failed (HTTP ${response.status}): ${JSON.stringify(body.error ?? body)}`);
-  return body.result;
+    if (response.status === 429) {
+      const retryAfter = Number(response.headers.get("retry-after"));
+      const delay = Number.isFinite(retryAfter) && retryAfter > 0 ? Math.min(retryAfter * 1000, 15000) : 1500 * (attempt + 1);
+      nextRequestAt = Date.now() + delay;
+      if (attempt < 4) continue;
+    }
+    if (!response.ok || body.error) throw new Error(`${method} failed (HTTP ${response.status}): ${JSON.stringify(body.error ?? body)}`);
+    return body.result;
+  }
+  throw new Error(`${method} failed after rate-limit retries`);
 }
 try {
   const height = await rpc("sui_getLatestCheckpointSequenceNumber", []);
