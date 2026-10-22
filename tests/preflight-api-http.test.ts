@@ -27,7 +27,7 @@ async function waitForServer(base:string, child:ReturnType<typeof spawn>) {
 }
 test("real local HTTP routes fail closed without Walrus credentials or persistent writes", {timeout:20000}, async()=>{
   const port=await unusedPort();
-  const env={...process.env,VEYRA_PORT:String(port)};
+  const env: NodeJS.ProcessEnv = {...process.env,VEYRA_PORT:String(port)};
   delete env.MEMWAL_PRIVATE_KEY;
   delete env.MEMWAL_ACCOUNT_ID;
   delete env.VEYRA_HISTORY_FILE;
