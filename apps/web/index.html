@@ -18,7 +18,7 @@
 </style></head>
 <body><div class="mobile-bar"><div class="brand"><span class="mark">V</span>veyra</div><span class="environment">Sui Mainnet</span></div>
 <div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>veyra</div>
-<nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item active" href="/" aria-current="page"><span class="nav-icon">◈</span>Recipient preflight</a><div class="nav-item" aria-disabled="true"><span class="nav-icon">▤</span>Evidence history <span style="margin-left:auto;font-size:10px;color:#748496">Soon</span></div><div class="nav-item" aria-disabled="true"><span class="nav-icon">◎</span>Memory records <span style="margin-left:auto;font-size:10px;color:#748496">Soon</span></div><a class="nav-item" href="/docs"><span class="nav-icon">▧</span>Documentation</a></nav>
+<nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item active" href="/" aria-current="page"><span class="nav-icon">◈</span>Recipient preflight</a><a class="nav-item" href="#session-history"><span class="nav-icon">▤</span>Session history</a><a class="nav-item" href="#memory-status"><span class="nav-icon">◎</span>Memory status</a><a class="nav-item" href="/docs"><span class="nav-icon">▧</span>Documentation</a></nav>
 <div class="side-note"><strong>Read-only environment</strong><p>No wallet signing or transfer execution. Evidence must be independently assessed.</p></div></aside>
 <div class="workspace"><header class="topbar"><div class="breadcrumbs">Workspace &nbsp;/&nbsp; <b>Recipient preflight</b></div><div class="right"><span class="dot"></span> Local service <span class="environment">Sui Mainnet</span></div></header>
 <main class="main"><div class="heading"><div><div class="overline">Transaction intelligence / 01</div><h1>Recipient preflight</h1><p>Evaluate destination integrity against historical evidence and authorized memory records.</p></div><span class="read-only">◉ &nbsp; Read-only assessment</span></div>
@@ -32,9 +32,29 @@
 <div id="empty"><div class="result-intro"><div class="shield">◇</div><div><strong>Awaiting recipient details</strong><p>No assessment has been performed in this session.</p></div></div><div class="placeholder"><div class="glyph">◎</div><h3>Ready to evaluate a destination</h3><p>Submit a counterparty and address to inspect provider observations, memory matches, and required review actions.</p></div><div class="step-row"><span class="step-number">1</span><b>Compare exact destination</b></div><div class="step-row"><span class="step-number">2</span><b>Inspect available evidence</b></div><div class="step-row"><span class="step-number">3</span><b>Return a review decision</b></div></div>
 <div id="results" hidden aria-live="polite"><div class="result-intro"><div class="shield">!</div><div><strong>Assessment completed</strong><p>Provider observations are not proof of recipient ownership.</p></div></div><div class="result-content"><div class="verdict" id="verdict">Manual review required</div><div class="kv"><span>Recipient record</span><span id="recipientVerdict"></span></div><div class="kv"><span>Tatum evidence</span><span id="tatum"></span></div><div class="kv"><span>Walrus Memory</span><span id="walrus"></span></div><div class="kv"><span>Historical address participation</span><span id="historical"></span></div><div class="kv"><span>Payment authorization</span><span>Not authorized</span></div><div class="reason-title">Assessment rationale</div><div id="reasons"></div><div class="evidence-box"><h3>Evidence trace</h3><div class="kv"><span>Transaction reference</span><span id="evidenceDigest">Not provided</span></div><div class="kv"><span>Provider verification</span><span id="verificationLevel">Not independently verified</span></div><div class="kv"><span>Memory record</span><span id="memoryReference">Not available</span></div><p>Evidence is provider-observed historical context, not proof of recipient ownership or a payment authorization.</p></div></div></div></section></div>
 <div class="bottom"><section class="mini"><h3>Evidence is not identity</h3><p>Historical activity can establish participation in a transaction, not current control or authorization of a recipient address.</p></section><section class="mini"><h3>Independent confirmation required</h3><p>When evidence is missing or conflicts, verify the destination through a trusted out-of-band channel before paying. <a class="docs-link" href="/docs">Read the verification guide →</a></p></section></div>
+<section id="session-history" class="panel" style="margin-top:18px"><div class="panel-head"><h2>03 &nbsp; Assessment history</h2><small>Current browser session only</small></div><div class="panel-body"><p class="section-caption">Completed checks in this open page are listed here. This is not a persistent transaction history or a Walrus record.</p><div id="history-list"><p class="secondary-note">No assessments have been performed in this session.</p></div><button id="export-history" type="button" class="action" style="width:auto;margin-top:18px;padding:11px 16px;background:#263a34;color:#d4eadc" disabled>Export session report (.json)</button></div></section>
+<section id="memory-status" class="panel" style="margin-top:18px"><div class="panel-head"><h2>04 &nbsp; Memory service</h2><small>Real provider status</small></div><div class="panel-body"><p class="section-caption">Walrus Memory is queried during preflight. Service failures are shown as unavailable; they are never interpreted as an empty, verified memory store.</p><div class="kv"><span>Last recall attempt</span><span id="memory-last">Not checked this session</span></div><div class="kv"><span>Authorized record match</span><span id="memory-match">Not established</span></div><p class="secondary-note">Veyra does not permit creating or approving recipient memory from this read-only screen.</p></div></section>
 </main></div></div>
 <script>
 const form=document.getElementById("preflight"),error=document.getElementById("error"),button=document.getElementById("submit");
+const sessionReports=[];
+const historyList=document.getElementById("history-list");
+const exportButton=document.getElementById("export-history");
+function renderHistory(){
+ historyList.replaceChildren();
+ for(const report of sessionReports){
+  const item=document.createElement("div");item.className="kv";
+  const name=document.createElement("span");name.textContent=report.counterpartyId+" · "+report.proposedAddress.slice(0,10)+"…"+report.proposedAddress.slice(-6);
+  const status=document.createElement("span");status.textContent=report.action+" · "+new Date(report.capturedAt).toLocaleTimeString();
+  item.append(name,status);historyList.append(item);
+ }
+ exportButton.disabled=sessionReports.length===0;
+}
+exportButton.addEventListener("click",()=>{
+ if(!sessionReports.length)return;
+ const blob=new Blob([JSON.stringify({schema:"veyra.session-report.v1",generatedAt:new Date().toISOString(),reports:sessionReports},null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="veyra-session-report.json";link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
 const field=id=>document.getElementById(id).value.trim();
 const setText=(id,value)=>{document.getElementById(id).textContent=String(value)};
 form.addEventListener("submit",async event=>{
@@ -51,6 +71,11 @@ const evidence=data.chainEvidence?.evidence?.find(item=>item.source==="tatum");
 setText("evidenceDigest",evidence?.reference||"Not provided");
 setText("verificationLevel",evidence?.verified===true?"Independently verified":"Not independently verified");
 setText("memoryReference",data.recipient?.memoryBlobId||"Not available");
+setText("memory-last",data.providers?.walrus||"Unknown");
+setText("memory-match",data.recipient?.verdict||"Not established");
+sessionReports.unshift({capturedAt:new Date().toISOString(),counterpartyId:payload.counterpartyId,proposedAddress:payload.proposedAddress,transactionDigest:payload.transactionDigest||null,action:data.action,providers:data.providers,recipient:data.recipient,chainEvidence:data.chainEvidence,reasons:data.reasons,paymentAuthorized:data.paymentAuthorized});
+if(sessionReports.length>25)sessionReports.pop();
+renderHistory();
 const reasons=document.getElementById("reasons");reasons.replaceChildren();
 for(const reason of data.reasons||[]){const node=document.createElement("div");node.className="reason";node.textContent=reason;reasons.append(node)}
 }catch(e){error.textContent=e instanceof Error?e.message:"Request failed";error.hidden=false}
