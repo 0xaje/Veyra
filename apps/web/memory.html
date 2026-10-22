@@ -70,9 +70,34 @@ b.addEventListener("dblclick",()=>{preference="auto";try{localStorage.setItem(ke
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&preference==="auto")apply()});
 setInterval(()=>{if(preference==="auto")apply()},60000);
 });
-})();</script></head><body><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>eyra.</div><nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item" href="/">◈ &nbsp; Recipient preflight</a><a class="nav-item " href="/history">▤ &nbsp; Session history</a><a class="nav-item active" href="/memory">◎ &nbsp; Memory status</a><a class="nav-item" href="/docs">▧ &nbsp; Documentation</a></nav><div class="side-note">Read-only environment. No payments can be signed or authorized here.</div></aside><div class="workspace"><header class="topbar">Workspace &nbsp; / &nbsp; <strong>Memory status</strong></header><main class="main"><div class="overline">Transaction intelligence / 03</div><h1>Memory status</h1><p>Inspect the latest Walrus Memory result returned by a real recipient preflight.</p><section class="panel"><h2>Latest memory observation</h2><div id="records" class="empty">No completed assessments in this browser tab.</div><p class="note">Walrus recall is untrusted until independently matched to a locally authorized record. Unavailable does not mean no memory exists.</p></section><p class="note">Session data stays in this browser tab and may disappear when it closes. Exported reports contain recipient addresses and should be handled privately.</p></main></div></div><script>
+})();</script></head><body><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>eyra.</div><nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item" href="/">◈ &nbsp; Recipient preflight</a><a class="nav-item " href="/history">▤ &nbsp; Session history</a><a class="nav-item active" href="/memory">◎ &nbsp; Memory status</a><a class="nav-item" href="/docs">▧ &nbsp; Documentation</a></nav><div class="side-note">Read-only environment. No payments can be signed or authorized here.</div></aside><div class="workspace"><header class="topbar">Workspace &nbsp; / &nbsp; <strong>Memory status</strong></header><main class="main"><div class="overline">Transaction intelligence / 03</div><h1>Memory status</h1><p>Inspect the latest Walrus Memory result returned by a real recipient preflight.</p><section class="panel"><h2>Latest memory observation</h2><div id="records" class="empty">No completed assessments in this browser tab.</div><p class="note">Walrus recall is untrusted until independently matched to a locally authorized record. Unavailable does not mean no memory exists.</p></section><section class="panel"><h2>Recipient memory timeline</h2><p>Run a recipient preflight to see recalled confirmation history. Newer claims do not override earlier addresses or authorize a payment.</p><div id="timeline" class="empty" aria-live="polite">No memory timeline loaded in this browser tab.</div><p class="note">Confirmation timestamps are claims supplied with stored records, not independent proof of when ownership was verified. Results may be incomplete because Walrus recall uses search.</p></section><p class="note">Session data stays in this browser tab and may disappear when it closes. Exported reports contain recipient addresses and should be handled privately.</p></main></div></div><script>
 let records=[];try{const saved=JSON.parse(sessionStorage.getItem("veyra.session.v1")||"[]");if(Array.isArray(saved))records=saved}catch{}
 const host=document.getElementById("records");host.replaceChildren();
 function kv(label,value){const line=document.createElement("div");line.className="kv";const a=document.createElement("span"),b=document.createElement("span");a.textContent=label;b.textContent=String(value??"Not established");line.append(a,b);return line}
-if(records.length){const r=records[0];host.append(kv("Last checked",new Date(r.capturedAt).toLocaleString()),kv("Counterparty",r.counterpartyId),kv("Walrus provider",r.providers?.walrus),kv("Recipient verdict",r.recipient?.verdict),kv("Memory blob",r.recipient?.memoryBlobId||"Not available"));}else host.textContent="Run a recipient preflight to check the memory service.";
+const timelineHost=document.getElementById("timeline");
+const timelineLabels={no_memories:"No matching memories recalled",single_claim:"One remembered claim",multiple_claims_same_address:"Repeated confirmations of the same address",address_change_requires_review:"Address change — manual review required"};
+function showTimeline(r){
+  timelineHost.replaceChildren();
+  const timeline=r?.memoryTimeline;
+  if(!timeline || !Array.isArray(timeline.entries)){
+    timelineHost.textContent="No timeline was included in the latest session assessment. Run a new preflight using the updated server.";
+    return;
+  }
+  timelineHost.append(kv("History status",timelineLabels[timeline.status]||"Review required"),
+    kv("Recalled records",timeline.entries.length),
+    kv("Distinct addresses",Array.isArray(timeline.distinctAddresses)?timeline.distinctAddresses.length:"Not established"),
+    kv("Independent verification","Not established"),
+    kv("Payment authorization","Not authorized"));
+  for(const entry of timeline.entries){
+    const section=document.createElement("section");
+    section.style.marginTop="18px";
+    section.style.paddingTop="10px";
+    section.style.borderTop="1px solid #789684";
+    section.append(kv("Claimed confirmation",entry.confirmedAt?new Date(entry.confirmedAt).toLocaleString():"Not established"),
+      kv("Address",entry.address),kv("Confirmation method",String(entry.confirmationMethod||"Not established").replaceAll("_"," ")),
+      kv("Walrus blob",entry.blobId));
+    timelineHost.append(section);
+  }
+}
+if(records.length){const r=records[0];host.append(kv("Last checked",new Date(r.capturedAt||r.checkedAt).toLocaleString()),kv("Counterparty",r.counterpartyId),kv("Walrus provider",r.providers?.walrus),kv("Recipient verdict",r.recipient?.verdict),kv("Memory blob",r.recipient?.memoryBlobId||"Not available"));showTimeline(r)}else host.textContent="Run a recipient preflight to check the memory service.";
 </script></body></html>
