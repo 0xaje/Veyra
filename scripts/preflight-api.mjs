@@ -100,8 +100,12 @@ async function recall(counterpartyId) {
       } catch { /* Ignore unparseable, untrusted recall items. */ }
     }
     return { records, status: "observed" };
-  } catch {
-    return { records: [], status: "unavailable" };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown Walrus error";
+    // Log a bounded error category, never SDK request objects or credentials.
+    const category = /timeout/i.test(message) ? "timeout" : /401|403|unauthoriz|forbidden/i.test(message) ? "authentication" : /429|rate.limit/i.test(message) ? "rate_limited" : "service_error";
+    console.error(`[veyra] Walrus recipient recall failed: ${category}`);
+    return { records: [], status: "unavailable", diagnostic: category };
   }
 }
 
@@ -219,6 +223,7 @@ async function handler(req, res) {
     }
     return send(200, {
       ...result, assessmentId, checkedAt, historyPersisted: Boolean(historyPath), providers: { tatum: chain.status, walrus: memory.status },
+      diagnostics: memory.diagnostic ? { walrus: memory.diagnostic } : undefined,
       paymentAuthorized: false,
       limitation: "Historical transactions and local records do not establish current recipient ownership.",
     });
