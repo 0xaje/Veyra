@@ -92,6 +92,17 @@ html[data-theme="dark"] .error{background:#3c2225;color:#ffceca}
 html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}
 .veyra-theme-toggle:hover{filter:brightness(1.08)}
 .veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}
+
+/* Consumer assessment summary: decision first, technical details second. */
+.consumer-summary{margin:0 0 20px;padding:19px 20px;border:1px solid #d8b778;border-left:4px solid #b6813b;border-radius:9px;background:#fff8eb}
+.consumer-summary h3{font-size:18px;line-height:1.35;margin:0 0 8px;color:#513d23}
+.consumer-summary p{font-size:14px;line-height:1.65;margin:0 0 12px;color:#5c4a30}
+.consumer-summary strong{font-size:13px;color:#513d23}
+.consumer-summary ol{padding-left:20px;margin:8px 0 0;color:#5c4a30;font-size:14px;line-height:1.65}
+.consumer-summary li{margin:5px 0}
+html[data-theme="dark"] .consumer-summary{background:#30291e;border-color:#765d3d;border-left-color:#d5a35d}
+html[data-theme="dark"] .consumer-summary h3,html[data-theme="dark"] .consumer-summary strong{color:#f4dcb8}
+html[data-theme="dark"] .consumer-summary p,html[data-theme="dark"] .consumer-summary ol,html[data-theme="dark"] .consumer-summary li{color:#e5cda9}
 </style><script>(function(){
 const key="veyra.theme.v1",hour=()=>new Date().getHours();
 const automatic=()=>hour()>=7&&hour()<19?"light":"dark";
@@ -128,7 +139,7 @@ setInterval(()=>{if(preference==="auto")apply()},60000);
 <button class="action" id="submit" type="submit">Run recipient assessment &nbsp; ↗</button><div id="error" class="error" role="alert" hidden></div><div class="form-note">This check does not initiate, sign, or authorize a transfer.</div></form></div></section>
 <section class="panel"><div class="panel-head"><h2>02 &nbsp; Assessment report</h2><small>Evidence-led review</small></div>
 <div id="empty"><div class="result-intro"><div class="shield">◇</div><div><strong>Awaiting recipient details</strong><p>No assessment has been performed in this session.</p></div></div><div class="placeholder"><div class="glyph">◎</div><h3>Ready to evaluate a destination</h3><p>Submit a counterparty and address to inspect provider observations, memory matches, and required review actions.</p></div><div class="step-row"><span class="step-number">1</span><b>Compare exact destination</b></div><div class="step-row"><span class="step-number">2</span><b>Inspect available evidence</b></div><div class="step-row"><span class="step-number">3</span><b>Return a review decision</b></div></div>
-<div id="results" hidden aria-live="polite"><div class="result-intro"><div class="shield">!</div><div><strong>Assessment completed</strong><p>Provider observations are not proof of recipient ownership.</p></div></div><div class="result-content"><div class="verdict" id="verdict">Manual review required</div><div class="kv"><span>Recipient record</span><span id="recipientVerdict"></span></div><div class="kv"><span>Tatum evidence</span><span id="tatum"></span></div><div class="kv"><span>Walrus Memory</span><span id="walrus"></span></div><div class="kv"><span>Remembered address comparison</span><span id="memoryComparison"></span></div><div id="memoryExplanation" class="reason" role="status"></div><div class="kv"><span>Historical address participation</span><span id="historical"></span></div><div class="kv"><span>Payment authorization</span><span>Not authorized</span></div><div class="reason-title">Assessment rationale</div><div id="reasons"></div><div class="evidence-box"><h3>Evidence trace</h3><div class="kv"><span>Transaction reference</span><span id="evidenceDigest">Not provided</span></div><div class="kv"><span>Provider verification</span><span id="verificationLevel">Not independently verified</span></div><div class="kv"><span>Memory record</span><span id="memoryReference">Not available</span></div><p>Evidence is provider-observed historical context, not proof of recipient ownership or a payment authorization.</p></div><div class="evidence-box" id="investigation" hidden><h3>Live transaction investigation</h3><div class="kv"><span>Transaction digest</span><span id="txDigest"></span></div><div class="kv"><span>Observed sender</span><span id="txSender"></span></div><div class="kv"><span>Execution status</span><span id="txExecution"></span></div><div class="kv"><span>Evidence captured</span><span id="txChecked"></span></div><div class="kv"><span>Transport</span><span id="txTransport"></span></div><div class="reason-title">Reported balance changes</div><div id="txChanges"></div><p>Amounts are raw onchain units, not formatted token balances. Provider observation is not independent cryptographic verification and cannot establish who controls an address.</p></div></div></div></section></div>
+<div id="results" hidden aria-live="polite"><div class="result-intro"><div class="shield">!</div><div><strong>Assessment completed</strong><p>Provider observations are not proof of recipient ownership.</p></div></div><div class="result-content"><section class="consumer-summary" id="consumerSummary" aria-labelledby="consumerHeadline"><h3 id="consumerHeadline">Review this destination before paying</h3><p id="consumerMessage">Veyra checks available historical records, but cannot verify who owns this address.</p><strong>What to do next</strong><ol id="consumerSteps"></ol></section><div class="verdict" id="verdict">Manual review required</div><div class="kv"><span>Recipient record</span><span id="recipientVerdict"></span></div><div class="kv"><span>Tatum evidence</span><span id="tatum"></span></div><div class="kv"><span>Walrus Memory</span><span id="walrus"></span></div><div class="kv"><span>Remembered address comparison</span><span id="memoryComparison"></span></div><div id="memoryExplanation" class="reason" role="status"></div><div class="kv"><span>Historical address participation</span><span id="historical"></span></div><div class="kv"><span>Payment authorization</span><span>Not authorized</span></div><div class="reason-title">Assessment rationale</div><div id="reasons"></div><div class="evidence-box"><h3>Evidence trace</h3><div class="kv"><span>Transaction reference</span><span id="evidenceDigest">Not provided</span></div><div class="kv"><span>Provider verification</span><span id="verificationLevel">Not independently verified</span></div><div class="kv"><span>Memory record</span><span id="memoryReference">Not available</span></div><p>Evidence is provider-observed historical context, not proof of recipient ownership or a payment authorization.</p></div><div class="evidence-box" id="investigation" hidden><h3>Live transaction investigation</h3><div class="kv"><span>Transaction digest</span><span id="txDigest"></span></div><div class="kv"><span>Observed sender</span><span id="txSender"></span></div><div class="kv"><span>Execution status</span><span id="txExecution"></span></div><div class="kv"><span>Evidence captured</span><span id="txChecked"></span></div><div class="kv"><span>Transport</span><span id="txTransport"></span></div><div class="reason-title">Reported balance changes</div><div id="txChanges"></div><p>Amounts are raw onchain units, not formatted token balances. Provider observation is not independent cryptographic verification and cannot establish who controls an address.</p></div></div></div></section></div>
 <section class="panel" style="margin-top:20px"><div class="panel-head"><h2>03 &nbsp; Remember a verified contact</h2><small>Explicit Walrus Mainnet write</small></div><div class="panel-body">
 <p class="section-caption">Register only after actually checking the address using the selected method. A self-wallet check means comparing the complete receiving address shown in your wallet app; it is not cryptographic proof of control. This stores your confirmation claim on Walrus; it does not establish identity or authorize payment. Stored information may persist beyond this session.</p>
 <form id="memoryForm">
@@ -195,6 +206,33 @@ matches_remembered_claim:"The full address matches a recalled claim. This is not
 differs_from_remembered_claim:"WARNING: The full destination differs from the remembered address. Do not pay until you independently verify the change."
 };
 setText("memoryExplanation",explanations[comparison]||"Memory comparison unavailable.");
+const guidance={
+  differs_from_remembered_claim:{
+    title:"Warning: this recipient address is different",
+    message:"The full address you entered differs from a previously remembered address for this recipient. This could be a legitimate change or an attempt to redirect your payment. Veyra cannot determine which.",
+    steps:["Do not send funds to this address yet.","Contact the recipient using a trusted channel you already know—not contact details from the new payment request.","Compare the complete address in your wallet with the address the recipient independently confirms."]
+  },
+  conflicting_memories:{
+    title:"Warning: saved recipient addresses conflict",
+    message:"More than one address was remembered for this recipient. The records alone cannot tell you which address is correct.",
+    steps:["Do not send funds until the conflict is resolved.","Ask the recipient through a trusted independent channel which full address to use.","Check the complete address again before making any transfer."]
+  },
+  matches_remembered_claim:{
+    title:"Address matches a remembered record",
+    message:"The complete destination matches a recalled Walrus record. This is useful context, but the saved record does not prove that the recipient still controls the address.",
+    steps:["Confirm that you are paying the intended person or business.","For a new or unusual payment, independently verify the full destination address.","Only make a payment after your own verification; Veyra does not authorize transfers."]
+  },
+  not_found:{
+    title:"No remembered address available",
+    message:"Veyra could not retrieve a matching recipient address. This does not mean the destination is safe or unsafe; memory search may be incomplete.",
+    steps:["Verify the full address directly with the intended recipient through a trusted channel.","Check carefully for copied or lookalike addresses.","Do not rely on transaction history alone to decide whether to pay."]
+  }
+};
+const guide=guidance[comparison]||guidance.not_found;
+setText("consumerHeadline",guide.title);setText("consumerMessage",guide.message);
+const stepList=document.getElementById("consumerSteps");stepList.replaceChildren();
+for(const step of guide.steps){const li=document.createElement("li");li.textContent=step;stepList.append(li)}
+
 setText("historical",data.historicalAddressObserved?"Observed · participation only":"Not established");
 const evidence=data.chainEvidence?.evidence?.find(item=>item.source==="tatum");
 setText("evidenceDigest",evidence?.reference||"Not provided");
