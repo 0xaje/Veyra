@@ -1,4 +1,5 @@
 import { normalizeSuiAddress } from "./recipient-check.ts";
+import { buildRecipientMemoryTimeline } from "./recipient-memory-timeline.ts";
 import { assess, type Evidence } from "./assessment.ts";
 import { preflightRememberedRecipient, type RecalledRecipient, type RecipientAuthorization } from "./recipient-preflight.ts";
 
@@ -47,6 +48,7 @@ export function preflightWithEvidence(input: {
     independentlyVerified: false,
     paymentAuthorized: false,
   };
+  const memoryTimeline = buildRecipientMemoryTimeline(input.counterpartyId, input.recalled);
   const observation = input.tatumObservation;
   const validTatum = !!observation &&
     observation.status === "observed" &&
@@ -78,6 +80,7 @@ export function preflightWithEvidence(input: {
     status: "read_only_preflight" as const,
     recipient,
     memoryComparison,
+    memoryTimeline,
     historicalAddressObserved: Boolean(historicalAddressObserved),
     historicalObservationType: historicalAddressObserved ? "transaction_participant_only" : "none",
     chainEvidence: assessment,
