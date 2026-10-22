@@ -75,8 +75,9 @@ let sessionRecords=[];try{const saved=JSON.parse(sessionStorage.getItem("veyra.s
 let records=sessionRecords;let source="session";
 const host=document.getElementById("records"),exportButton=document.getElementById("export");
 function kv(label,value){const line=document.createElement("div");line.className="kv";const a=document.createElement("span"),b=document.createElement("span");a.textContent=label;b.textContent=String(value??"Not established");line.append(a,b);return line}
+function friendly(value){const labels={manual_review_required:"Manual review required",review_required:"Review required",recipient_mismatch:"Recipient mismatch",match_authorized_record:"Matches authorized record",observed:"Observed",unavailable:"Unavailable",not_requested:"Not requested",read_only_preflight:"Read-only preflight"};return labels[value]||String(value??"Not established").replaceAll("_"," ")}
 function render(){host.replaceChildren();if(!records.length){host.textContent="No assessments recorded yet.";exportButton.disabled=true;return}
-for(const r of records){const card=document.createElement("section");card.style.marginBottom="24px";card.append(kv("Counterparty",r.counterpartyId),kv("Destination",r.proposedAddress),kv("Checked",new Date(r.checkedAt||r.capturedAt).toLocaleString()),kv("Decision",r.action),kv("Tatum",r.providers?.tatum),kv("Walrus",r.providers?.walrus));host.append(card)}exportButton.disabled=false}
+for(const r of records){const card=document.createElement("section");card.style.marginBottom="24px";card.append(kv("Counterparty",r.counterpartyId),kv("Destination",r.proposedAddress),kv("Checked",new Date(r.checkedAt||r.capturedAt).toLocaleString()),kv("Decision",friendly(r.action)),kv("Tatum",friendly(r.providers?.tatum)),kv("Walrus",friendly(r.providers?.walrus)));host.append(card)}exportButton.disabled=false}
 render();
 fetch("/v1/history").then(r=>{if(!r.ok)throw Error("History unavailable");return r.json()}).then(data=>{
 const note=document.createElement("p");note.className="note";
