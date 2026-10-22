@@ -1,6 +1,9 @@
 // Local-only read-only Veyra preflight HTTP API. Never signs or submits payments.
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { resolve, dirname } from "node:path";
+const webPath = resolve(dirname(fileURLToPath(import.meta.url)), "../apps/web/index.html");
 import { spawn } from "node:child_process";
 import { normalizeSuiAddress } from "../src/core/recipient-check.ts";
 import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
@@ -80,6 +83,18 @@ async function handler(req, res) {
     res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" });
     res.end(JSON.stringify(data));
   };
+  if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) {
+    try {
+      const html = await readFile(webPath, "utf8");
+      res.writeHead(200, {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+      });
+      return res.end(html);
+    } catch { return send(503, { error: "Interface unavailable" }); }
+  }
   if (req.method === "GET" && req.url === "/health")
     return send(200, { status: "running", paymentAuthorized: false });
   if (req.method !== "POST" || req.url !== "/v1/preflight")
