@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
-const webPath = resolve(dirname(fileURLToPath(import.meta.url)), "../apps/web/index.html");
+const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../apps/web");
 import { spawn } from "node:child_process";
 import { normalizeSuiAddress } from "../src/core/recipient-check.ts";
 import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
@@ -83,9 +83,9 @@ async function handler(req, res) {
     res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" });
     res.end(JSON.stringify(data));
   };
-  if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) {
+  if (req.method === "GET" && (req.url === "/" || req.url === "/index.html" || req.url === "/docs")) {
     try {
-      const html = await readFile(webPath, "utf8");
+      const html = await readFile(resolve(webRoot, req.url === "/docs" ? "docs.html" : "index.html"), "utf8");
       res.writeHead(200, {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "no-store",
