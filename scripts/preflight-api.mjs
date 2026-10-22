@@ -9,10 +9,14 @@ import { spawn } from "node:child_process";
 import { normalizeSuiAddress } from "../src/core/recipient-check.ts";
 import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
 
-const port = Number(process.env.VEYRA_PORT || 8787);
+const port = Number(process.env.PORT || process.env.VEYRA_PORT || 8787);
+const publicMode = process.env.VEYRA_PUBLIC_MODE === "true";
+const host = process.env.VEYRA_HOST || (publicMode ? "0.0.0.0" : "127.0.0.1");
+if (!["127.0.0.1", "0.0.0.0"].includes(host)) throw new Error("Invalid VEYRA_HOST");
+if (host === "0.0.0.0" && !publicMode) throw new Error("Public binding requires VEYRA_PUBLIC_MODE=true");
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid VEYRA_PORT");
 const maxBody = 8192;
-const historyPath = process.env.VEYRA_HISTORY_FILE ? resolve(process.env.VEYRA_HISTORY_FILE) : null;
+const historyPath = !publicMode && process.env.VEYRA_HISTORY_FILE ? resolve(process.env.VEYRA_HISTORY_FILE) : null;
 let historyWrite = Promise.resolve();
 function persistAssessment(entry) {
   if (!historyPath) return Promise.resolve(false);
@@ -127,12 +131,14 @@ async function handler(req, res) {
     } catch { return send(503, { error: "Interface unavailable" }); }
   }
   if (req.method === "GET" && req.url === "/v1/history") {
+    if (publicMode) return send(200, { enabled: false, records: [], privacy: "Public assessment history disabled" });
     try { return send(200, await loadHistory()); }
     catch { return send(503, { error: "Assessment journal unavailable" }); }
   }
   if (req.method === "GET" && req.url === "/health")
-    return send(200, { status: "running", paymentAuthorized: false });
+    return send(200, { status: "running", paymentAuthorized: false, publicMode, memoryWritesEnabled: !publicMode });
   if (req.method === "POST" && req.url === "/v1/recipient-memory") {
+    if (publicMode) return send(403, { error: "Recipient memory writes are disabled on the public service", paymentAuthorized: false });
     if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
       return send(415, { error: "JSON content type required" });
     const origin = req.headers.origin;
@@ -236,6 +242,6 @@ async function handler(req, res) {
     });
   }
 }
-createServer((req, res) => { void handler(req, res); }).listen(port, "127.0.0.1", () => {
-  console.log(`Veyra read-only preflight API listening on http://127.0.0.1:${port}`);
+createServer((req, res) => { void handler(req, res); }).listen(port, host, () => {
+  console.log(`Veyra preflight API listening on ${host}:${port} (publicMode=${publicMode})`);
 });
