@@ -274,7 +274,7 @@ changes.append(line);
 }
 
 
-sessionReports.unshift({capturedAt:new Date().toISOString(),counterpartyId:payload.counterpartyId,proposedAddress:payload.proposedAddress,transactionDigest:payload.transactionDigest||null,action:data.action,providers:data.providers,recipient:data.recipient,chainEvidence:data.chainEvidence,transactionInvestigation:data.transactionInvestigation,reasons:data.reasons,paymentAuthorized:data.paymentAuthorized});
+sessionReports.unshift({capturedAt:new Date().toISOString(),counterpartyId:payload.counterpartyId,proposedAddress:payload.proposedAddress,transactionDigest:payload.transactionDigest||null,action:data.action,providers:data.providers,recipient:data.recipient,memoryTimeline:data.memoryTimeline,chainEvidence:data.chainEvidence,transactionInvestigation:data.transactionInvestigation,reasons:data.reasons,paymentAuthorized:data.paymentAuthorized});
 if(sessionReports.length>25)sessionReports.pop();
 try{sessionStorage.setItem("veyra.session.v1",JSON.stringify(sessionReports));}catch{}
 const reasons=document.getElementById("reasons");reasons.replaceChildren();
