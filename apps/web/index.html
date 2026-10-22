@@ -160,6 +160,13 @@ setInterval(()=>{if(preference==="auto")apply()},60000);
 <section class="panel" style="margin-top:20px"><div class="panel-head"><h2>03 &nbsp; Remember a verified contact</h2><small>Explicit Walrus Mainnet write</small></div><div class="panel-body">
 <p class="section-caption">Register only after actually checking the address using the selected method. A self-wallet check means comparing the complete receiving address shown in your wallet app; it is not cryptographic proof of control. This stores your confirmation claim on Walrus; it does not establish identity or authorize payment. Stored information may persist beyond this session.</p>
 <form id="memoryForm">
+<div class="field"><label for="memoryIntent">What are you recording?</label><select id="memoryIntent" required style="width:100%;padding:12px;border-radius:7px"><option value="new">New recipient confirmation</option><option value="update">A genuinely changed recipient address</option></select></div>
+<div id="previousMemoryFields" hidden>
+<p class="section-caption">Only use this after independently confirming the new full address. Enter the previous address and Walrus blob ID from Memory Status. Veyra checks that prior record is recalled before writing; a new record does not erase or supersede it automatically.</p>
+<div class="field"><label for="previousAddress">Previous complete Sui address</label><input id="previousAddress" autocomplete="off" placeholder="0x…"></div>
+<div class="field"><label for="previousBlobId">Previous Walrus blob ID</label><input id="previousBlobId" autocomplete="off" placeholder="Prior recalled blob ID"></div>
+<div class="field"><label><input id="confirmedAddressChange" type="checkbox" style="width:auto"> I independently verified that the recipient's full address genuinely changed, and understand the earlier claim remains visible.</label></div>
+</div>
 <div class="field"><label for="confirmationMethod">How did you independently confirm this destination?</label><select id="confirmationMethod" required style="width:100%;padding:12px;border-radius:7px"><option value="independent_contact">Trusted independent contact</option><option value="self_wallet_check">My own wallet — address displayed in wallet app</option><option value="in_person">In person</option><option value="signed_message">Signed message</option></select></div>
 <div class="field"><label for="confirmationReference">Confirmation reference (do not enter secrets)</label><input id="confirmationReference" required maxlength="256" placeholder="Describe your genuine verification evidence" autocomplete="off"></div>
 <div class="field"><label><input type="checkbox" id="storageConsent" required style="width:auto"> I approve storing this recipient confirmation on Walrus Mainnet.</label></div>
@@ -170,6 +177,9 @@ setInterval(()=>{if(preference==="auto")apply()},60000);
 <div class="bottom"><section class="mini"><h3>Evidence is not identity</h3><p>Historical activity can establish participation in a transaction, not current control or authorization of a recipient address.</p></section><section class="mini"><h3>Independent confirmation required</h3><p>When evidence is missing or conflicts, verify the destination through a trusted out-of-band channel before paying. <a class="docs-link" href="/docs">Read the verification guide →</a></p></section></div>
 </main></div></div>
 <script>
+const memoryIntent=document.getElementById("memoryIntent");
+const previousMemoryFields=document.getElementById("previousMemoryFields");
+memoryIntent.addEventListener("change",()=>{const updating=memoryIntent.value==="update";previousMemoryFields.hidden=!updating;for(const id of ["previousAddress","previousBlobId"]){document.getElementById(id).required=updating}document.getElementById("confirmedAddressChange").required=updating});
 document.getElementById("memoryForm").addEventListener("submit",async event=>{
 event.preventDefault();
 const status=document.getElementById("memoryResult"),btn=document.getElementById("storeButton");
@@ -183,6 +193,7 @@ const response=await fetch("/v1/recipient-memory",{method:"POST",headers:{"Conte
 chain:"sui",network:"mainnet",counterpartyId:document.getElementById("counterparty").value.trim(),
 address:document.getElementById("address").value.trim(),
 confirmation:{method:document.getElementById("confirmationMethod").value,reference,confirmedAt:new Date().toISOString()},
+memoryIntent:memoryIntent.value,previousAddress:memoryIntent.value==="update"?document.getElementById("previousAddress").value.trim():undefined,previousBlobId:memoryIntent.value==="update"?document.getElementById("previousBlobId").value.trim():undefined,confirmedAddressChange:memoryIntent.value==="update"?document.getElementById("confirmedAddressChange").checked:undefined,
 userApprovedStorage:true,confirmWrite:"STORE"
 })});
 const result=await response.json();
