@@ -46,12 +46,10 @@ export function preflightWithEvidence(input: {
     observedAt: observation.checkedAt,
     verified: false, // Provider response is not independently cryptographically verified.
   }] : [];
-  const historicalAddressObserved = validTatum && (
-    (observation.evidence.sender &&
-      normalizeSuiAddress(observation.evidence.sender) === proposedAddress) ||
+  const matchesProposed = (value: unknown) => {\n    if (typeof value !== "string") return false;\n    try { return normalizeSuiAddress(value) === proposedAddress; } catch { return false; }\n  };\n  const historicalAddressObserved = validTatum && (
+    matchesProposed(observation.evidence.sender) ||
     observation.evidence.balanceChanges.some(change =>
-      typeof change.address === "string" &&
-      normalizeSuiAddress(change.address) === proposedAddress)
+      matchesProposed(change.address))
   );
   const assessment = assess({
     recipient: proposedAddress, chain: "sui", network: "mainnet", evidence,
