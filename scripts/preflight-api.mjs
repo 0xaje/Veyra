@@ -1,8 +1,9 @@
 // Local-only read-only Veyra preflight HTTP API. Never signs or submits payments.
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, appendFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
+import { randomUUID } from "node:crypto";
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../apps/web");
 import { spawn } from "node:child_process";
 import { normalizeSuiAddress } from "../src/core/recipient-check.ts";
@@ -11,6 +12,32 @@ import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
 const port = Number(process.env.VEYRA_PORT || 8787);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid VEYRA_PORT");
 const maxBody = 8192;
+const historyPath = process.env.VEYRA_HISTORY_FILE ? resolve(process.env.VEYRA_HISTORY_FILE) : null;
+let historyWrite = Promise.resolve();
+function persistAssessment(entry) {
+  if (!historyPath) return Promise.resolve(false);
+  const line = JSON.stringify(entry) + "\\n";
+  const pending = historyWrite.then(async () => {
+    await mkdir(dirname(historyPath), { recursive: true, mode: 0o700 });
+    await appendFile(historyPath, line, { encoding: "utf8", mode: 0o600, flag: "a" });
+    return true;
+  });
+  historyWrite = pending.then(() => undefined, () => undefined);
+  return pending;
+}
+async function loadHistory() {
+  if (!historyPath) return { enabled: false, records: [] };
+  await historyWrite;
+  let raw;
+  try { raw = await readFile(historyPath, "utf8"); }
+  catch (error) { if (error?.code === "ENOENT") return { enabled: true, records: [] }; throw error; }
+  const records = [];
+  for (const line of raw.split("\\n").filter(Boolean).slice(-100)) {
+    try { const entry = JSON.parse(line); if (entry?.schema === "veyra.assessment.v1") records.push(entry); }
+    catch { /* Ignore incomplete journal lines. */ }
+  }
+  return { enabled: true, records: records.reverse().slice(0, 50) };
+}
 const digestPattern = /^[1-9A-HJ-NP-Za-km-z]{32,64}$/;
 
 async function tatum(digest) {
@@ -95,6 +122,10 @@ async function handler(req, res) {
       return res.end(html);
     } catch { return send(503, { error: "Interface unavailable" }); }
   }
+  if (req.method === "GET" && req.url === "/v1/history") {
+    try { return send(200, await loadHistory()); }
+    catch { return send(503, { error: "Assessment journal unavailable" }); }
+  }
   if (req.method === "GET" && req.url === "/health")
     return send(200, { status: "running", paymentAuthorized: false });
   if (req.method !== "POST" || req.url !== "/v1/preflight")
@@ -128,8 +159,26 @@ async function handler(req, res) {
       recalled: memory.records, authorizations,
       tatumObservation: chain.observation,
     });
+    const assessmentId = randomUUID();
+    const checkedAt = new Date().toISOString();
+    const providers = { tatum: chain.status, walrus: memory.status };
+    if (historyPath) {
+      try {
+        await persistAssessment({
+          schema: "veyra.assessment.v1", id: assessmentId, checkedAt,
+          counterpartyId: data.counterpartyId, proposedAddress,
+          transactionDigest: data.transactionDigest ?? null,
+          action: result.action, recipientVerdict: result.recipient.verdict,
+          providers, historicalAddressObserved: result.historicalAddressObserved,
+          transactionInvestigation: result.transactionInvestigation,
+          paymentAuthorized: false,
+        });
+      } catch {
+        return send(503, { status: "preflight_failed", action: "manual_review_required", paymentAuthorized: false, reason: "Assessment journal write failed; result not recorded" });
+      }
+    }
     return send(200, {
-      ...result, providers: { tatum: chain.status, walrus: memory.status },
+      ...result, assessmentId, checkedAt, historyPersisted: Boolean(historyPath), providers: { tatum: chain.status, walrus: memory.status },
       paymentAuthorized: false,
       limitation: "Historical transactions and local records do not establish current recipient ownership.",
     });
