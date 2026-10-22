@@ -6,6 +6,15 @@
 @media(max-width:850px){.shell{display:block}.sidebar{display:none}.mobile-bar{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border-bottom:1px solid #2b3744}.topbar{height:53px;padding:0 20px}.main{padding:26px 18px}.grid{grid-template-columns:1fr}.heading{align-items:flex-start}.heading h1{font-size:26px}.bottom{grid-template-columns:1fr}}
 @media(max-width:530px){.stats{grid-template-columns:1fr}.stat{min-height:78px}.heading{display:block}.read-only{display:inline-block;margin-top:15px}.environment{display:none}}
 .evidence-box{border:1px solid #344454;background:#101a24;border-radius:8px;margin-top:18px;padding:16px}.evidence-box h3{font-size:12px;margin:0 0 11px;color:#d8e6ef}.evidence-box p{font-size:11px;color:#8da0b2;line-height:1.65;margin:12px 0 0}.digest-link{display:block;font-size:11px;overflow-wrap:anywhere;color:#a9d8c2;text-decoration:none;margin-top:6px}.digest-link:hover{text-decoration:underline}.docs-link{color:#b2dec8;text-decoration:none;font-size:12px}.docs-link:hover{text-decoration:underline}.label-value{font-size:11px;color:#a9b8c8;overflow-wrap:anywhere}.secondary-note{font-size:11px;color:#8fa1b2;line-height:1.6;margin:12px 0 0}
+
+/* Desktop application shell: navigation and header remain visible while the workspace scrolls. */
+@media(min-width:851px){
+ html,body{height:100%;overflow:hidden}
+ .shell{height:100vh;min-height:0;overflow:hidden}
+ .sidebar{height:100vh;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+ .workspace{height:100vh;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+ .topbar{position:sticky;top:0;z-index:10;background:#0b1017}
+}
 </style></head>
 <body><div class="mobile-bar"><div class="brand"><span class="mark">V</span>veyra</div><span class="environment">Sui Mainnet</span></div>
 <div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>veyra</div>
