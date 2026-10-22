@@ -71,11 +71,32 @@ html[data-theme="dark"] .hero{border-color:#344138}
 html[data-theme="dark"] code{background:#243329;color:#c9ead0}
 html[data-theme="dark"] .shield{border-color:#42664d;color:#b8dec0}
 html[data-theme="dark"] .error{background:#3c2225;color:#ffceca}
-.veyra-theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:104px;padding:9px 13px;border:1px solid #a7c9b1;border-radius:8px;background:#f2faf4;color:#1e4430;font:650 12px/1.2 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer;white-space:nowrap}
+.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}
 html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}
 .veyra-theme-toggle:hover{filter:brightness(1.08)}
 .veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}
-</style><script>(function(){const key="veyra.theme.v1";let theme;try{theme=localStorage.getItem(key)}catch{}if(theme!=="dark"&&theme!=="light")theme=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";function apply(t){document.documentElement.setAttribute("data-theme",t);const b=document.getElementById("veyra-theme-toggle");if(b){b.textContent=t==="dark"?"☀ Day mode":"☾ Night mode";b.setAttribute("aria-label",t==="dark"?"Switch to day mode":"Switch to night mode");b.setAttribute("aria-pressed",String(t==="dark"))}}apply(theme);document.addEventListener("DOMContentLoaded",()=>{const host=document.querySelector(".right")||document.querySelector(".topbar")||document.querySelector("header");if(!host)return;const b=document.createElement("button");b.type="button";b.id="veyra-theme-toggle";b.className="veyra-theme-toggle";host.append(b);apply(theme);b.addEventListener("click",()=>{theme=theme==="dark"?"light":"dark";try{localStorage.setItem(key,theme)}catch{}apply(theme)})})})();</script></head><body><div class="shell"><header><div class="brand">veyra<span style="color:#9fdbc1">.</span> <span style="font-size:12px;color:#8595a7;font-weight:400;margin-left:12px">Documentation</span></div><a href="/">← Back to workspace</a></header>
+</style><script>(function(){
+const key="veyra.theme.v1",hour=()=>new Date().getHours();
+const automatic=()=>hour()>=7&&hour()<19?"light":"dark";
+let preference="auto";try{const saved=localStorage.getItem(key);if(["auto","dark","light"].includes(saved))preference=saved}catch{}
+const resolved=()=>preference==="auto"?automatic():preference;
+function apply(){
+const theme=resolved();document.documentElement.setAttribute("data-theme",theme);
+const b=document.getElementById("veyra-theme-toggle");
+if(b){b.textContent=theme==="dark"?"☾":"☀";b.title="Appearance: "+(preference==="auto"?"automatic ("+theme+")":theme)+". Click to switch; double-click to restore automatic.";
+b.setAttribute("aria-label","Appearance: "+(preference==="auto"?"automatic "+theme:theme)+". Click to switch. Double-click for automatic mode.");
+b.setAttribute("aria-pressed",String(preference!=="auto"))}
+}
+apply();
+document.addEventListener("DOMContentLoaded",()=>{
+const host=document.querySelector(".right")||document.querySelector(".topbar")||document.querySelector("header");if(!host)return;
+const b=document.createElement("button");b.type="button";b.id="veyra-theme-toggle";b.className="veyra-theme-toggle";host.append(b);apply();
+b.addEventListener("click",()=>{preference=resolved()==="dark"?"light":"dark";try{localStorage.setItem(key,preference)}catch{}apply()});
+b.addEventListener("dblclick",()=>{preference="auto";try{localStorage.setItem(key,preference)}catch{}apply()});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&preference==="auto")apply()});
+setInterval(()=>{if(preference==="auto")apply()},60000);
+});
+})();</script></head><body><div class="shell"><header><div class="brand">veyra<span style="color:#9fdbc1">.</span> <span style="font-size:12px;color:#8595a7;font-weight:400;margin-left:12px">Documentation</span></div><a href="/">← Back to workspace</a></header>
 <div class="hero"><div class="eyebrow">Product guide / Security model</div><h1>Recipient verification, explained.</h1><p>Understand what Veyra checks, how evidence is handled, and where independent confirmation is still required.</p></div>
 <div class="layout"><nav class="toc" aria-label="Documentation sections"><a href="#overview">01 / Overview</a><a href="#workflow">02 / Verification workflow</a><a href="#evidence">03 / Evidence sources</a><a href="#threats">04 / Threat model</a><a href="#limits">05 / Known limitations</a></nav><div class="reader">
 <section class="section" id="overview"><h2>01 / Overview</h2><p>Veyra is a read-only recipient preflight tool for Sui Mainnet. It compares a proposed destination against independently authorized recipient records, when available, and supplements the review with provider-observed blockchain history.</p><div class="panel"><span class="chip">No automatic approval</span><p>A transaction's existence is not proof of recipient identity. Veyra does not sign transactions, submit transfers, or determine that an address is safe.</p></div></section>
