@@ -18,6 +18,22 @@ Veyra is a read-only Sui Mainnet recipient preflight application. It compares th
 
 **Do not infer the number of qualifying Walrus memories from the number of recall search results.** Distinct genuine stored records, supported by unique blob IDs and relevant content, must be counted individually.
 
+## Scoped Walrus memory inventory — 22 October 2026
+
+Developer-provided output of `node --env-file=../Veyra/.env.local scripts/memwal-inventory.mjs` at `2026-10-22T21:36:12.874Z`:
+
+| Metric | Observed |
+| --- | --- |
+| Namespace | `veyra-dev` |
+| Recall status | `scoped_recall_completed` |
+| Recipient search | 3 returned, 1 exact qualifying `veyra.recipient.v1` match |
+| Smoke search | 3 returned, 1 exact smoke-statement match |
+| Unique matching blob IDs | 2 |
+| User-confirmed recipient-claim blobs | **1** — `MK8-ROPW1q5nusbhp16QennziZibSL8ZREDTPipd6EQ` (`my-sui-wallet`) |
+| SDK integration-smoke blobs | **1** — `lN6o9uxHc9IXfT3i5bQ31fg2R9HT5Sz6nrqKtguR-Bw` |
+
+**Scope and integrity:** This is a scoped semantic recall inventory, **not** an exhaustive list of all memories in the Walrus account. The smoke-test blob must not be counted as a genuine recipient claim. Neither the existence of a memory nor the confirmation metadata independently proves wallet ownership. Hackathon qualification/counting requirements remain unverified; do not claim a submission threshold has been met.
+
 ## Integrated preflight observation — 22 October 2026
 
 Developer-supplied JSON response from `POST /v1/preflight` with counterparty `my-sui-wallet`, proposed address ending `b5e9`, and historical digest `5BfxtP2UZbDMJAwm4bNjGvJuiP3fZW9QKghuwoYa7Nst`:
