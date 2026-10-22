@@ -3,7 +3,7 @@ services:
     name: veyra
     runtime: node
     plan: starter
-    buildCommand: npm ci && npm run check
+    buildCommand: npm ci && npm run check && git clone --depth 1 https://github.com/MystenLabs/sui-apis.git .render/sui-apis && test -f .render/sui-apis/proto/sui/rpc/v2/ledger_service.proto
     startCommand: node --experimental-strip-types scripts/preflight-api.mjs
     healthCheckPath: /health
     envVars:
@@ -17,5 +17,7 @@ services:
         sync: false
       - key: MEMWAL_NAMESPACE
         value: veyra-dev
+      - key: SUI_PROTO_DIR
+        value: .render/sui-apis/proto
       - key: TATUM_API_KEY
         sync: false
