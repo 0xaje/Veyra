@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: veyra
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run check
+    startCommand: node --experimental-strip-types scripts/preflight-api.mjs
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.13.0
+      - key: VEYRA_PUBLIC_MODE
+        value: "true"
+      - key: MEMWAL_PRIVATE_KEY
+        sync: false
+      - key: MEMWAL_ACCOUNT_ID
+        sync: false
+      - key: MEMWAL_NAMESPACE
+        value: veyra-dev
+      - key: TATUM_API_KEY
+        sync: false
