@@ -51,7 +51,19 @@ try {
   console.log(JSON.stringify({
     status: "observed", provider: "tatum", network: "sui-mainnet", transport: "grpc",
     method: digest ? "LedgerService/GetTransaction" : "LedgerService/GetCheckpoint",
-    endpointHost: endpoint, requestedDigest: digest || null, evidence: record,
+    endpointHost: endpoint, requestedDigest: digest || null,
+    evidence: digest ? {
+      digest: record.digest,
+      transaction: record.transaction ?? null,
+      effects: record.effects ?? null,
+      balanceChanges: record.balanceChanges ?? [],
+    } : {
+      sequenceNumber: record.sequenceNumber ?? record.summary?.sequenceNumber ?? null,
+      digest: record.digest ?? record.summary?.digest ?? null,
+      epoch: record.summary?.epoch ?? null,
+      totalNetworkTransactions: record.summary?.totalNetworkTransactions ?? null,
+      timestamp: record.summary?.timestamp ?? null,
+    },
     checkedAt: new Date().toISOString(),
     limitation: "Provider-observed blockchain evidence does not establish recipient ownership or safety.",
   }, null, 2));
