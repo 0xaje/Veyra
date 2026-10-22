@@ -1,75 +1,45 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="dark">
-<title>Veyra — Recipient preflight</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Veyra | Recipient intelligence</title>
 <style>
-:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;background:#080e19;color:#e9eef8}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 20% -10%,#14334c 0,transparent 45%),#080e19}
-.wrap{max-width:1120px;margin:auto;padding:30px 22px 80px}header{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid #263246;padding-bottom:24px}
-.brand{font-size:25px;font-weight:800;letter-spacing:-1px}.brand span{color:#63e5c0}.tag{font-size:12px;color:#91a4bc;border:1px solid #344157;padding:8px 12px;border-radius:30px}
-.hero{padding:64px 0 38px;max-width:800px}.eyebrow{color:#6ee6c7;letter-spacing:2px;font-size:12px;font-weight:700;text-transform:uppercase}
-h1{font-size:clamp(35px,5.2vw,62px);line-height:1.07;letter-spacing:-2px;margin:16px 0}p{color:#a7b6c9;line-height:1.65}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}.panel{background:#101b2b;border:1px solid #2a394d;border-radius:18px;padding:26px;min-width:0}
-h2{font-size:18px;margin:0 0 12px}label{display:block;color:#c5d3e2;font-size:13px;margin:20px 0 8px}
-input{width:100%;border:1px solid #35445b;background:#091321;border-radius:9px;padding:13px 14px;color:#f3f7ff;font:inherit;outline:none}
-input:focus{border-color:#69e3c3;box-shadow:0 0 0 3px #69e3c31c}input::placeholder{color:#65788f}
-button{border:0;border-radius:10px;background:#67e3c1;color:#071c1a;font-weight:800;padding:14px 20px;cursor:pointer;margin-top:22px;width:100%;font-size:15px}
-button:disabled{opacity:.6;cursor:wait}.muted{font-size:12px;color:#8ea0b8}.empty{border:1px dashed #34475d;border-radius:12px;padding:40px 22px;text-align:center;color:#96a7bc}
-.pill{display:inline-block;font-size:12px;font-weight:700;padding:7px 11px;border-radius:30px;background:#433122;color:#ffd9a0}
-.kv{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #28384c;font-size:13px}.kv span:first-child{color:#91a4bc}.kv span:last-child{text-align:right;overflow-wrap:anywhere}
-.reason{border-left:3px solid #e8af61;padding:9px 13px;margin:12px 0;background:#1b2533;color:#cbd7e6;font-size:13px;line-height:1.55}
-#results[hidden],#error[hidden]{display:none}#error{color:#ffb6b6;font-size:13px;margin-top:14px}.foot{margin-top:26px;color:#899db4;font-size:12px}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.hero{padding-top:38px}.panel{padding:20px}}
-</style>
-</head>
-<body><div class="wrap">
-<header><div class="brand">veyra<span>.</span></div><div class="tag">Sui Mainnet · Read-only preflight</div></header>
-<section class="hero"><div class="eyebrow">Verify before you send</div><h1>Know the address.<br>Question the evidence.</h1><p>Compare a proposed recipient against remembered records and genuine blockchain observations. No automatic approvals, no transaction signing, no invented safety scores.</p></section>
-<div class="layout">
-<section class="panel"><h2>Recipient preflight</h2><p class="muted">Enter the intended counterparty and destination. A transaction digest is optional; it only provides historical context.</p>
-<form id="preflight">
-<label for="counterparty">Counterparty identifier</label><input id="counterparty" name="counterpartyId" required maxlength="128" placeholder="e.g. supplier-001" autocomplete="off">
-<label for="address">Sui recipient address</label><input id="address" name="proposedAddress" required placeholder="0x..." pattern="0x[0-9a-fA-F]{1,64}" spellcheck="false" autocomplete="off">
-<label for="digest">Transaction digest <span class="muted">(optional)</span></label><input id="digest" name="transactionDigest" placeholder="Historical transaction digest" spellcheck="false" autocomplete="off">
-<button id="submit" type="submit">Run read-only preflight →</button>
-<div id="error" role="alert" hidden></div>
-</form></section>
-<section class="panel"><h2>Assessment</h2><div id="empty" class="empty">Enter a recipient and run a preflight to see evidence, provider status, and required next steps.</div>
-<div id="results" hidden aria-live="polite">
-<div class="pill" id="verdict">Manual review required</div>
-<div class="kv"><span>Recipient record</span><span id="recipientVerdict"></span></div>
-<div class="kv"><span>Tatum</span><span id="tatum"></span></div>
-<div class="kv"><span>Walrus Memory</span><span id="walrus"></span></div>
-<div class="kv"><span>Historical address observed</span><span id="historical"></span></div>
-<div class="kv"><span>Payment authorized</span><span>No</span></div>
-<h2 style="margin-top:26px">Why review is required</h2><div id="reasons"></div>
-<p class="muted">Historical participation does not prove current recipient ownership. Confirm destination changes through an independent trusted channel.</p>
-</div></section></div>
-<div class="foot">Veyra does not connect a wallet or execute transfers. Local development interface; do not expose this service to the public internet.</div>
-</div>
+:root{font-family:Inter,"Segoe UI",Arial,sans-serif;color:#e7edf6;background:#0b1017;font-synthesis:none}*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:wait;opacity:.6}a{color:inherit}.shell{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}.sidebar{background:#101720;border-right:1px solid #27303c;padding:29px 19px;display:flex;flex-direction:column;gap:32px}.brand{display:flex;align-items:center;gap:12px;padding:2px 9px;font-size:23px;font-weight:750;letter-spacing:-1px}.mark{display:grid;place-items:center;background:#e0eee9;color:#10251f;width:34px;height:34px;border-radius:9px;font-size:21px;font-weight:800}.side-label{color:#758699;text-transform:uppercase;font-size:10px;letter-spacing:1.8px;margin:0 10px 13px}.nav-item{display:flex;align-items:center;gap:12px;padding:13px;border-radius:8px;font-size:13px;color:#a4b1c0;text-decoration:none}.nav-item.active{background:#23312e;color:#d4f0e4;font-weight:650}.nav-icon{width:18px;text-align:center;font-size:16px}.side-note{margin-top:auto;padding:17px;border:1px solid #303d48;border-radius:11px;background:#141e28}.side-note strong{font-size:12px}.side-note p{font-size:12px;color:#96a5b7;line-height:1.6;margin-bottom:0}.workspace{min-width:0}.topbar{height:74px;border-bottom:1px solid #27303c;display:flex;align-items:center;justify-content:space-between;padding:0 40px;gap:20px}.breadcrumbs{font-size:13px;color:#9eacba}.breadcrumbs b{color:#eef3f9;font-weight:600}.right{display:flex;align-items:center;gap:12px;font-size:12px;color:#9aaabc}.dot{width:7px;height:7px;background:#86c7ac;border-radius:50%;display:inline-block}.environment{border:1px solid #36434f;border-radius:6px;padding:7px 10px}.main{max-width:1300px;margin:auto;padding:37px 40px 60px}.heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:30px}.overline{font-size:11px;color:#89bfa9;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}.heading h1{font-size:30px;letter-spacing:-.9px;margin:9px 0 9px;font-weight:690}.heading p{margin:0;color:#93a2b3;font-size:13px;line-height:1.6}.read-only{border:1px solid #35433f;background:#17251f;color:#b2ddc7;padding:9px 13px;border-radius:6px;font-size:11px;white-space:nowrap}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:18px}.stat{background:#131b25;border:1px solid #2a3542;border-radius:10px;padding:18px 20px;min-height:108px}.stat .label{font-size:11px;color:#94a5b5;letter-spacing:.2px}.stat .value{margin:12px 0 4px;font-size:18px;font-weight:650;letter-spacing:-.3px}.stat .sub{font-size:11px;color:#718397}.status-mark{color:#dcb581}.grid{display:grid;grid-template-columns:minmax(330px, .9fr) minmax(380px,1.1fr);gap:18px;align-items:start}.panel{border:1px solid #2b3744;border-radius:11px;background:#131b25;overflow:hidden}.panel-head{padding:22px 24px 19px;border-bottom:1px solid #283440;display:flex;justify-content:space-between;gap:10px;align-items:center}.panel-head h2{margin:0;font-size:15px;font-weight:650}.panel-head small{color:#8294a6;font-size:11px}.panel-body{padding:23px 24px}.section-caption{font-size:12px;color:#93a4b6;line-height:1.65;margin:0 0 24px}.field{margin-bottom:21px}label{display:block;font-size:12px;color:#cbd6e1;margin-bottom:9px;font-weight:550}.hint{font-size:11px;color:#8292a4;font-weight:400;margin-left:5px}input{display:block;width:100%;background:#0e151e;border:1px solid #364350;color:#eaf2f9;border-radius:7px;padding:13px 14px;outline:none;font-size:13px;transition:border-color .15s}input:focus{border-color:#8dbda7;box-shadow:0 0 0 2px #86c4a520}input::placeholder{color:#687b8f}.action{width:100%;border:0;border-radius:7px;background:#c3e5d3;color:#14261d;font-size:13px;font-weight:750;padding:15px 20px;margin-top:3px}.action:hover{background:#d5f1e2}.form-note{display:flex;gap:9px;color:#7e91a4;font-size:11px;line-height:1.6;margin-top:17px}.form-note:before{content:"ⓘ";color:#a7c4b6;font-size:14px}.result-intro{display:flex;gap:16px;align-items:center;padding:22px 24px;background:#161f29;border-bottom:1px solid #283440}.shield{height:42px;width:42px;border:1px solid #526056;border-radius:10px;display:grid;place-items:center;color:#c8dcbf;font-size:22px;flex-shrink:0}.result-intro strong{font-size:14px}.result-intro p{margin:5px 0 0;color:#899bad;font-size:12px;line-height:1.5}.placeholder{padding:44px 24px 54px;text-align:center}.placeholder .glyph{font-size:30px;color:#839b93;margin-bottom:15px}.placeholder h3{font-size:14px;font-weight:600;margin:0 0 10px}.placeholder p{font-size:12px;color:#8698aa;max-width:300px;margin:auto;line-height:1.7}.step-row{display:flex;gap:11px;align-items:center;border-top:1px solid #273440;padding:16px 24px;color:#a3b0bd;font-size:12px}.step-row b{font-weight:500;color:#d4e2ec}.step-number{width:23px;height:23px;border:1px solid #3a4958;display:grid;place-items:center;border-radius:50%;font-size:11px;color:#a6b8c6}.result-content{padding:23px 24px}.verdict{display:inline-flex;align-items:center;background:#382d24;border:1px solid #65503b;color:#f1cb9a;border-radius:6px;padding:8px 11px;font-size:12px;font-weight:650;margin-bottom:18px}.kv{display:flex;justify-content:space-between;gap:18px;padding:13px 0;border-bottom:1px solid #293641;font-size:12px}.kv span:first-child{color:#91a3b5}.kv span:last-child{text-align:right;color:#e2eaf1;overflow-wrap:anywhere}.reason{border-left:2px solid #caa77b;background:#1b2530;padding:12px 14px;margin-top:10px;color:#bdcbd9;font-size:12px;line-height:1.65}.reason-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8fa3b5;margin:22px 0 10px}.bottom{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:18px}.mini{border:1px solid #293643;border-radius:10px;padding:21px 23px;background:#111922}.mini h3{font-size:13px;margin:0 0 9px}.mini p{color:#889bac;font-size:12px;line-height:1.65;margin:0}.mini a{color:#b9dec9;text-decoration:underline;text-underline-offset:3px}.error{margin-top:12px;padding:12px;background:#3b2528;color:#ffb7b7;border-radius:6px;font-size:12px}.error[hidden],#results[hidden],#empty[hidden]{display:none}.mobile-bar{display:none}
+@media(max-width:1100px){.shell{grid-template-columns:190px minmax(0,1fr)}.topbar{padding:0 24px}.main{padding:30px 24px}.grid{grid-template-columns:1fr 1fr;gap:12px}.panel-body,.panel-head{padding:19px}.stats{gap:10px}}
+@media(max-width:850px){.shell{display:block}.sidebar{display:none}.mobile-bar{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border-bottom:1px solid #2b3744}.topbar{height:53px;padding:0 20px}.main{padding:26px 18px}.grid{grid-template-columns:1fr}.heading{align-items:flex-start}.heading h1{font-size:26px}.bottom{grid-template-columns:1fr}}
+@media(max-width:530px){.stats{grid-template-columns:1fr}.stat{min-height:78px}.heading{display:block}.read-only{display:inline-block;margin-top:15px}.environment{display:none}}
+</style></head>
+<body><div class="mobile-bar"><div class="brand"><span class="mark">V</span>veyra</div><span class="environment">Sui Mainnet</span></div>
+<div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>veyra</div>
+<nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item active" href="/" aria-current="page"><span class="nav-icon">◈</span>Recipient preflight</a><div class="nav-item" aria-disabled="true"><span class="nav-icon">▤</span>Evidence history <span style="margin-left:auto;font-size:10px;color:#748496">Soon</span></div><div class="nav-item" aria-disabled="true"><span class="nav-icon">◎</span>Memory records <span style="margin-left:auto;font-size:10px;color:#748496">Soon</span></div></nav>
+<div class="side-note"><strong>Read-only environment</strong><p>No wallet signing or transfer execution. Evidence must be independently assessed.</p></div></aside>
+<div class="workspace"><header class="topbar"><div class="breadcrumbs">Workspace &nbsp;/&nbsp; <b>Recipient preflight</b></div><div class="right"><span class="dot"></span> Local service <span class="environment">Sui Mainnet</span></div></header>
+<main class="main"><div class="heading"><div><div class="overline">Transaction intelligence / 01</div><h1>Recipient preflight</h1><p>Evaluate destination integrity against historical evidence and authorized memory records.</p></div><span class="read-only">◉ &nbsp; Read-only assessment</span></div>
+<section class="stats" aria-label="Verification boundaries"><div class="stat"><div class="label">Network</div><div class="value">Sui Mainnet</div><div class="sub">Live network context</div></div><div class="stat"><div class="label">Evidence sources</div><div class="value">Tatum <span style="color:#74899a">/</span> Walrus</div><div class="sub">Availability checked per request</div></div><div class="stat"><div class="label">Authorization policy</div><div class="value status-mark">Manual review</div><div class="sub">No automatic payment approval</div></div></section>
+<div class="grid"><section class="panel"><div class="panel-head"><h2>01 &nbsp; Destination details</h2><small>Required inputs</small></div><div class="panel-body"><p class="section-caption">Specify who you intend to pay and the exact destination. Historical transaction evidence is optional.</p>
+<form id="preflight"><div class="field"><label for="counterparty">Counterparty identifier</label><input id="counterparty" name="counterpartyId" required maxlength="128" placeholder="e.g. supplier-001" autocomplete="off"></div>
+<div class="field"><label for="address">Destination address <span class="hint">Sui / 0x</span></label><input id="address" name="proposedAddress" required placeholder="0x…" pattern="0x[0-9a-fA-F]{1,64}" spellcheck="false" autocomplete="off"></div>
+<div class="field"><label for="digest">Transaction digest <span class="hint">Optional historical context</span></label><input id="digest" name="transactionDigest" placeholder="Enter a real transaction digest" spellcheck="false" autocomplete="off"></div>
+<button class="action" id="submit" type="submit">Run recipient assessment &nbsp; ↗</button><div id="error" class="error" role="alert" hidden></div><div class="form-note">This check does not initiate, sign, or authorize a transfer.</div></form></div></section>
+<section class="panel"><div class="panel-head"><h2>02 &nbsp; Assessment report</h2><small>Evidence-led review</small></div>
+<div id="empty"><div class="result-intro"><div class="shield">◇</div><div><strong>Awaiting recipient details</strong><p>No assessment has been performed in this session.</p></div></div><div class="placeholder"><div class="glyph">◎</div><h3>Ready to evaluate a destination</h3><p>Submit a counterparty and address to inspect provider observations, memory matches, and required review actions.</p></div><div class="step-row"><span class="step-number">1</span><b>Compare exact destination</b></div><div class="step-row"><span class="step-number">2</span><b>Inspect available evidence</b></div><div class="step-row"><span class="step-number">3</span><b>Return a review decision</b></div></div>
+<div id="results" hidden aria-live="polite"><div class="result-intro"><div class="shield">!</div><div><strong>Assessment completed</strong><p>Provider observations are not proof of recipient ownership.</p></div></div><div class="result-content"><div class="verdict" id="verdict">Manual review required</div><div class="kv"><span>Recipient record</span><span id="recipientVerdict"></span></div><div class="kv"><span>Tatum evidence</span><span id="tatum"></span></div><div class="kv"><span>Walrus Memory</span><span id="walrus"></span></div><div class="kv"><span>Historical address participation</span><span id="historical"></span></div><div class="kv"><span>Payment authorization</span><span>Not authorized</span></div><div class="reason-title">Assessment rationale</div><div id="reasons"></div></div></div></section></div>
+<div class="bottom"><section class="mini"><h3>Evidence is not identity</h3><p>Historical activity can establish participation in a transaction, not current control or authorization of a recipient address.</p></section><section class="mini"><h3>Independent confirmation required</h3><p>When evidence is missing or conflicts, verify the destination through a trusted out-of-band channel before paying.</p></section></div>
+</main></div></div>
 <script>
-const form=document.getElementById("preflight");
-const error=document.getElementById("error");
-const button=document.getElementById("submit");
+const form=document.getElementById("preflight"),error=document.getElementById("error"),button=document.getElementById("submit");
+const field=id=>document.getElementById(id).value.trim();
 const setText=(id,value)=>{document.getElementById(id).textContent=String(value)};
 form.addEventListener("submit",async event=>{
- event.preventDefault();error.hidden=true;button.disabled=true;button.textContent="Checking evidence…";
- const payload={counterpartyId:document.getElementById('counterparty').value.trim(),proposedAddress:document.getElementById('address').value.trim()};
- const digest=document.getElementById('digest').value.trim();if(digest)payload.transactionDigest=digest;
- try{
-  const response=await fetch("/v1/preflight",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-  const data=await response.json();
-  if(!response.ok||data.status!=="read_only_preflight")throw new Error(data.reason||data.error||"Preflight unavailable");
-  document.getElementById("empty").hidden=true;document.getElementById("results").hidden=false;
-  setText("verdict",data.action==="manual_review_required"?"Manual review required":"Review required");
-  setText("recipientVerdict",data.recipient?.verdict||"Unknown");
-  setText("tatum",data.providers?.tatum||"Unknown");setText("walrus",data.providers?.walrus||"Unknown");
-  setText("historical",data.historicalAddressObserved?"Yes — participation only":"Not established");
-  const reasons=document.getElementById("reasons");reasons.replaceChildren();
-  for(const reason of data.reasons||[]){const node=document.createElement("div");node.className="reason";node.textContent=reason;reasons.append(node)}
- }catch(e){error.textContent=e instanceof Error?e.message:"Request failed";error.hidden=false}
- finally{button.disabled=false;button.textContent="Run read-only preflight →"}
+event.preventDefault();error.hidden=true;button.disabled=true;button.textContent="Assessing recipient…";
+const payload={counterpartyId:field("counterparty"),proposedAddress:field("address")};const digest=field("digest");if(digest)payload.transactionDigest=digest;
+try{
+const response=await fetch("/v1/preflight",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+const data=await response.json();if(!response.ok||data.status!=="read_only_preflight")throw new Error(data.reason||data.error||"Preflight unavailable");
+document.getElementById("empty").hidden=true;document.getElementById("results").hidden=false;
+setText("verdict","Manual review required");setText("recipientVerdict",data.recipient?.verdict||"Unknown");
+setText("tatum",data.providers?.tatum||"Unknown");setText("walrus",data.providers?.walrus||"Unknown");
+setText("historical",data.historicalAddressObserved?"Observed · participation only":"Not established");
+const reasons=document.getElementById("reasons");reasons.replaceChildren();
+for(const reason of data.reasons||[]){const node=document.createElement("div");node.className="reason";node.textContent=reason;reasons.append(node)}
+}catch(e){error.textContent=e instanceof Error?e.message:"Request failed";error.hidden=false}
+finally{button.disabled=false;button.textContent="Run recipient assessment ↗"}
 });
 </script></body></html>
