@@ -31,6 +31,22 @@ export function preflightWithEvidence(input: {
     recalled: input.recalled,
     authorizations: input.authorizations,
   });
+  // Informational comparison of recalled claims; never authorizes payment.
+  const addresses = new Set();
+  for (const item of input.recalled) {
+    if (item.record.counterpartyId !== input.counterpartyId ||
+        item.record.chain !== "sui" || item.record.network !== "mainnet") continue;
+    try { addresses.add(normalizeSuiAddress(item.record.address)); } catch {}
+  }
+  const rememberedAddresses = [...addresses];
+  const memoryComparison = {
+    status: rememberedAddresses.length === 0 ? "not_found" :
+      rememberedAddresses.length > 1 ? "conflicting_memories" :
+      rememberedAddresses[0] === proposedAddress ? "matches_remembered_claim" : "differs_from_remembered_claim",
+    rememberedAddresses,
+    independentlyVerified: false,
+    paymentAuthorized: false,
+  };
   const observation = input.tatumObservation;
   const validTatum = !!observation &&
     observation.status === "observed" &&
@@ -61,6 +77,7 @@ export function preflightWithEvidence(input: {
   return {
     status: "read_only_preflight" as const,
     recipient,
+    memoryComparison,
     historicalAddressObserved: Boolean(historicalAddressObserved),
     historicalObservationType: historicalAddressObserved ? "transaction_participant_only" : "none",
     chainEvidence: assessment,
