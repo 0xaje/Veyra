@@ -128,6 +128,46 @@ async function handler(req, res) {
   }
   if (req.method === "GET" && req.url === "/health")
     return send(200, { status: "running", paymentAuthorized: false });
+  if (req.method === "POST" && req.url === "/v1/recipient-memory") {
+    if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+      return send(415, { error: "JSON content type required" });
+    const origin = req.headers.origin;
+    if (origin && origin !== `http://127.0.0.1:${port}`)
+      return send(403, { error: "Cross-origin memory writes forbidden" });
+    if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID)
+      return send(503, { error: "Walrus credentials unavailable" });
+    try {
+      let body = "";
+      for await (const chunk of req) {
+        body += chunk.toString();
+        if (Buffer.byteLength(body) > maxBody) return send(413, { error: "Request too large" });
+      }
+      const input = JSON.parse(body);
+      if (input.userApprovedStorage !== true || input.confirmWrite !== "STORE")
+        return send(400, { error: "Explicit storage consent and STORE confirmation required" });
+      const { prepareRecipientRegistration } = await import("../src/core/recipient-registration.ts");
+      const { registerRecipientWithWalrus } = await import("../src/core/recipient-memory-writer.ts");
+      const registration = prepareRecipientRegistration(input);
+      const { MemWal } = await import("@mysten-incubation/memwal");
+      const writer = MemWal.create({
+        key: process.env.MEMWAL_PRIVATE_KEY,
+        accountId: process.env.MEMWAL_ACCOUNT_ID,
+        serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
+        namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+      });
+      const health = await writer.health();
+      if (health.write_ready !== true || !["ok", "healthy"].includes(health.writes))
+        return send(503, { error: "Walrus writes are not ready" });
+      const outcome = await registerRecipientWithWalrus(input, writer, { writesEnabled: true });
+      return send(outcome.state.status === "stored" ? 200 : 503, {
+        ...outcome, counterpartyId: registration.record.counterpartyId,
+        address: registration.record.address, paymentAuthorized: false,
+      });
+    } catch (error) {
+      return send(400, { status: "registration_failed", paymentAuthorized: false,
+        error: error instanceof Error ? error.message : "Registration failed" });
+    }
+  }
   if (req.method !== "POST" || req.url !== "/v1/preflight")
     return send(404, { error: "Not found" });
   try {
