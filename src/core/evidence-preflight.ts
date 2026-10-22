@@ -42,13 +42,13 @@ export function preflightWithEvidence(input: {
     Date.parse(observation.checkedAt) <= Date.now();
   const evidence: Evidence[] = validTatum ? [{
     source: "tatum",
-    reference: observation.evidence.digest,
-    observedAt: observation.checkedAt,
+    reference: observation!.evidence.digest,
+    observedAt: observation!.checkedAt,
     verified: false, // Provider response is not independently cryptographically verified.
   }] : [];
   const matchesProposed = (value: unknown) => {\n    if (typeof value !== "string") return false;\n    try { return normalizeSuiAddress(value) === proposedAddress; } catch { return false; }\n  };\n  const historicalAddressObserved = validTatum && (
-    matchesProposed(observation.evidence.sender) ||
-    observation.evidence.balanceChanges.some(change =>
+    matchesProposed(observation?.evidence.sender) ||
+    (observation?.evidence.balanceChanges ?? []).some(change =>
       matchesProposed(change.address))
   );
   const assessment = assess({
