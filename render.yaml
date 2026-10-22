@@ -3,7 +3,7 @@ services:
     name: veyra
     runtime: node
     plan: starter
-    buildCommand: npm ci && npm run check && git clone --depth 1 https://github.com/MystenLabs/sui-apis.git .render/sui-apis && test -f .render/sui-apis/proto/sui/rpc/v2/ledger_service.proto
+    buildCommand: npm ci && npm run check && mkdir -p .render && git clone --depth 1 https://github.com/MystenLabs/sui-apis.git .render/sui-apis && test -f .render/sui-apis/proto/sui/rpc/v2/ledger_service.proto
     startCommand: node --experimental-strip-types scripts/preflight-api.mjs
     healthCheckPath: /health
     envVars:
