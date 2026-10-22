@@ -111,3 +111,27 @@ test("duplicate memories of same address do not create a false conflict", () => 
   assert.equal(result.memoryComparison.rememberedAddresses.length, 1);
   assert.equal(result.paymentAuthorized, false);
 });
+
+test("integrated preflight exposes memory timeline without trusting a newer changed address", () => {
+  const older = memory(proposedAddress);
+  const newer = {
+    ...memory(rememberedAddress),
+    blobId: "walrus-new-blob",
+    record: {
+      ...memory(rememberedAddress).record,
+      confirmation: {
+        ...memory(rememberedAddress).record.confirmation,
+        confirmedAt: "2026-10-22T17:00:00.000Z",
+      },
+    },
+  };
+  const result = preflightWithEvidence({
+    counterpartyId: "vendor", proposedAddress,
+    recalled: [older, newer], authorizations: [],
+  });
+  assert.equal(result.memoryTimeline.status, "address_change_requires_review");
+  assert.equal(result.memoryTimeline.entries.length, 2);
+  assert.equal(result.memoryTimeline.latestClaim?.address, rememberedAddress);
+  assert.equal(result.recipient.verdict, "review_required");
+  assert.equal(result.paymentAuthorized, false);
+});
