@@ -14,7 +14,7 @@ Veyra is a **read-only Sui Mainnet recipient preflight application** for the Tat
 - A consented recipient-update form that checks the previous Walrus claim before attempting storage; a newer claim never automatically supersedes an older address.
 - Expandable technical evidence alongside the consumer-facing assessment.
 
-**Verification:** On October 22, 2026, the developer ran `npm run check` successfully and reported **57 passing tests, 0 failures** at commit `0ca6f60`. Subsequent HTTP-route tests are committed but not yet verified locally. Live Tatum Sui Mainnet gRPC checkpoint and transaction observations and genuine Walrus write/recall are documented in [integration evidence](docs/INTEGRATION-EVIDENCE.md). A real recipient claim was recalled and displayed in the Memory Status timeline. No real recipient address-update write has been verified. Event memory-count qualification and final submission remain pending.
+**Verification:** On October 23, 2026 (Nigeria time), the developer ran `npm run check` successfully and reported **58 passing tests, 0 failures** after the merge into `main` (`a7cc04c`). These are local automated checks, not fresh hosted or live-provider verification. Live Tatum Sui Mainnet gRPC observations and genuine Walrus write/recall are recorded in [integration evidence](docs/INTEGRATION-EVIDENCE.md). One genuine recipient claim has been identified; the SDK smoke-test memory is not a recipient claim. No real recipient address-update write has been verified. Event memory-count qualification and final submission remain pending.
 
 ## Quick start
 
