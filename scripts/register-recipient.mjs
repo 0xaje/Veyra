@@ -41,10 +41,10 @@ if (new URL(serverUrl).protocol !== "https:") {
 const response = await fetch(new URL("/health", serverUrl), { signal: AbortSignal.timeout(15000) });
 if (!response.ok) throw new Error(`Relayer health HTTP ${response.status}`);
 const health = await response.json();
-if (health.write_ready !== true || health.writes !== "healthy") {
+if (health.write_ready !== true || !["ok", "healthy"].includes(health.writes)) {
   console.log(JSON.stringify({
     status: "not_attempted",
-    reason: "Relayer writes are not explicitly healthy; live registration is blocked.",
+    reason: "Relayer does not report ready and operational writes; live registration is blocked.",
     writeReady: health.write_ready,
     writes: health.writes,
   }, null, 2));

@@ -6,7 +6,7 @@ export type RecipientRegistrationInput = {
   counterpartyId: string;
   address: string;
   confirmation: {
-    method: "independent_contact" | "in_person" | "signed_message";
+    method: "independent_contact" | "in_person" | "signed_message" | "self_wallet_check";
     confirmedAt: string;
     reference: string;
   };
@@ -36,8 +36,8 @@ export function prepareRecipientRegistration(input: RecipientRegistrationInput):
     throw new Error("Counterparty ID must contain 1–128 characters");
   }
   const { method, confirmedAt, reference } = input.confirmation;
-  if (!["independent_contact", "in_person", "signed_message"].includes(method)) {
-    throw new Error("An accepted independent confirmation method is required");
+  if (!["independent_contact", "in_person", "signed_message", "self_wallet_check"].includes(method)) {
+    throw new Error("An accepted confirmation method is required");
   }
   const timestamp = Date.parse(confirmedAt);
   if (!Number.isFinite(timestamp) || new Date(timestamp).toISOString() !== confirmedAt ||
