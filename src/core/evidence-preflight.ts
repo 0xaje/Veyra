@@ -64,6 +64,22 @@ export function preflightWithEvidence(input: {
     historicalAddressObserved: Boolean(historicalAddressObserved),
     historicalObservationType: historicalAddressObserved ? "transaction_participant_only" : "none",
     chainEvidence: assessment,
+    transactionInvestigation: validTatum ? {
+      provider: "tatum" as const,
+      network: "sui-mainnet" as const,
+      transport: observation!.transport,
+      method: observation!.method,
+      digest: observation!.evidence.digest,
+      sender: observation!.evidence.sender,
+      executionStatus: observation!.evidence.executionStatus,
+      balanceChanges: observation!.evidence.balanceChanges.map(change => ({
+        address: change.address, amount: change.amount, coinType: change.coinType,
+        matchesProposedRecipient: matchesProposed(change.address),
+      })),
+      checkedAt: observation!.checkedAt,
+      independentlyVerified: false as const,
+      limitation: "Provider-observed historical transaction data does not prove recipient identity or payment authorization.",
+    } : null,
     action: "manual_review_required" as const,
     paymentAuthorized: false as const,
     reasons: [
