@@ -51,3 +51,63 @@ test("no provider evidence remains insufficient", () => {
   assert.equal(result.chainEvidence.verdict, "insufficient_evidence");
   assert.equal(result.paymentAuthorized, false);
 });
+
+const rememberedAddress = "0x" + "b".repeat(64);
+const memory = (address: string, counterpartyId = "vendor") => ({
+  blobId: "walrus-test-blob",
+  record: {
+    chain: "sui" as const, network: "mainnet" as const,
+    counterpartyId, address,
+    confirmation: {
+      method: "self_wallet_check" as const,
+      confirmedAt: "2026-10-22T16:00:00.000Z",
+      reference: "Test-only self wallet claim; no ownership established",
+    },
+  },
+});
+test("matching recalled claim is informational and never authorizes payment", () => {
+  const result = preflightWithEvidence({
+    counterpartyId: "vendor", proposedAddress,
+    recalled: [memory(proposedAddress)], authorizations: [],
+  });
+  assert.equal(result.memoryComparison.status, "matches_remembered_claim");
+  assert.equal(result.memoryComparison.independentlyVerified, false);
+  assert.equal(result.memoryComparison.paymentAuthorized, false);
+  assert.equal(result.paymentAuthorized, false);
+  assert.equal(result.action, "manual_review_required");
+});
+test("one-character address change is explicitly marked different", () => {
+  const result = preflightWithEvidence({
+    counterpartyId: "vendor", proposedAddress,
+    recalled: [memory("0x" + "a".repeat(63) + "b")], authorizations: [],
+  });
+  assert.equal(result.memoryComparison.status, "differs_from_remembered_claim");
+  assert.equal(result.paymentAuthorized, false);
+  assert.equal(result.recipient.verdict, "review_required");
+});
+test("unrelated counterparty memory does not imply an address match", () => {
+  const result = preflightWithEvidence({
+    counterpartyId: "vendor", proposedAddress,
+    recalled: [memory(proposedAddress, "other-vendor")], authorizations: [],
+  });
+  assert.equal(result.memoryComparison.status, "not_found");
+  assert.equal(result.paymentAuthorized, false);
+});
+test("two different recalled addresses are conflicting, not trusted", () => {
+  const result = preflightWithEvidence({
+    counterpartyId: "vendor", proposedAddress,
+    recalled: [memory(proposedAddress), memory(rememberedAddress)], authorizations: [],
+  });
+  assert.equal(result.memoryComparison.status, "conflicting_memories");
+  assert.equal(result.memoryComparison.rememberedAddresses.length, 2);
+  assert.equal(result.paymentAuthorized, false);
+});
+test("duplicate memories of same address do not create a false conflict", () => {
+  const result = preflightWithEvidence({
+    counterpartyId: "vendor", proposedAddress,
+    recalled: [memory(proposedAddress), memory(proposedAddress)], authorizations: [],
+  });
+  assert.equal(result.memoryComparison.status, "matches_remembered_claim");
+  assert.equal(result.memoryComparison.rememberedAddresses.length, 1);
+  assert.equal(result.paymentAuthorized, false);
+});
