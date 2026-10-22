@@ -10,10 +10,11 @@ Veyra is a **read-only Sui Mainnet recipient preflight application** for the Tat
 - Real Walrus Memory SDK integration for consented recipient registration and recall.
 - Optional historical Sui Mainnet transaction investigation through Tatum gRPC.
 - Exact-address comparison, conflicting-memory detection, and fail-closed manual-review outcomes.
-- Session history, documentation, and compact automatic day/night appearance.
+- Session history, documentation, memory-claim timeline, and compact automatic day/night appearance.
+- A consented recipient-update form that checks the previous Walrus claim before attempting storage; a newer claim never automatically supersedes an older address.
 - Expandable technical evidence alongside the consumer-facing assessment.
 
-**Verification:** At commit `2a8b711`, the developer ran `npm run check` successfully and reported **41 passing tests, 0 failures**. UI refinements after that commit still need a fresh local run and browser review. Genuine Walrus memory storage and recall and a changed-address assessment were observed during development. The final live Tatum evidence bundle and qualification against event submission rules are still pending.
+**Verification:** On October 22, 2026, the developer ran `npm run check` successfully and reported **57 passing tests, 0 failures** at commit `0ca6f60`. Subsequent HTTP-route tests are committed but not yet verified locally. Live Tatum Sui Mainnet gRPC checkpoint and transaction observations and genuine Walrus write/recall are documented in [integration evidence](docs/INTEGRATION-EVIDENCE.md). A real recipient claim was recalled and displayed in the Memory Status timeline. No real recipient address-update write has been verified. Event memory-count qualification and final submission remain pending.
 
 ## Quick start
 
@@ -53,6 +54,8 @@ Walrus memory is not an identity oracle. Historical onchain participation does n
 - [Integration evidence and outstanding submission checks](docs/INTEGRATION-EVIDENCE.md)
 - `src/core/evidence-preflight.ts` — provider observations and informational memory comparison.
 - `src/core/recipient-preflight.ts` — exact record authorization and recipient verdicts.
+- `src/core/recipient-memory-timeline.ts` — read-only history and conflicting-address interpretation.
+- `src/core/recipient-update.ts` — fail-closed validation of recipient updates before writer initialization.
 - `scripts/preflight-api.mjs` — read-only assessment and explicit Walrus write endpoints.
 - `scripts/memwal-smoke.mjs` — genuine SDK write-and-recall smoke test; **creates a real memory**.
 - `scripts/memwal-recall.mjs` — read-only cross-process recall of an existing smoke-test record.
