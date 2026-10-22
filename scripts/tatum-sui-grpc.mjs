@@ -14,7 +14,9 @@ const key = process.env.TATUM_API_KEY;
 const protoDir = process.env.SUI_PROTO_DIR && resolve(process.env.SUI_PROTO_DIR);
 const digest = process.argv[2];
 const auto = digest === "--auto";
-const MAX_CANDIDATES = 8;
+const MAX_CANDIDATES = 30;
+const MAX_CHECKPOINTS = 5;
+const ZERO_ADDRESS = `0x${"0".repeat(64)}`;
 if (!key) { console.error("TATUM_API_KEY is missing"); process.exit(2); }
 if (!protoDir || !existsSync(join(protoDir, "sui/rpc/v2/ledger_service.proto"))) {
   console.error("Set SUI_PROTO_DIR to the official sui-apis/proto directory"); process.exit(2);
@@ -40,30 +42,64 @@ function call(method, request) {
   });
 }
 try {
-  const checkpoint = auto ? (await call("getCheckpoint", { readMask: { paths: ["sequence_number", "digest", "transactions"] } })).checkpoint : null;
-  if (auto && !checkpoint) throw new Error("Checkpoint unavailable");
-  const candidates = auto ? (checkpoint.transactions ?? []).map(t => typeof t === "string" ? t : t.digest).filter(Boolean).slice(0, MAX_CANDIDATES) : [];
-  if (auto && candidates.length === 0) throw new Error("Checkpoint returned no transaction digests; cannot claim live transaction evidence");
-  const selectedDigest = auto ? candidates[0] : digest;
-  const response = selectedDigest
-    ? await call("getTransaction", {
-        digest: selectedDigest,
-        readMask: { paths: ["digest", "transaction", "effects", "balance_changes"] },
-      })
-    : await call("getCheckpoint", {
-        readMask: { paths: ["sequence_number", "digest", "summary"] },
-      });
-  const record = selectedDigest ? response.transaction : response.checkpoint;
-  if (!record || (selectedDigest && record.digest !== selectedDigest)) throw new Error("Missing or mismatched verified response");
+  const getTransaction = async (txDigest) => {
+    const result = await call("getTransaction", {
+      digest: txDigest,
+      readMask: { paths: ["digest", "transaction", "effects", "balance_changes"] },
+    });
+    if (!result.transaction || result.transaction.digest !== txDigest) {
+      throw new Error("Missing or mismatched transaction digest");
+    }
+    return result.transaction;
+  };
+  let checkpoint = null;
+  let record = null;
+  let selectedDigest = digest && !auto ? digest : null;
+  let inspected = 0;
+  if (auto) {
+    const latest = (await call("getCheckpoint", {
+      readMask: { paths: ["sequence_number", "digest", "transactions"] },
+    })).checkpoint;
+    if (!latest?.sequenceNumber) throw new Error("Latest checkpoint sequence unavailable");
+    for (let offset = 0; offset < MAX_CHECKPOINTS && !record; offset++) {
+      checkpoint = offset === 0 ? latest : (await call("getCheckpoint", {
+        sequenceNumber: String(BigInt(latest.sequenceNumber) - BigInt(offset)),
+        readMask: { paths: ["sequence_number", "digest", "transactions"] },
+      })).checkpoint;
+      const candidates = (checkpoint?.transactions ?? [])
+        .map(t => typeof t === "string" ? t : t.digest)
+        .filter(Boolean).slice(0, MAX_CANDIDATES);
+      for (const candidate of candidates) {
+        inspected++;
+        const tx = await getTransaction(candidate);
+        const sender = tx.transaction?.sender;
+        const changes = tx.balanceChanges ?? [];
+        if (sender && sender !== ZERO_ADDRESS && changes.length > 0) {
+          record = tx;
+          selectedDigest = candidate;
+          break;
+        }
+      }
+    }
+    if (!record) throw new Error(`No user-originated transaction with balance changes in ${inspected} inspected transactions across up to ${MAX_CHECKPOINTS} checkpoints`);
+  } else if (selectedDigest) {
+    record = await getTransaction(selectedDigest);
+  } else {
+    record = (await call("getCheckpoint", {
+      readMask: { paths: ["sequence_number", "digest", "summary"] },
+    })).checkpoint;
+    if (!record) throw new Error("Checkpoint unavailable");
+  }
   console.log(JSON.stringify({
     status: "observed", provider: "tatum", network: "sui-mainnet", transport: "grpc",
     method: selectedDigest ? "LedgerService/GetTransaction" : "LedgerService/GetCheckpoint",
     endpointHost: endpoint, requestedDigest: selectedDigest || null,
     discoveryCheckpoint: auto ? checkpoint.sequenceNumber : null,
+    inspectedTransactions: auto ? inspected : null,
     evidence: selectedDigest ? {
       digest: record.digest,
       sender: record.transaction?.sender ?? null,
-      executionStatus: record.effects?.status ?? null,
+      executionStatus: record.effects?.status?.success === true ? "success" : record.effects?.status?.failure ? "failure" : "unknown",
       balanceChanges: (record.balanceChanges ?? []).map(change => ({ address: change.address ?? null, amount: change.amount ?? null, coinType: change.coinType ?? null })),
     } : {
       sequenceNumber: record.sequenceNumber ?? record.summary?.sequenceNumber ?? null,
