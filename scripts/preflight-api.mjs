@@ -152,24 +152,8 @@ async function handler(req, res) {
       const { prepareRecipientRegistration } = await import("../src/core/recipient-registration.ts");
       const { registerRecipientWithWalrus } = await import("../src/core/recipient-memory-writer.ts");
       const registration = prepareRecipientRegistration(input);
-      if (input.memoryIntent === "update") {
-        if (input.confirmedAddressChange !== true ||
-            typeof input.previousAddress !== "string" ||
-            typeof input.previousBlobId !== "string" ||
-            !input.previousBlobId.trim())
-          return send(400, { error: "Updating a recipient requires explicit change confirmation, prior address, and prior Walrus blob ID" });
-        const previousAddress = normalizeSuiAddress(input.previousAddress);
-        if (previousAddress === registration.record.address)
-          return send(400, { error: "The new address must differ from the previous address" });
-        const prior = await recall(registration.record.counterpartyId);
-        if (prior.status !== "observed")
-          return send(503, { error: "Previous recipient memory could not be checked; no update was stored" });
-        if (!prior.records.some(item => item.blobId === input.previousBlobId &&
-            normalizeSuiAddress(item.record.address) === previousAddress))
-          return send(409, { error: "Previous Walrus record not found in recall results; no update was stored" });
-      } else if (input.memoryIntent !== undefined && input.memoryIntent !== "new") {
-        return send(400, { error: "Invalid recipient memory intent" });
-      }
+      const { validateRecipientUpdate } = await import("../src/core/recipient-update.ts");
+      await validateRecipientUpdate(input, registration.record, recall);
       const { MemWal } = await import("@mysten-incubation/memwal");
       const writer = MemWal.create({
         key: process.env.MEMWAL_PRIVATE_KEY,
