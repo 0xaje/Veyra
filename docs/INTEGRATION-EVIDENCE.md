@@ -18,6 +18,28 @@ Veyra is a read-only Sui Mainnet recipient preflight application. It compares th
 
 **Do not infer the number of qualifying Walrus memories from the number of recall search results.** Distinct genuine stored records, supported by unique blob IDs and relevant content, must be counted individually.
 
+## Integrated preflight observation — 22 October 2026
+
+Developer-supplied JSON response from `POST /v1/preflight` with counterparty `my-sui-wallet`, proposed address ending `b5e9`, and historical digest `5BfxtP2UZbDMJAwm4bNjGvJuiP3fZW9QKghuwoYa7Nst`:
+
+| Field | Observed result |
+| --- | --- |
+| `status` | `read_only_preflight` |
+| `providers.tatum` / `providers.walrus` | `observed` / `observed` |
+| `recipient.verdict` | `review_required` |
+| `recipient.memoryBlobId` | `MK8-ROPW1q5nusbhp16QennziZibSL8ZREDTPipd6EQ` |
+| `memoryComparison.status` | `differs_from_remembered_claim` |
+| Remembered address | `0x83874235f1db9761bcce93a11466a613a4516085da5ccfe121dddc3d63a0b5e8` |
+| Proposed address | `0x83874235f1db9761bcce93a11466a613a4516085da5ccfe121dddc3d63a0b5e9` |
+| `transactionInvestigation.sender` | `0x545b5ec1a8470d410bcb2ecaa700b5c0690a341943bcf5fcc708e3b0125fe817` |
+| `balanceChanges[0].matchesProposedRecipient` | `false` |
+| `action` | `manual_review_required` |
+| `memoryComparison.independentlyVerified` | `false` |
+| `paymentAuthorized` | `false` |
+| `historyPersisted` | `true` |
+
+**Interpretation:** This confirms the integrated read-only assessment path reported both providers observed and retained the correct fail-closed result. The observed transaction was unrelated to the proposed recipient; no onchain recipient ownership or malicious intent was established. This is developer-provided runtime output, not an independently audited trace. Preserve the original JSON separately if publishing as evidence.
+
 ## Current automated test checkpoint
 
 On 22 October 2026, the developer ran `npm run check` and `npm test` at commit `2a8b711`: TypeScript check passed, **41 tests passed, 0 failed**. Subsequent UI-only commits require rerunning the same commands. Passing unit tests does not replace live network evidence.
@@ -53,7 +75,7 @@ This script only reads; it does not create a new memory. Its output must show `c
 ## Evidence to capture for submission
 
 - [ ] Current git commit, passing typecheck/test output, and timestamp.
-- [x] Developer-provided redacted terminal output of live Tatum checkpoint and transaction retrieval, recorded above.\n- [ ] Repeat the known real transaction digest through Veyra `/v1/preflight` and preserve its redacted API response, provider status, and `paymentAuthorized: false`.
+- [x] Developer-provided redacted terminal output of live Tatum checkpoint and transaction retrieval, recorded above.\n- [x] Developer-provided integrated `/v1/preflight` JSON confirms both providers observed, address difference detected, unrelated historical transaction correctly distinguished, and `paymentAuthorized: false`.\n- [ ] Save the original timestamped API JSON in a redacted, reproducible submission evidence bundle.
 - [ ] Walrus storage and separate-process recall outputs with genuine blob IDs, timestamps, and content classification.
 - [ ] Screenshot or video of the exact-address match and changed-address warning, including the expandable technical evidence.
 - [ ] Screenshot or response demonstrating that Veyra never signs or authorizes a transfer.
