@@ -56,8 +56,8 @@ const button=document.getElementById("submit");
 const setText=(id,value)=>{document.getElementById(id).textContent=String(value)};
 form.addEventListener("submit",async event=>{
  event.preventDefault();error.hidden=true;button.disabled=true;button.textContent="Checking evidence…";
- const payload={counterpartyId:form.counterpartyId.value.trim(),proposedAddress:form.proposedAddress.value.trim()};
- const digest=form.transactionDigest.value.trim();if(digest)payload.transactionDigest=digest;
+ const payload={counterpartyId:document.getElementById('counterparty').value.trim(),proposedAddress:document.getElementById('address').value.trim()};
+ const digest=document.getElementById('digest').value.trim();if(digest)payload.transactionDigest=digest;
  try{
   const response=await fetch("/v1/preflight",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
   const data=await response.json();
