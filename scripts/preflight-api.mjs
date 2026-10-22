@@ -16,7 +16,7 @@ const historyPath = process.env.VEYRA_HISTORY_FILE ? resolve(process.env.VEYRA_H
 let historyWrite = Promise.resolve();
 function persistAssessment(entry) {
   if (!historyPath) return Promise.resolve(false);
-  const line = JSON.stringify(entry) + "\\n";
+  const line = JSON.stringify(entry) + "\n";
   const pending = historyWrite.then(async () => {
     await mkdir(dirname(historyPath), { recursive: true, mode: 0o700 });
     await appendFile(historyPath, line, { encoding: "utf8", mode: 0o600, flag: "a" });
@@ -32,7 +32,7 @@ async function loadHistory() {
   try { raw = await readFile(historyPath, "utf8"); }
   catch (error) { if (error?.code === "ENOENT") return { enabled: true, records: [] }; throw error; }
   const records = [];
-  for (const line of raw.split("\\n").filter(Boolean).slice(-100)) {
+  for (const line of raw.split("\n").filter(Boolean).slice(-100)) {
     try { const entry = JSON.parse(line); if (entry?.schema === "veyra.assessment.v1") records.push(entry); }
     catch { /* Ignore incomplete journal lines. */ }
   }
