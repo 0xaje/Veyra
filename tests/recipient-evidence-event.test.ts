@@ -5,6 +5,7 @@ import { prepareRecipientEvidenceEvent, type RecipientEvidenceEventInput } from 
 const valid: RecipientEvidenceEventInput = {
   counterpartyId: "public-organization",
   address: "0x1",
+  addressKind: "wallet",
   eventType: "source_observed",
   source: {
     kind: "public_official_document",
@@ -33,4 +34,27 @@ test("rejects mismatches not backed by an actual local assessment", () => {
 test("rejects future-dated and invalid observations", () => {
   assert.throws(() => prepareRecipientEvidenceEvent({ ...valid, source: { ...valid.source, observedAt: "2099-01-01T00:00:00.000Z" } }), /timestamp/);
   assert.throws(() => prepareRecipientEvidenceEvent({ ...valid, address: "invalid" }), /Invalid Sui address/);
+});
+
+test("package observations are non-recipient identifiers", () => {
+  const result = prepareRecipientEvidenceEvent({ ...valid, addressKind: "package" });
+  assert.equal(result.addressKind, "package");
+  assert.equal(result.recipientEligible, false);
+  assert.match(result.warning, /not a payment recipient/);
+  assert.equal(result.paymentAuthorized, false);
+});
+test("package and object identifiers cannot be confirmed as wallet recipients", () => {
+  assert.throws(() => prepareRecipientEvidenceEvent({
+    ...valid, addressKind: "package", eventType: "recipient_reconfirmed",
+    source: { ...valid.source, kind: "direct_owner_confirmation" },
+  }), /Only wallet/);
+  assert.throws(() => prepareRecipientEvidenceEvent({
+    ...valid, addressKind: "shared_object", eventType: "mismatch_reviewed",
+    source: { ...valid.source, kind: "local_assessment" },
+  }), /Only wallet/);
+});
+test("missing address kind is rejected", () => {
+  const missing = { ...valid };
+  delete (missing as Partial<RecipientEvidenceEventInput>).addressKind;
+  assert.throws(() => prepareRecipientEvidenceEvent(missing), /address kind/);
 });
