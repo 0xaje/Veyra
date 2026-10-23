@@ -184,7 +184,7 @@ async function handler(req, res) {
     }
   }
   if (req.method === "GET" && req.url === "/health")
-    return send(200, { status: "running", paymentAuthorized: false, publicMode, memoryWritesEnabled: !publicMode });
+    return send(200, { status: "running", paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode });
   if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
     const url = new URL(req.url, "http://localhost");
     const counterpartyId = url.searchParams.get("counterpartyId");
