@@ -149,7 +149,7 @@ function resetReceipt(){proposedReceipt=null;$("receipt-review").hidden=true;$("
 $("receipt-consent").addEventListener("change",()=>{$("receipt-download").disabled=!proposedReceipt||!$("receipt-consent").checked;});
 $("receipt-download").addEventListener("click",()=>{
  if(!proposedReceipt||!$("receipt-consent").checked)return;
- const blob=new Blob([JSON.stringify(proposedReceipt,null,2)+"\n"],{type:"application/json"});
+ const blob=new Blob([JSON.stringify(proposedReceipt,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="veyra-wallet-control-receipt.json";a.click();URL.revokeObjectURL(url);
  $("receipt-feedback").textContent="Receipt downloaded locally. No Walrus memory has been written. A separate verified and approved local storage operation is required.";
 });
