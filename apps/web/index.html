@@ -120,33 +120,31 @@ html[data-theme="dark"] .assessment-status{color:#f0d6ac}
 html[data-theme="dark"] .assessment-details{background:#19221e;border-color:#344138}
 html[data-theme="dark"] .assessment-details summary{color:#cde7d3}
 html[data-theme="dark"] .assessment-details-body{border-color:#344138}
-</style><script>(function(){
-const key="veyra.theme.v1",hour=()=>new Date().getHours();
-const automatic=()=>hour()>=7&&hour()<19?"light":"dark";
+.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;margin:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}.veyra-theme-toggle:hover{filter:brightness(1.08)}.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}@media(max-width:600px){.topbar{padding:15px 18px;min-height:64px}}</style><script>(function(){
+const key="veyra.theme.v1";
+const automatic=()=>{const hour=new Date().getHours();return hour>=7&&hour<19?"light":"dark"};
 let preference="auto";try{const saved=localStorage.getItem(key);if(["auto","dark","light"].includes(saved))preference=saved}catch{}
 const resolved=()=>preference==="auto"?automatic():preference;
 function apply(){
-const theme=resolved();document.documentElement.setAttribute("data-theme",theme);
-const b=document.getElementById("veyra-theme-toggle");
-if(b){b.textContent=theme==="dark"?"☾":"☀";b.title="Appearance: "+(preference==="auto"?"automatic ("+theme+")":theme)+". Click to switch; double-click to restore automatic.";
-b.setAttribute("aria-label","Appearance: "+(preference==="auto"?"automatic "+theme:theme)+". Click to switch. Double-click for automatic mode.");
-b.setAttribute("aria-pressed",String(preference!=="auto"))}
+ const theme=resolved();document.documentElement.setAttribute("data-theme",theme);
+ const b=document.getElementById("veyra-theme-toggle");
+ if(b){b.textContent=theme==="dark"?"☾":"☀";b.title="Appearance: "+(preference==="auto"?"automatic ("+theme+")":theme)+". Click to switch; double-click for automatic.";b.setAttribute("aria-label",b.title);b.setAttribute("aria-pressed",String(preference!=="auto"))}
 }
 apply();
 document.addEventListener("DOMContentLoaded",()=>{
-const host=document.querySelector(".right")||document.querySelector(".topbar")||document.querySelector("header");if(!host)return;
-const b=document.createElement("button");b.type="button";b.id="veyra-theme-toggle";b.className="veyra-theme-toggle";host.append(b);apply();
-b.addEventListener("click",()=>{preference=resolved()==="dark"?"light":"dark";try{localStorage.setItem(key,preference)}catch{}apply()});
-b.addEventListener("dblclick",()=>{preference="auto";try{localStorage.setItem(key,preference)}catch{}apply()});
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&preference==="auto")apply()});
-setInterval(()=>{if(preference==="auto")apply()},60000);
+ const host=document.querySelector(".veyra-header-actions");if(!host)return;
+ const b=document.createElement("button");b.type="button";b.id="veyra-theme-toggle";b.className="veyra-theme-toggle";host.append(b);apply();
+ b.addEventListener("click",()=>{preference=resolved()==="dark"?"light":"dark";try{localStorage.setItem(key,preference)}catch{}apply()});
+ b.addEventListener("dblclick",()=>{preference="auto";try{localStorage.setItem(key,preference)}catch{}apply()});
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&preference==="auto")apply()});
+ setInterval(()=>{if(preference==="auto")apply()},60000);
 });
 })();</script></head>
 <body><div class="mobile-bar"><div class="brand"><span class="mark">V</span>veyra</div><span class="environment">Sui Mainnet</span></div>
 <div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>veyra</div>
-<nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item active" href="/" aria-current="page"><span class="nav-icon">◈</span>Recipient preflight</a><a class="nav-item" href="/history"><span class="nav-icon">▤</span>Session history</a><a class="nav-item" href="/memory"><span class="nav-icon">◎</span>Memory status</a><a class="nav-item" href="/docs"><span class="nav-icon">▧</span>Documentation</a></nav>
+<nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item active" href="/" aria-current="page"><span class="nav-icon">◈</span>Recipient preflight</a><a class="nav-item" href="/history"><span class="nav-icon">▤</span>Session history</a><a class="nav-item" href="/memory"><span class="nav-icon">◎</span>Memory status</a><a class="nav-item" href="/verify-wallet"><span class="nav-icon">◇</span>Verify wallet control</a><a class="nav-item" href="/docs"><span class="nav-icon">▧</span>Documentation</a></nav>
 <div class="side-note"><strong>Read-only environment</strong><p>No wallet signing or transfer execution. Evidence must be independently assessed.</p></div></aside>
-<div class="workspace"><header class="topbar"><div class="breadcrumbs">Workspace &nbsp;/&nbsp; <b>Recipient preflight</b></div><div class="right"><span class="dot"></span> Local service <span class="environment">Sui Mainnet</span></div></header>
+<div class="workspace"><header class="topbar"><div class="breadcrumbs">Workspace &nbsp;/&nbsp; <b>Recipient preflight</b></div><div class="veyra-header-actions"><div class="right"><span class="dot"></span> Local service <span class="environment">Sui Mainnet</span></div></div></header>
 <main class="main"><div class="heading"><div><div class="overline">Transaction intelligence / 01</div><h1>Recipient preflight</h1><p>Evaluate destination integrity against historical evidence and authorized memory records.</p></div><span class="read-only">◉ &nbsp; Read-only assessment</span></div>
 <section class="stats" aria-label="Verification boundaries"><div class="stat"><div class="label">Network</div><div class="value">Sui Mainnet</div><div class="sub">Live network context</div></div><div class="stat"><div class="label">Evidence sources</div><div class="value">Tatum <span style="color:#74899a">/</span> Walrus</div><div class="sub">Availability checked per request</div></div><div class="stat"><div class="label">Authorization policy</div><div class="value status-mark">Manual review</div><div class="sub">No automatic payment approval</div></div></section>
 <div class="grid"><section class="panel"><div class="panel-head"><h2>01 &nbsp; Destination details</h2><small>Required inputs</small></div><div class="panel-body"><p class="section-caption">Specify who you intend to pay and the exact destination. Historical transaction evidence is optional.</p>
