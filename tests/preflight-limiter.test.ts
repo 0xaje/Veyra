@@ -39,6 +39,8 @@ test("client accounting is bounded", () => {
   const limiter = createPreflightLimiter({ maxClients: 2 });
   for (const peer of ["a", "b", "c"]) {
     const admitted = limiter.acquire(peer);
+    assert.equal(admitted.allowed, true);
+    if (!admitted.allowed) throw new Error("Expected test request to be admitted");
     admitted.release();
   }
   assert.equal(limiter.snapshot().trackedClients, 2);
