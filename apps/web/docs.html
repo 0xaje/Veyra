@@ -75,6 +75,11 @@ html[data-theme="dark"] .error{background:#3c2225;color:#ffceca}
 html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}
 .veyra-theme-toggle:hover{filter:brightness(1.08)}
 .veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}
+
+/* Shared appearance control: identical compact day/night dot on every Veyra page. */
+.veyra-theme-toggle{width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;border:1px solid #829c8c!important;border-radius:50%!important;font-size:0!important;line-height:1!important;padding:0!important;margin:0!important;position:relative!important;display:inline-grid!important;place-items:center!important;box-shadow:none!important}
+.veyra-theme-toggle::after{content:"";display:block;width:11px;height:11px;border-radius:50%;background:#264b36;box-shadow:inset -3px -2px 0 #a4c9b0}
+html[data-theme="dark"] .veyra-theme-toggle::after{background:#c6e3cd;box-shadow:inset -3px -2px 0 #355943}
 </style><script>(function(){
 const key="veyra.theme.v1",hour=()=>new Date().getHours();
 const automatic=()=>hour()>=7&&hour()<19?"light":"dark";
