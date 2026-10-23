@@ -19,7 +19,7 @@ const memory = MemWal.create({
   serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
   namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
 });
-const query = `veyra recipient evidence source observed deepbook package ${counterpartyId} ${expectedAddress}`;
+const query = `veyra recipient evidence ${counterpartyId} ${expectedAddress}`;
 try {
   const response = await Promise.race([
     memory.recall({ query, limit: 50 }),
@@ -35,9 +35,9 @@ try {
     if (record.type !== "veyra.recipient_evidence.v1" ||
         record.counterpartyId !== counterpartyId ||
         normalizeSuiAddress(record.address) !== expectedAddress ||
-        record.addressKind !== "package" ||
-        record.eventType !== "source_observed" ||
-        record.source?.kind !== "public_official_document" ||
+        !["wallet", "package", "shared_object"].includes(record.addressKind) ||
+        !["source_observed", "recipient_reconfirmed", "mismatch_reviewed"].includes(record.eventType) ||
+        !["public_official_document", "direct_owner_confirmation", "local_assessment"].includes(record.source?.kind) ||
         record.trust !== "informational_unverified" ||
         record.paymentAuthorized !== false) continue;
     matched = true;
