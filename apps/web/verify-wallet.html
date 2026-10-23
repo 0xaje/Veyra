@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <button id="sign" type="button" disabled>Sign personal message and verify</button>
 <p id="status" role="status" aria-live="polite">No wallet proof has been submitted.</p>
 <p>Valid signatures establish signing-key control at verification time only. Veyra never signs transactions, transfers SUI, or automatically stores this result in Walrus.</p>
-<details id="receipt-review" hidden><summary>Review verification receipt for Walrus</summary><p>This is a proposed public record, not a stored Walrus memory. Download it for local review; downloading does not submit or authorize a write.</p><pre id="receipt-json" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px;overflow:auto"></pre><label><input id="receipt-consent" type="checkbox"> I have reviewed this public address and verification metadata and understand no memory is stored by this action.</label><button id="receipt-download" type="button" disabled>Download receipt for local review</button><p id="receipt-feedback" role="status"></p></details>
+<details id="receipt-review" hidden><summary>Review verification receipt for Walrus</summary><p>This is a proposed public record, not a stored Walrus memory. Download it for local review; downloading does not submit or authorize a write. A receipt alone is not cryptographic proof.</p><pre id="receipt-json" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px;overflow:auto"></pre><label><input id="receipt-consent" type="checkbox"> I have reviewed this public address and verification metadata and understand no memory is stored by this action.</label><button id="receipt-download" type="button" disabled>Download receipt for local review</button><p><label><input id="proof-consent" type="checkbox"> I understand the optional proof package contains my signature over this verification-only message. I will keep the file private and share it only with a trusted local verifier.</label></p><button id="proof-download" type="button" disabled>Download cryptographic proof for local verification</button><p id="receipt-feedback" role="status"></p></details>
 </section>
 </div></main></div></div><script>
 (()=>{
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 let expected=null;
 const $=id=>document.getElementById(id);
 const wallets=new Map();
-let connected=null,account=null,challenge=null,verificationAvailable=false,proposedReceipt=null;
+let connected=null,account=null,challenge=null,verificationAvailable=false,proposedReceipt=null,portableProof=null;
 const status=message=>{$("status").textContent=message};
 function walletSupported(w){return Boolean(w?.features?.["standard:connect"]?.connect&&(w?.chains?.some(c=>typeof c==="string"&&c.startsWith("sui:"))||w?.accounts?.some(a=>a.chains?.some(c=>typeof c==="string"&&c.startsWith("sui:")))))}
 function register(wallet){
@@ -145,8 +145,15 @@ $("connect").addEventListener("click",()=>{
   ?"Choose one of your detected Sui wallets to connect."
   :"No compatible Sui wallet detected. Install or unlock a Sui wallet extension, then click Connect Wallet again.");
 });
-function resetReceipt(){proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("receipt-feedback").textContent="";}
+function resetReceipt(){portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";}
 $("receipt-consent").addEventListener("change",()=>{$("receipt-download").disabled=!proposedReceipt||!$("receipt-consent").checked;});
+$("proof-consent").addEventListener("change",()=>{$("proof-download").disabled=!portableProof||!$("proof-consent").checked;});
+$("proof-download").addEventListener("click",()=>{
+ if(!portableProof||!$("proof-consent").checked)return;
+ const blob=new Blob([JSON.stringify(portableProof,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="veyra-wallet-control-proof.json";a.click();URL.revokeObjectURL(url);
+ $("receipt-feedback").textContent="Cryptographic proof downloaded for private local verification. No Walrus write occurred.";
+});
 $("receipt-download").addEventListener("click",()=>{
  if(!proposedReceipt||!$("receipt-consent").checked)return;
  const blob=new Blob([JSON.stringify(proposedReceipt,null,2)],{type:"application/json"});
@@ -191,7 +198,7 @@ $("sign").addEventListener("click",async()=>{
   const result=await response.json();
   if(response.ok&&result.status==="wallet_control_verified"&&result.address===expected&&result.paymentAuthorized===false){
    if(result.proposedReceipt?.type==="veyra.wallet_control_observation.v1"&&result.proposedReceipt.address===expected&&result.proposedReceipt.storageStatus==="prepared_not_stored"&&result.proposedReceipt.paymentAuthorized===false){
-    proposedReceipt=result.proposedReceipt;$("receipt-json").textContent=JSON.stringify(proposedReceipt,null,2);$("receipt-review").hidden=false;
+    proposedReceipt=result.proposedReceipt;portableProof={address:expected,message:current.message,signature:signed.signature,receipt:proposedReceipt};$("receipt-json").textContent=JSON.stringify(proposedReceipt,null,2);$("receipt-review").hidden=false;
    }
    status("VERIFIED: Wallet signing-key control demonstrated at "+result.verifiedAt+". Identity and payment safety remain unverified. No Walrus memory was written.");
   }else status("NOT VERIFIED: "+(result.status||"Verification failed")+". Request a new challenge to retry.");
