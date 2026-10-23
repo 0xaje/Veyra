@@ -31,7 +31,7 @@ No real additional memory writes have been made by this change.
 ## Address-kind safety (2026-10-23)
 Every new evidence event must explicitly specify `addressKind`: `wallet`, `package`, or `shared_object`. Package/object observations are **not payment recipients** and must never be presented as a safe transfer destination. Only wallet identifiers can be associated with recipient reconfirmation or mismatch review. This is enforced by the validator and tests; it is not a cryptographic onchain type check.
 
-### Public-source observation — REPORTED STORED, RETRIEVAL PENDING
+### Public-source observation — STORED, MEMWAL RECALL VERIFIED
 - `counterpartyId`: `deepbook-v3-package-reference`
 - `addressKind`: `package`
 - `eventType`: `source_observed`
@@ -60,8 +60,12 @@ Operator-provided local HTTP response (not independently re-fetched):
 - Job ID: `7090634b-cd42-4ea3-8f55-f69c8d35c470`
 - Blob ID: `r5lQKXv5DYWMV9oN-TuB0EA5v6GPGjyKyIdG9b8VSKk`
 - `paymentAuthorized`: `false`
-- Independent blob retrieval/content verification: **PENDING**
+- MemWal recall of exact blob ID and expected content: **VERIFIED 2026-10-23 (operator-run read-only script)**; raw Walrus blob download: **NOT VERIFIED**
 - Recipient wallet confirmation: **NO — package reference only**
 - Official source: https://www.docs.sui.io/onchain-finance/deepbook/deepbookv3/contract-information
 
 This is one reported successfully stored informational evidence event, separate from the existing confirmed recipient record. Do not count it as a verified recipient registration. Confirm blob contents and provenance via a real read before marking retrieval verified.
+
+## MemWal recall verification result — 2026-10-23
+
+Operator ran `scripts/verify-evidence-memory.mjs` locally with real MemWal credentials and reported `status: verified_via_memwal_recall`. Returned exact blob ID `r5lQKXv5DYWMV9oN-TuB0EA5v6GPGjyKyIdG9b8VSKk`, `counterpartyId: deepbook-v3-package-reference`, the expected package address, `addressKind: package`, `eventType: source_observed`, official-document source reference, `observedAt: 2026-10-23T12:32:25.459Z`, `trust: informational_unverified`, and `paymentAuthorized: false`. This establishes matching content through MemWal semantic recall, not an independently downloaded raw Walrus blob, owner authentication, or recipient-wallet safety. No additional write was performed by verification.
