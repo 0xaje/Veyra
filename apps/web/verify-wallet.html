@@ -85,8 +85,8 @@ document.addEventListener("DOMContentLoaded",()=>{
 <p>Sign a personal message to demonstrate control of the exact address. This is not a transaction, payment approval, identity check, or recipient-safety guarantee.</p>
 <div class="warning">Wallet connection is available for compatibility testing. Signature verification availability depends on the deployment configuration. Do not bypass wallet warnings. Never enter a seed phrase, private key, or recovery words.</div>
 <section class="panel">
-<h2>Connect a Sui wallet</h2><p>Veyra automatically discovers Sui-compatible wallet extensions. If one is available, connect directly; if several are available, choose yours. No fixed wallet list or recovery phrase required.</p>
-<div class="wallet-actions"><button id="connect" class="primary" type="button">Connect automatically →</button><button id="choose-wallet" type="button">Choose wallet manually</button><button id="refresh" type="button">Rescan extensions</button></div><div id="wallet-picker" hidden><p class="muted">Choose a detected wallet</p><div id="wallet-options"></div></div><select id="wallet" hidden aria-label="Detected wallet"></select>
+<h2>Connect a Sui wallet</h2><p>Connect with any compatible Sui wallet installed in your browser. If more than one is available, choose the wallet you prefer.</p>
+<div class="wallet-actions"><button id="connect" class="primary" type="button">Connect Wallet →</button></div><div id="wallet-picker" hidden><p class="muted">Choose a detected wallet</p><div id="wallet-options"></div></div><select id="wallet" hidden aria-label="Detected wallet"></select>
 <p id="connected">Not connected</p>
 </section>
 <section class="panel">
@@ -107,7 +107,6 @@ document.addEventListener("DOMContentLoaded",()=>{
 let expected=null;
 const $=id=>document.getElementById(id);
 const wallets=new Map();
-let walletScanReady=false;
 let connected=null,account=null,challenge=null,verificationAvailable=false;
 const status=message=>{$("status").textContent=message};
 function walletSupported(w){return Boolean(w?.features?.["standard:connect"]?.connect&&(w?.chains?.some(c=>typeof c==="string"&&c.startsWith("sui:"))||w?.accounts?.some(a=>a.chains?.some(c=>typeof c==="string"&&c.startsWith("sui:")))))}
@@ -126,7 +125,6 @@ function render(){
 function discover(){
  // Standard discovery works with any compatible registered Sui wallet, not a brand allowlist.
  window.dispatchEvent(new CustomEvent("wallet-standard:app-ready",{detail:{register:register}}));
- walletScanReady=true;
  render();
 }
 window.addEventListener("wallet-standard:register-wallet",event=>{
@@ -134,17 +132,17 @@ window.addEventListener("wallet-standard:register-wallet",event=>{
  if(typeof detail==="function")detail({register});
  else if(detail?.wallet)register(detail.wallet);
 });
-$("refresh").addEventListener("click",discover);
-function showWalletChoices(){
- discover();$("wallet-picker").hidden=false;
- if(!wallets.size)status("No compatible Sui wallet detected. Unlock your wallet extension and select Rescan extensions.");
-}
-$("choose-wallet").addEventListener("click",showWalletChoices);
 $("connect").addEventListener("click",()=>{
  discover();
- if(wallets.size===1){const only=[...wallets.keys()][0];$("wallet").value=only;$("wallet-picker").hidden=true;return connectSelected();}
- showWalletChoices();
- if(wallets.size>1)status("Multiple Sui wallets are available. Select the one you want to connect; Veyra will not choose arbitrarily.");
+ if(wallets.size===1){
+  $("wallet").value=[...wallets.keys()][0];
+  $("wallet-picker").hidden=true;
+  return connectSelected();
+ }
+ $("wallet-picker").hidden=false;
+ status(wallets.size>1
+  ?"Choose one of your detected Sui wallets to connect."
+  :"No compatible Sui wallet detected. Install or unlock a Sui wallet extension, then click Connect Wallet again.");
 });
 async function connectSelected(){
  challenge=null;$("sign").disabled=true;$("challenge").disabled=true;$("message").value="";
@@ -155,7 +153,7 @@ async function connectSelected(){
   const candidates=result?.accounts||wallet.accounts||[];
   const match=candidates.find(a=>typeof a.address==="string"&&/^0x[0-9a-fA-F]{64}$/.test(a.address)&&a.chains?.includes("sui:mainnet"));
   if(!match){connected=null;account=null;$("connected").textContent="No Sui Mainnet account available.";return status("Connect a Sui Mainnet account. Nothing signed.")}
-  connected=wallet;account=match;expected=match.address.toLowerCase();$("expected").textContent=expected;$("connected").textContent="Connected: "+match.address;
+  connected=wallet;account=match;expected=match.address.toLowerCase();$("expected").textContent=expected;$("connected").textContent="Connected: "+wallet.name+" · "+match.address;$("connect").textContent="Change wallet →";
   const canSign=typeof wallet.features["sui:signPersonalMessage"]?.signPersonalMessage==="function";
   $("challenge").disabled=!verificationAvailable||!canSign;
   status(!canSign?"Wallet connected successfully. This wallet does not expose Sui personal-message signing through Wallet Standard; signature verification is unavailable.":verificationAvailable?"Wallet connected. Request a challenge to verify signing-key control.":"Wallet connected for compatibility testing only. Signature verification is not currently enabled on this deployment.");
@@ -188,13 +186,13 @@ $("sign").addEventListener("click",async()=>{
  }catch{status("Signing cancelled, wallet incompatible, or verification unavailable. No payment was made.");}
 });
 async function checkAvailability(){
- $("connect").disabled=false;$("choose-wallet").disabled=false;$("refresh").disabled=false;
+ $("connect").disabled=false;
  try{
   const response=await fetch("/health",{cache:"no-store"});
   if(!response.ok)throw Error("Health unavailable");
   const health=await response.json();
   verificationAvailable=health.walletProofEnabled===true;
-  $("connect").disabled=false;$("choose-wallet").disabled=false;$("refresh").disabled=false;
+  $("connect").disabled=false;
   if(!verificationAvailable){
    status("Wallet connection is available for compatibility testing. Signature verification is not currently enabled on this deployment.");
   }
