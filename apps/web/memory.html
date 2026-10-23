@@ -119,6 +119,25 @@ evidenceForm.addEventListener("submit",async event=>{
     }
     evidenceHost.append(kv("Recall status","Observed; search may be incomplete"),kv("Matching evidence records",data.events.length),kv("Payment authorization","Not authorized"));
     if(!data.events.length){const note=document.createElement("p");note.textContent="No matching evidence was returned by this search. This does not establish that no memory exists.";evidenceHost.append(note)}
+    const packageObservations=data.events.filter(entry=>entry.addressKind==="package"&&entry.eventType==="source_observed"&&entry.source?.kind==="public_official_document");
+    const uniquePackages=[...new Set(packageObservations.map(entry=>entry.address.toLowerCase()))];
+    if(packageObservations.length){
+      const summary=document.createElement("section");
+      summary.style.cssText="margin-top:18px;padding:15px;border:1px solid #9ebdab;border-radius:8px";
+      const heading=document.createElement("h3");
+      heading.textContent=uniquePackages.length>1?"Different package IDs found in recalled official-source observations":uniquePackages.length===1?"One distinct package ID recalled":"No package IDs recalled";
+      summary.append(heading,kv("Distinct recalled package IDs",uniquePackages.length),kv("Review status",uniquePackages.length>1?"Source discrepancy — manual review required":"Incomplete search; no authoritative conclusion"),kv("Payment authorization","Not authorized"));
+      for(const observation of packageObservations){
+        const item=document.createElement("div");
+        item.style.cssText="margin-top:12px;padding-top:10px;border-top:1px solid #9ebdab";
+        item.append(copyableKv("Observed package ID",observation.address),kv("Official document",observation.source.reference),copyableKv("Evidence blob",observation.blobId));
+        summary.append(item);
+      }
+      const caveat=document.createElement("p");
+      caveat.textContent="These are timestamped documentation observations, not verified current deployments. MemWal search may omit records; different IDs alone do not prove fraud or identify which version is authoritative. Packages are not recipient wallets.";
+      summary.append(caveat);
+      evidenceHost.append(summary);
+    }
     for(const entry of data.events){
       const section=document.createElement("section");section.style.cssText="margin-top:18px;padding-top:12px;border-top:1px solid #789684";
       section.append(kv("Event",entry.eventType),kv("Identifier kind",entry.addressKind),copyableKv("Address",entry.address),copyableKv("Walrus blob",entry.blobId),kv("Observed at",entry.source?.observedAt),kv("Source kind",entry.source?.kind),kv("Trust","Informational; ownership not verified"),kv("Payment authorization","Not authorized"));
