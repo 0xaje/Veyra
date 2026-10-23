@@ -8,6 +8,7 @@ const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../apps/web");
 import { spawn } from "node:child_process";
 import { normalizeSuiAddress } from "../src/core/recipient-check.ts";
 import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
+import { createPreflightLimiter } from "./preflight-limiter.mjs";
 
 const port = Number(process.env.PORT || process.env.VEYRA_PORT || 8787);
 const publicMode = process.env.VEYRA_PUBLIC_MODE === "true";
@@ -16,6 +17,10 @@ if (!["127.0.0.1", "0.0.0.0"].includes(host)) throw new Error("Invalid VEYRA_HOS
 if (host === "0.0.0.0" && !publicMode) throw new Error("Public binding requires VEYRA_PUBLIC_MODE=true");
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid VEYRA_PORT");
 const maxBody = 8192;
+const limiter = createPreflightLimiter({
+  perClient: Number(process.env.VEYRA_PREFLIGHT_PER_MINUTE ?? 8),
+  maxConcurrent: Number(process.env.VEYRA_PREFLIGHT_CONCURRENCY ?? 2),
+});
 const historyPath = !publicMode && process.env.VEYRA_HISTORY_FILE ? resolve(process.env.VEYRA_HISTORY_FILE) : null;
 let historyWrite = Promise.resolve();
 function persistAssessment(entry) {
@@ -248,6 +253,30 @@ async function handler(req, res) {
     });
   }
 }
-createServer((req, res) => { void handler(req, res); }).listen(port, host, () => {
+createServer((req, res) => {
+  // Admission is checked before parsing or contacting either provider.
+  // Local development remains unrestricted; the deployed public service is bounded.
+  const admission = publicMode && req.method === "POST" && req.url === "/v1/preflight"
+    ? limiter.acquire(req.socket.remoteAddress) : null;
+  if (admission && !admission.allowed) {
+    res.writeHead(429, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+      "retry-after": String(admission.retryAfter),
+    });
+    res.end(JSON.stringify({
+      status: "preflight_throttled", action: "manual_review_required",
+      paymentAuthorized: false, reason: "Assessment capacity reached; retry later",
+    }));
+    return;
+  }
+  Promise.resolve().then(() => handler(req, res)).catch(() => {
+    if (!res.headersSent) {
+      res.writeHead(503, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+      res.end(JSON.stringify({ status: "preflight_failed", action: "manual_review_required", paymentAuthorized: false, reason: "Assessment temporarily unavailable" }));
+    } else res.destroy();
+  }).finally(() => admission?.release());
+}).listen(port, host, () => {
   console.log(`Veyra preflight API listening on ${host}:${port} (publicMode=${publicMode})`);
 });
