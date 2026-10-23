@@ -12,6 +12,20 @@ import { createPreflightLimiter } from "./preflight-limiter.mjs";
 
 const port = Number(process.env.PORT || process.env.VEYRA_PORT || 8787);
 const publicMode = process.env.VEYRA_PUBLIC_MODE === "true";
+// Explicit opt-in: public verification is independent of public memory writes.
+const publicWalletProof = publicMode && process.env.VEYRA_PUBLIC_WALLET_PROOF === "true";
+const walletOrigin = process.env.VEYRA_PUBLIC_ORIGIN || "";
+if (publicWalletProof && (!/^https:\/\/[a-z0-9.-]+(?::443)?$/i.test(walletOrigin) || walletOrigin.includes("..")))
+  throw new Error("VEYRA_PUBLIC_ORIGIN must be an explicit HTTPS origin when enabling public wallet proof");
+const walletRequests = new Map();
+function walletRequestAllowed(ip, now = Date.now()) {
+  for (const [key, state] of walletRequests) if (now - state.start >= 60000) walletRequests.delete(key);
+  const key = String(ip || "unknown").slice(0, 128);
+  const state = walletRequests.get(key);
+  if (state) { if (state.count >= 12) return false; state.count++; return true; }
+  if (walletRequests.size >= 5000) return false;
+  walletRequests.set(key, { start: now, count: 1 }); return true;
+}
 const host = process.env.VEYRA_HOST || (publicMode ? "0.0.0.0" : "127.0.0.1");
 if (!["127.0.0.1", "0.0.0.0"].includes(host)) throw new Error("Invalid VEYRA_HOST");
 if (host === "0.0.0.0" && !publicMode) throw new Error("Public binding requires VEYRA_PUBLIC_MODE=true");
@@ -141,10 +155,15 @@ async function handler(req, res) {
     catch { return send(503, { error: "Assessment journal unavailable" }); }
   }
   if (req.method === "POST" && ["/v1/wallet-challenge", "/v1/wallet-verify"].includes(req.url)) {
-    if (publicMode) return send(403, { error: "Wallet proof is local-only until security review", paymentAuthorized: false });
+    if (publicMode && !publicWalletProof) return send(403, { error: "Public wallet proof not enabled", paymentAuthorized: false });
+    const allowedOrigin = publicMode ? walletOrigin : `http://127.0.0.1:${port}`;
+    // Browsers send Origin on JSON POST. Reject missing or foreign origins in public mode.
+    if (publicMode && req.headers.origin !== allowedOrigin) return send(403, { error: "Valid same-site origin required", paymentAuthorized: false });
+    if (req.headers["sec-fetch-site"] === "cross-site") return send(403, { error: "Cross-site request forbidden", paymentAuthorized: false });
+    if (!walletRequestAllowed(req.socket.remoteAddress)) return send(429, { error: "Wallet verification rate limit reached", paymentAuthorized: false });
     if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
       return send(415, { error: "JSON required", paymentAuthorized: false });
-    if (req.headers.origin && req.headers.origin !== `http://127.0.0.1:${port}`)
+    if (req.headers.origin && req.headers.origin !== allowedOrigin)
       return send(403, { error: "Cross-origin request forbidden", paymentAuthorized: false });
     try {
       let body = "";
