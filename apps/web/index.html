@@ -120,7 +120,45 @@ html[data-theme="dark"] .assessment-status{color:#f0d6ac}
 html[data-theme="dark"] .assessment-details{background:#19221e;border-color:#344138}
 html[data-theme="dark"] .assessment-details summary{color:#cde7d3}
 html[data-theme="dark"] .assessment-details-body{border-color:#344138}
-.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;margin:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}.veyra-theme-toggle:hover{filter:brightness(1.08)}.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}@media(max-width:600px){.topbar{padding:15px 18px;min-height:64px}}</style><script>(function(){
+.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;margin:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}.veyra-theme-toggle:hover{filter:brightness(1.08)}.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}@media(max-width:600px){.topbar{padding:15px 18px;min-height:64px}}
+/* Mobile workspace: compact brand/header, accessible navigation, and single-column content. */
+@media (max-width:850px){
+ html,body{width:100%;max-width:100%;overflow-x:clip}
+ .shell{display:block!important;width:100%;height:auto!important;min-height:100dvh}
+ .sidebar{position:relative!important;z-index:8;display:flex!important;flex-direction:row!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0!important;padding:12px 16px!important;min-height:64px;overflow:visible!important}
+ .sidebar .brand{font-size:23px!important;padding:0!important;margin:0!important}
+ .veyra-mobile-menu{display:inline-flex!important;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:8px 12px;border:1px solid #4b6859;border-radius:10px;background:#253d31;color:#eef9f0;font:600 14px/1.2 inherit;cursor:pointer}
+ .sidebar nav{display:none!important;flex:0 0 100%;width:100%;flex-direction:column!important;flex-wrap:nowrap!important;gap:4px!important;margin-top:12px;padding:10px 0 3px;border-top:1px solid #456052}
+ .sidebar nav.veyra-nav-open{display:flex!important}
+ .sidebar nav .nav-item{display:flex!important;align-items:center;min-height:44px;width:100%;padding:12px!important;font-size:14px!important;white-space:normal}
+ .sidebar .side-label,.sidebar .side-note{display:none!important}
+ .workspace{width:100%;min-width:0;height:auto!important;overflow:visible!important}
+ .topbar{position:relative!important;top:auto!important;min-height:56px!important;height:auto!important;padding:12px 16px!important;gap:8px!important;flex-wrap:wrap;scrollbar-gutter:auto}
+ .topbar .breadcrumbs,.topbar>span{font-size:12px!important;min-width:0;overflow-wrap:anywhere}
+ .veyra-header-actions{margin-left:auto!important;gap:8px!important;min-width:0}
+ .topbar .right{font-size:11px!important;gap:6px!important;flex-wrap:wrap;justify-content:flex-end}
+ .topbar .environment{padding:4px 6px!important}
+ .main{width:100%;max-width:100%;padding:24px 16px 72px!important}
+ .heading{flex-direction:column!important;align-items:flex-start!important;gap:12px!important;margin-bottom:22px!important}
+ .heading h1,h1{font-size:clamp(27px,7vw,36px)!important;line-height:1.15!important;overflow-wrap:anywhere}
+ .stats{grid-template-columns:1fr!important}
+ .panel{padding:18px!important;min-width:0;max-width:100%;overflow-wrap:anywhere}
+ .kv{flex-wrap:wrap!important;gap:5px!important;overflow-wrap:anywhere}
+ .kv span:last-child{text-align:left!important;min-width:0}
+ input,textarea,select{max-width:100%;min-width:0;font-size:16px!important}
+ button,.button{min-height:44px}
+ pre,code{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+ .wrap,.wallet-content{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:0!important}
+ .read-only{white-space:normal!important}
+}
+@media (max-width:390px){
+ .main{padding-left:12px!important;padding-right:12px!important}
+ .panel{padding:15px!important}
+ .topbar{padding-left:12px!important;padding-right:12px!important}
+}
+
+.veyra-mobile-menu{display:none}
+</style><script>(function(){
 const key="veyra.theme.v1";
 const automatic=()=>{const hour=new Date().getHours();return hour>=7&&hour<19?"light":"dark"};
 let preference="auto";try{const saved=localStorage.getItem(key);if(["auto","dark","light"].includes(saved))preference=saved}catch{}
@@ -291,4 +329,4 @@ for(const reason of data.reasons||[]){const node=document.createElement("div");n
 }catch(e){error.textContent=e instanceof Error?e.message:"Request failed";error.hidden=false}
 finally{button.disabled=false;button.textContent="Run recipient assessment ↗"}
 });
-</script></body></html>
+</script><script>(function(){const sidebar=document.querySelector(".sidebar");const nav=sidebar?.querySelector("nav");const brand=sidebar?.querySelector(".brand");if(!nav||!brand)return;const button=document.createElement("button");button.type="button";button.className="veyra-mobile-menu";button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation");button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","veyra-mobile-navigation");nav.id="veyra-mobile-navigation";brand.after(button);function close(){nav.classList.remove("veyra-nav-open");button.setAttribute("aria-expanded","false");button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation")}button.addEventListener("click",()=>{const open=nav.classList.toggle("veyra-nav-open");button.setAttribute("aria-expanded",String(open));button.textContent=open?"✕ Close":"☰ Menu";button.setAttribute("aria-label",open?"Close navigation":"Open navigation")});nav.addEventListener("click",event=>{if(event.target.closest("a"))close()});document.addEventListener("keydown",event=>{if(event.key==="Escape")close()});})();</script></body></html>
