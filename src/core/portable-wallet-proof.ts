@@ -42,14 +42,19 @@ export async function verifyPortableWalletProof(input: PortableWalletProof, now 
   const issued = Date.parse(parts[5].slice(11));
   const expires = Date.parse(parts[6].slice(12));
   const verified = Date.parse(input.receipt.verifiedAt);
+  // The personal-message signature authenticates issuedAt/expiresAt, NOT the unsigned receipt verifiedAt.
+  // Require receipt time within the signed challenge window; do not describe it as signed proof of time.
   if (![issued, expires, verified].every(Number.isFinite) ||
       expires - issued !== 300000 || verified < issued || verified >= expires ||
       verified > now || now - verified > 24 * 60 * 60 * 1000)
     throw new Error("Invalid or stale challenge chronology");
   const signer = await verifyPersonalMessageSignature(new TextEncoder().encode(input.message), input.signature, { address });
   if (!signer) throw new Error("Signature invalid");
+  // A valid signed challenge proves key control, but not the claimed server verification instant.
+  // Bind a conservative, authenticated observation window to the signed message.
   return { status: "portable_proof_verified" as const, address,
-    verifiedAt: input.receipt.verifiedAt, receiptId: input.receipt.receiptId,
+    claimedVerifiedAt: input.receipt.verifiedAt, signedChallengeIssuedAt: new Date(issued).toISOString(),
+    signedChallengeExpiresAt: new Date(expires).toISOString(), receiptId: input.receipt.receiptId,
     paymentAuthorized: false as const, identityVerified: false as const,
     recipientSafe: false as const, walrusMemoryWritten: false as const };
 }
