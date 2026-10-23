@@ -6,12 +6,16 @@ export interface LimiterOptions {
   now?: () => number;
 }
 
-export type LimiterResult = {
-  allowed: boolean;
-  reason?: string;
-  retryAfter?: number;
-  release: () => void;
-};
+export type LimiterResult =
+  | {
+      allowed: true;
+      release: () => void;
+    }
+  | {
+      allowed: false;
+      reason: "rate_limit" | "busy";
+      retryAfter: number;
+    };
 
 export interface PreflightLimiter {
   acquire: (peer: string | undefined | null) => LimiterResult;
