@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <p>Sign a personal message to demonstrate control of the exact address. This is not a transaction, payment approval, identity check, or recipient-safety guarantee.</p>
 <div class="warning">Wallet connection is available for compatibility testing. Public signature verification remains disabled pending security review. Do not bypass wallet warnings. Never enter a seed phrase, private key, or recovery words.</div>
 <section class="panel">
-<h2>Connect a Sui wallet</h2><p>Choose any compatible wallet installed in your browser. We never request your recovery phrase.</p>
+<h2>Connect a Sui wallet</h2><p>Choose any Sui-compatible wallet installed in your browser, including OKX Wallet if its extension registers Sui support. We never request your recovery phrase.</p>
 <button id="connect" class="primary" type="button">Connect wallet →</button><button id="refresh" type="button">Rescan extensions</button><div id="wallet-picker" hidden><p class="muted">Choose a detected wallet</p><div id="wallet-options"></div></div><select id="wallet" hidden aria-label="Detected wallet"></select>
 <p id="connected">Not connected</p>
 </section>
@@ -109,7 +109,7 @@ const $=id=>document.getElementById(id);
 const wallets=new Map();
 let connected=null,account=null,challenge=null,verificationAvailable=false;
 const status=message=>{$("status").textContent=message};
-function walletSupported(w){return Boolean(w?.features?.["standard:connect"]?.connect&&w?.features?.["sui:signPersonalMessage"]?.signPersonalMessage)}
+function walletSupported(w){return Boolean(w?.features?.["standard:connect"]?.connect&&(w?.chains?.some(c=>typeof c==="string"&&c.startsWith("sui:"))||w?.accounts?.some(a=>a.chains?.some(c=>typeof c==="string"&&c.startsWith("sui:")))))}
 function register(wallet){
  if(!walletSupported(wallet))return;
  const id=wallet.name+" ("+(wallet.version||"unknown version")+")";
@@ -144,7 +144,9 @@ async function connectSelected(){
   const match=candidates.find(a=>typeof a.address==="string"&&/^0x[0-9a-fA-F]{64}$/.test(a.address)&&a.chains?.includes("sui:mainnet"));
   if(!match){connected=null;account=null;$("connected").textContent="No Sui Mainnet account available.";return status("Connect a Sui Mainnet account. Nothing signed.")}
   connected=wallet;account=match;expected=match.address.toLowerCase();$("expected").textContent=expected;$("connected").textContent="Connected: "+match.address;
-  $("challenge").disabled=!verificationAvailable;status(verificationAvailable?"Wallet connected. Request a challenge to verify signing-key control.":"Wallet connected for compatibility testing only. Public signature verification remains disabled.");
+  const canSign=typeof wallet.features["sui:signPersonalMessage"]?.signPersonalMessage==="function";
+  $("challenge").disabled=!verificationAvailable||!canSign;
+  status(!canSign?"Wallet connected successfully. This wallet does not expose Sui personal-message signing through Wallet Standard; signature verification is unavailable.":verificationAvailable?"Wallet connected. Request a challenge to verify signing-key control.":"Wallet connected for compatibility testing only. Public signature verification remains disabled.");
  }catch{status("Wallet connection failed or was rejected.");}
 }
 $("challenge").addEventListener("click",async()=>{
