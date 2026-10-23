@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Veyra — Verify wallet control</title>
+<style>
+:root{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:#e5f0e8;background:#101713}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:790px;margin:40px auto;padding:24px}
+a{color:#b5e1c3}.panel{background:#1a2920;border:1px solid #42604a;border-radius:14px;padding:24px;margin-top:20px}
+h1{font-size:30px}p,li{line-height:1.7;color:#c0d2c4}label{display:block;margin:15px 0 8px}
+input,select,textarea{width:100%;background:#101713;border:1px solid #6b8572;border-radius:8px;padding:12px;color:#fff;font:inherit}
+textarea{min-height:190px;resize:vertical}button{padding:12px 18px;margin:14px 10px 4px 0;background:#bfe7c8;color:#183b25;border:0;border-radius:8px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}.warning{border-left:4px solid #d3ac69;padding:12px;background:#342b1d;color:#ffe5b6}
+code{overflow-wrap:anywhere}#status{white-space:pre-wrap;overflow-wrap:anywhere}
+</style></head><body><main class="wrap">
+<a href="/memory">← Back to memory</a>
+<h1>Verify control of your Sui wallet</h1>
+<p>Sign a personal message to demonstrate control of the exact address. This is not a transaction, payment approval, identity check, or recipient-safety guarantee.</p>
+<div class="warning">Local-only pilot. The public deployment does not accept wallet challenges. Never enter a seed phrase, private key, or recovery words. Inspect the message in your wallet before signing.</div>
+<section class="panel">
+<h2>1. Select your wallet</h2>
+<label for="wallet">Detected Wallet Standard wallets</label>
+<select id="wallet"><option value="">Searching for wallets…</option></select>
+<button id="refresh" type="button">Refresh wallets</button>
+<button id="connect" type="button">Connect selected wallet</button>
+<p id="connected">Not connected</p>
+</section>
+<section class="panel">
+<h2>2. Review verification challenge</h2>
+<p>Veyra expects your previously remembered wallet address:</p>
+<code id="expected">0x83874235f1db9761bcce93a11466a613a4516085da5ccfe121dddc3d63a0b5e8</code>
+<button id="challenge" type="button" disabled>Request 5-minute challenge</button>
+<label for="message">Exact message to be signed (read-only)</label>
+<textarea id="message" readonly placeholder="Connect the expected wallet and request a challenge"></textarea>
+</section>
+<section class="panel">
+<h2>3. Sign and verify</h2>
+<button id="sign" type="button" disabled>Sign personal message and verify</button>
+<p id="status" role="status" aria-live="polite">No wallet proof has been submitted.</p>
+<p>Valid signatures establish signing-key control at verification time only. Veyra never signs transactions, transfers SUI, or automatically stores this result in Walrus.</p>
+</section>
+</main>
+<script>
+(()=>{
+"use strict";
+const EXPECTED="0x83874235f1db9761bcce93a11466a613a4516085da5ccfe121dddc3d63a0b5e8";
+const $=id=>document.getElementById(id);
+const wallets=new Map();
+let connected=null,account=null,challenge=null;
+const status=message=>{$("status").textContent=message};
+function walletSupported(w){return Boolean(w?.features?.["standard:connect"]?.connect&&w?.features?.["sui:signPersonalMessage"]?.signPersonalMessage)}
+function register(wallet){
+ if(!walletSupported(wallet))return;
+ const id=wallet.name+" ("+(wallet.version||"unknown version")+")";
+ wallets.set(id,wallet);render();
+}
+function render(){
+ const select=$("wallet"),selected=select.value;
+ select.replaceChildren();
+ const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent=wallets.size?"Choose a compatible wallet":"No compatible wallet detected";select.append(placeholder);
+ for(const key of wallets.keys()){const option=document.createElement("option");option.value=key;option.textContent=key;select.append(option)}
+ if(wallets.has(selected))select.value=selected;
+}
+function discover(){
+ // Wallet Standard registration handshake; no third-party scripts or wallet secrets.
+ window.dispatchEvent(new CustomEvent("wallet-standard:app-ready",{detail:{register:register}}));
+ render();
+}
+window.addEventListener("wallet-standard:register-wallet",event=>{
+ const detail=event.detail;
+ if(typeof detail==="function")detail({register});
+ else if(detail?.wallet)register(detail.wallet);
+});
+$("refresh").addEventListener("click",discover);
+$("connect").addEventListener("click",async()=>{
+ challenge=null;$("sign").disabled=true;$("challenge").disabled=true;$("message").value="";
+ const wallet=wallets.get($("wallet").value);
+ if(!wallet)return status("Select a compatible Sui wallet.");
+ try{
+  const result=await wallet.features["standard:connect"].connect();
+  const candidates=result?.accounts||wallet.accounts||[];
+  const match=candidates.find(a=>typeof a.address==="string"&&a.address.toLowerCase()===EXPECTED&&a.chains?.includes("sui:mainnet"));
+  if(!match){connected=null;account=null;$("connected").textContent="Expected Mainnet address not found in connected accounts.";return status("Address or network mismatch. Nothing signed.")}
+  connected=wallet;account=match;$("connected").textContent="Connected: "+match.address;
+  $("challenge").disabled=false;status("Address matches. Request a challenge to continue.");
+ }catch{status("Wallet connection failed or was rejected.");}
+});
+$("challenge").addEventListener("click",async()=>{
+ if(!account||!connected)return;
+ challenge=null;$("sign").disabled=true;$("message").value="";
+ try{
+  const response=await fetch("/v1/wallet-challenge",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({address:EXPECTED})});
+  const data=await response.json();
+  if(!response.ok||data.status!=="challenge_issued"||data.address!==EXPECTED||data.paymentAuthorized!==false)throw Error("Challenge unavailable");
+  challenge=data;$("message").value=data.message;$("sign").disabled=false;
+  status("Challenge issued. Expires "+data.expiresAt+". Review the full message before signing.");
+ }catch{status("Challenge unavailable. Start the local Veyra API; public mode is disabled for signing.");}
+});
+$("sign").addEventListener("click",async()=>{
+ if(!challenge||!connected||!account)return;
+ const current=challenge;challenge=null;$("sign").disabled=true;
+ if(Date.parse(current.expiresAt)<=Date.now())return status("Challenge expired. Request a new one.");
+ try{
+  const sign=connected.features["sui:signPersonalMessage"].signPersonalMessage;
+  const signed=await sign({account,message:new TextEncoder().encode(current.message)});
+  if(typeof signed?.signature!=="string")throw Error("No signature");
+  const response=await fetch("/v1/wallet-verify",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({nonce:current.nonce,address:EXPECTED,signature:signed.signature})});
+  const result=await response.json();
+  if(response.ok&&result.status==="wallet_control_verified"&&result.address===EXPECTED&&result.paymentAuthorized===false){
+   status("VERIFIED: Wallet signing-key control demonstrated at "+result.verifiedAt+". Identity and payment safety remain unverified. No Walrus memory was written.");
+  }else status("NOT VERIFIED: "+(result.status||"Verification failed")+". Request a new challenge to retry.");
+ }catch{status("Signing cancelled, wallet incompatible, or verification unavailable. No payment was made.");}
+});
+discover();
+})();
+</script></body></html>
