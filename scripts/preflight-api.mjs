@@ -142,6 +142,48 @@ async function handler(req, res) {
   }
   if (req.method === "GET" && req.url === "/health")
     return send(200, { status: "running", paymentAuthorized: false, publicMode, memoryWritesEnabled: !publicMode });
+  if (req.method === "POST" && req.url === "/v1/recipient-evidence") {
+    if (publicMode) return send(403, { error: "Evidence memory writes are disabled on the public service", paymentAuthorized: false });
+    if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+      return send(415, { error: "JSON content type required", paymentAuthorized: false });
+    const origin = req.headers.origin;
+    if (origin && origin !== `http://127.0.0.1:${port}`)
+      return send(403, { error: "Cross-origin evidence writes forbidden", paymentAuthorized: false });
+    if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID)
+      return send(503, { error: "Walrus credentials unavailable", paymentAuthorized: false });
+    try {
+      let body = "";
+      for await (const chunk of req) {
+        body += chunk.toString();
+        if (Buffer.byteLength(body) > maxBody)
+          return send(413, { error: "Request too large", paymentAuthorized: false });
+      }
+      const input = JSON.parse(body);
+      if (input?.userApprovedStorage !== true || input?.confirmWrite !== "STORE")
+        return send(400, { error: "Explicit storage consent and STORE confirmation required", paymentAuthorized: false });
+      const { prepareRecipientEvidenceEvent } = await import("../src/core/recipient-evidence-event.ts");
+      const { writeRecipientEvidenceEvent } = await import("../src/core/recipient-evidence-writer.ts");
+      const record = prepareRecipientEvidenceEvent(input);
+      const { MemWal } = await import("@mysten-incubation/memwal");
+      const writer = MemWal.create({
+        key: process.env.MEMWAL_PRIVATE_KEY,
+        accountId: process.env.MEMWAL_ACCOUNT_ID,
+        serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
+        namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+      });
+      const health = await writer.health();
+      if (health.write_ready !== true || !["ok", "healthy"].includes(health.writes))
+        return send(503, { error: "Walrus writes are not ready", paymentAuthorized: false });
+      const outcome = await writeRecipientEvidenceEvent(input, writer, { writesEnabled: true });
+      return send(outcome.state.status === "stored" ? 200 : 503, {
+        ...outcome, counterpartyId: record.counterpartyId, address: record.address,
+        paymentAuthorized: false,
+      });
+    } catch (error) {
+      return send(400, { status: "evidence_write_failed", paymentAuthorized: false,
+        error: error instanceof Error ? error.message : "Evidence write failed" });
+    }
+  }
   if (req.method === "POST" && req.url === "/v1/recipient-memory") {
     if (publicMode) return send(403, { error: "Recipient memory writes are disabled on the public service", paymentAuthorized: false });
     if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
