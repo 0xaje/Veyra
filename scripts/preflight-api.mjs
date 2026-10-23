@@ -178,7 +178,11 @@ async function handler(req, res) {
         return send(200, { status: "challenge_issued", ...issueWalletChallenge(input.address) });
       }
       const result = await verifyWalletChallenge(input);
-      return send(result.status === "wallet_control_verified" ? 200 : 400, result);
+      if (result.status === "wallet_control_verified") {
+        const { prepareWalletControlReceipt } = await import("../src/core/wallet-control-receipt.ts");
+        return send(200, { ...result, proposedReceipt: prepareWalletControlReceipt(result), walrusMemoryWritten: false });
+      }
+      return send(400, result);
     } catch {
       return send(400, { error: "Wallet proof request failed", paymentAuthorized: false });
     }
