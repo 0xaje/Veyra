@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <a href="/memory">← Back to memory</a>
 <h1>Verify control of your Sui wallet</h1>
 <p>Sign a personal message to demonstrate control of the exact address. This is not a transaction, payment approval, identity check, or recipient-safety guarantee.</p>
-<div class="warning">Local-only pilot. The public deployment does not accept wallet challenges. Never enter a seed phrase, private key, or recovery words. Inspect the message in your wallet before signing.</div>
+<div class="warning">Wallet verification may be unavailable on this deployment until public security checks are complete. Never enter a seed phrase, private key, or recovery words. Review the message in your wallet before signing.</div>
 <section class="panel">
 <h2>Connect a Sui wallet</h2><p>Choose any compatible wallet installed in your browser. We never request your recovery phrase.</p>
 <button id="connect" class="primary" type="button">Connect wallet →</button><button id="refresh" type="button">Rescan extensions</button><div id="wallet-picker" hidden><p class="muted">Choose a detected wallet</p><div id="wallet-options"></div></div><select id="wallet" hidden aria-label="Detected wallet"></select>
@@ -156,7 +156,7 @@ $("challenge").addEventListener("click",async()=>{
   if(!response.ok||data.status!=="challenge_issued"||data.address!==expected||data.paymentAuthorized!==false)throw Error("Challenge unavailable");
   challenge=data;$("message").value=data.message;$("sign").disabled=false;
   status("Challenge issued. Expires "+data.expiresAt+". Review the full message before signing.");
- }catch{status("Challenge unavailable. Start the local Veyra API; public mode is disabled for signing.");}
+ }catch{status("Verification is unavailable on this deployment. Please try again later.");}
 });
 $("sign").addEventListener("click",async()=>{
  if(!challenge||!connected||!account)return;
