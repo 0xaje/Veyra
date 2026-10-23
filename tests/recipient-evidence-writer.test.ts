@@ -6,6 +6,7 @@ import type { RecipientEvidenceEventInput } from "../src/core/recipient-evidence
 const input: RecipientEvidenceEventInput = {
   counterpartyId: "public-reference",
   address: "0x1",
+  addressKind: "wallet",
   eventType: "source_observed",
   source: {
     kind: "public_official_document",
