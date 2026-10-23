@@ -1,4 +1,4 @@
-// Local-only read-only Veyra preflight HTTP API. Never signs or submits payments.
+// Veyra preflight HTTP API: local write-capable mode, public read-only mode. Never signs or submits payments.
 import { createServer } from "node:http";
 import { readFile, appendFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -182,19 +182,25 @@ async function handler(req, res) {
   }
   if (req.method !== "POST" || req.url !== "/v1/preflight")
     return send(404, { error: "Not found" });
+  if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+    return send(415, { status: "preflight_failed", action: "manual_review_required", paymentAuthorized: false, reason: "JSON content type required" });
   try {
     let body = "";
     for await (const chunk of req) {
       body += chunk.toString();
-      if (Buffer.byteLength(body) > maxBody) return send(413, { error: "Request too large" });
+      if (Buffer.byteLength(body) > maxBody) return send(413, { error: "Request too large", paymentAuthorized: false });
     }
-    const data = JSON.parse(body);
+    let data;
+    try { data = JSON.parse(body); }
+    catch { return send(400, { status: "preflight_failed", action: "manual_review_required", paymentAuthorized: false, reason: "Malformed JSON request body" }); }
     if (typeof data.counterpartyId !== "string" || !data.counterpartyId.trim() ||
         data.counterpartyId.length > 128 || typeof data.proposedAddress !== "string" ||
         (data.transactionDigest !== undefined &&
           (typeof data.transactionDigest !== "string" || !digestPattern.test(data.transactionDigest))))
       return send(400, { error: "Invalid preflight request" });
-    const proposedAddress = normalizeSuiAddress(data.proposedAddress);
+    let proposedAddress;
+    try { proposedAddress = normalizeSuiAddress(data.proposedAddress); }
+    catch { return send(400, { status: "preflight_failed", action: "manual_review_required", paymentAuthorized: false, reason: "Invalid Sui recipient address" }); }
     // Authorization is deliberately NOT accepted from the HTTP caller.
     // Configure a locally controlled file only after independently verifying provenance.
     let authorizations = [];
@@ -238,7 +244,7 @@ async function handler(req, res) {
   } catch {
     return send(400, {
       status: "preflight_failed", action: "manual_review_required",
-      paymentAuthorized: false, reason: "Invalid request or local configuration",
+      paymentAuthorized: false, reason: "Preflight could not be completed; verify server configuration",
     });
   }
 }
