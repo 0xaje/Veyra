@@ -123,9 +123,9 @@ async function handler(req, res) {
     res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" });
     res.end(JSON.stringify(data));
   };
-  if (req.method === "GET" && (req.url === "/" || req.url === "/index.html" || req.url === "/docs" || req.url === "/history" || req.url === "/memory")) {
+  if (req.method === "GET" && (req.url === "/" || req.url === "/index.html" || req.url === "/docs" || req.url === "/history" || req.url === "/memory" || req.url === "/verify-wallet")) {
     try {
-      const html = await readFile(resolve(webRoot, req.url === "/docs" ? "docs.html" : req.url === "/history" ? "history.html" : req.url === "/memory" ? "memory.html" : "index.html"), "utf8");
+      const html = await readFile(resolve(webRoot, req.url === "/docs" ? "docs.html" : req.url === "/history" ? "history.html" : req.url === "/memory" ? "memory.html" : req.url === "/verify-wallet" ? "verify-wallet.html" : "index.html"), "utf8");
       res.writeHead(200, {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "no-store",
