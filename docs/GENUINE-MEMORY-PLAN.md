@@ -94,3 +94,26 @@ Operator reported a **single explicitly authorized** local write and then ran re
 - Limitation: **MemWal semantic recall only**, not a raw Walrus blob download, onchain ownership proof, or independently audited count
 
 **Reported progress: 3 stored records toward the 10-memory target**, consisting of one recipient record and two distinct package-source observations. Whether each qualifies under the hackathon rules still needs to be checked. No write is performed by this documentation update.
+
+
+## Memory #4 — user-confirmed Bybit SUI deposit observation (2026-10-23)
+
+The operator reported one explicitly approved local write and a subsequent read-only MemWal recall verification:
+
+- Counterparty: `my-bybit-sui-deposit`
+- Record type: `veyra.recipient_evidence.v1`
+- Sui Mainnet wallet-format address: `0xacb4bc177ab1a34482a587240afa12a393b306a040abb5930fa9b1217ffcc25c`
+- Address kind: `wallet`
+- Event: `recipient_reconfirmed` (schema label; **the Bybit account holder confirmed what was displayed, not a Bybit-controlled key signature or independent exchange attestation**)
+- Source kind: `direct_owner_confirmation` (schema label; interpret narrowly as user-reported deposit-page confirmation, not Bybit wallet ownership proof)
+- Source reference: `User confirmed address displayed in their own Bybit account under Deposit > SUI > Sui network`
+- Observation time: `2026-10-23T13:38:58.396Z`
+- Local preparation: `prepared_not_stored` before authorization
+- Local POST result: HTTP 200, `state.status: stored`
+- Job ID: `dc2c1e52-4226-4c87-84b8-e4fe13a0f93e`
+- Blob ID: `f6iWcaX8qv71FSQgEVxm7nUSAYi3jcwGEeRZx-uLVrw`
+- Read-only verification: `verified_via_memwal_recall` for exact blob ID, counterparty, address, event, source and observation time (operator-provided output)
+- Trust: `informational_unverified`; `paymentAuthorized: false`
+- Limitations: semantic MemWal recall, **not** raw Walrus blob download, wallet-key control proof, guarantee of exchange deposit validity, or payment authorization
+
+**Reported progress: 4 stored records toward the 10-memory target** (one original recipient record, two package-source observations, one Bybit deposit-address evidence event). Eligibility of each record and independent raw Walrus availability remain unconfirmed. This documentation change performs no additional memory write.
