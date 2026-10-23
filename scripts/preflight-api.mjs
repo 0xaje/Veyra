@@ -182,6 +182,24 @@ async function handler(req, res) {
         } catch { /* Ignore malformed or unrelated recall results. */ }
       }
       events.sort((a,b) => b.source.observedAt.localeCompare(a.source.observedAt));
+      const proposedRaw = url.searchParams.get("proposedAddress");
+      if (proposedRaw !== null) {
+        let proposedAddress;
+        try { proposedAddress = normalizeSuiAddress(proposedRaw); }
+        catch { return send(400, { status: "invalid_address", paymentAuthorized: false }); }
+        // Only user-reconfirmed wallet observations can serve as informational baselines.
+        // Search recall is non-exhaustive: no match must never mean safe.
+        const baselines = events.filter(e => e.addressKind === "wallet" &&
+          e.eventType === "recipient_reconfirmed" && e.source?.kind === "direct_owner_confirmation");
+        const addresses = [...new Set(baselines.map(e => normalizeSuiAddress(e.address)))];
+        const comparison = addresses.length === 0 ? "no_recalled_baseline" :
+          addresses.length > 1 ? "conflicting_recalled_baselines" :
+          addresses[0] === proposedAddress ? "matches_recalled_observation" : "differs_from_recalled_observation";
+        return send(200, { status: "read_only_comparison", counterpartyId, proposedAddress,
+          comparison, recalledAddresses: addresses, evidenceBlobIds: baselines.map(e => e.blobId),
+          action: "manual_review_required", independentlyVerified: false, paymentAuthorized: false,
+          limitation: "MemWal semantic search may omit records. Match is not proof of identity, exchange deposit validity or transfer safety. Never authorize payment from this result." });
+      }
       return send(200, { status: "observed", counterpartyId, events, paymentAuthorized: false,
         limitation: "Search-based recall may be incomplete; stored observations do not verify ownership or payment safety." });
     } catch {
