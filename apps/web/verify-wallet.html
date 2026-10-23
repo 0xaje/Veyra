@@ -1,7 +1,55 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Veyra — Verify wallet control</title>
-<style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Veyra — Verify wallet control</title><style>:root{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:#1b382d;background:#d5eddf}*{box-sizing:border-box}body{margin:0}a{color:inherit;text-decoration:none}.shell{display:grid;grid-template-columns:232px minmax(0,1fr);height:100vh}.sidebar{background:#20342f;color:#e5f5ea;padding:28px 19px;display:flex;flex-direction:column;gap:30px;overflow-y:auto}.brand{font-size:25px;font-weight:800;letter-spacing:-1px;padding:5px 10px}.mark{color:#bfe6d1}.side-label{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:#b5cdbd;padding:0 12px}.nav-item{display:block;padding:13px;border-radius:8px;color:#c1d9cc;font-size:13px}.nav-item.active{background:#bfe6d1;color:#17372b;font-weight:700}.side-note{margin-top:auto;padding:17px;border:1px solid #456253;border-radius:10px;font-size:12px;line-height:1.6;color:#c4dacb}.workspace{height:100vh;overflow-y:auto;min-width:0;scrollbar-gutter:stable}.topbar{position:sticky;top:0;z-index:3;background:#d5eddf;border-bottom:1px solid #b0cbbc;padding:23px 35px;font-size:13px;color:#3d5c4c}.main{max-width:1200px;margin:auto;padding:38px 35px 80px}.overline{font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:#2a7052;font-weight:700}h1{font-size:33px;letter-spacing:-1px;margin:10px 0}h2{font-size:16px;margin:0 0 15px}p{font-size:13px;color:#516c60;line-height:1.8}.panel{background:#f5faf6;border:1px solid #b5ccbd;border-radius:11px;padding:24px;margin-top:24px}.kv{display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid #d3e2d6;padding:14px 0;font-size:12px;overflow-wrap:anywhere}.kv span:last-child{text-align:right;color:#295440}.button{border:0;border-radius:7px;background:#203c31;color:#e5f5e9;padding:12px 17px;font-weight:700;cursor:pointer}.button:disabled{opacity:.5;cursor:not-allowed}.empty{color:#5d7668;font-size:13px;padding:15px 0}.note{font-size:12px;color:#60796b}.pill{font-size:11px;color:#725425;background:#fff0d3;padding:6px 9px;border-radius:5px} @media(max-width:850px){.shell{display:block;height:auto}.sidebar{padding:12px;display:block}.sidebar .side-note,.sidebar .side-label{display:none}.sidebar nav{display:flex;flex-wrap:wrap}.nav-item{padding:9px}.workspace{height:auto;overflow:visible}.topbar{position:static}.main{padding:26px 18px}} .nav-item,.topbar,.kv,.note,.empty,.side-note{font-size:14px;font-weight:550;line-height:1.65}.side-label,.overline{font-size:12px;font-weight:700}.panel h2{font-size:18px}p{font-size:15px;font-weight:500}.button{font-size:14px}
+
+/* Nightfall: neutral graphite surfaces, restrained sage accents, quiet hierarchy. */
+html[data-theme="dark"]{color-scheme:dark;background:#101513;color:#e5ebe7}
+html[data-theme="dark"] body,html[data-theme="dark"] .workspace,html[data-theme="dark"] .main{background:#101513;color:#e5ebe7}
+html[data-theme="dark"] .sidebar{background:#121c18;color:#dce8df;border-color:#2b3c32}
+html[data-theme="dark"] .brand{color:#eff7f0}
+html[data-theme="dark"] .mark{background:#c4e4d0;color:#173a29}
+html[data-theme="dark"] .side-label{color:#8da89a}
+html[data-theme="dark"] .nav-item{color:#b1c4b8}
+html[data-theme="dark"] .nav-item:hover{background:#1e3027;color:#eaf5ec}
+html[data-theme="dark"] .nav-item.active{background:#264636;color:#e5f5e9}
+html[data-theme="dark"] .side-note{background:#192820;border-color:#32483a;color:#c2d5c8}
+html[data-theme="dark"] .side-note p{color:#b1c8b9}
+html[data-theme="dark"] .topbar,html[data-theme="dark"] .mobile-bar{background:#101513;color:#c9d7ce;border-color:#2a3730}
+html[data-theme="dark"] .breadcrumbs{color:#9daf9f}
+html[data-theme="dark"] .breadcrumbs b{color:#e5ebe7}
+html[data-theme="dark"] .right{color:#b5c6b9}
+html[data-theme="dark"] .heading h1,html[data-theme="dark"] h1,html[data-theme="dark"] h2,html[data-theme="dark"] h3{color:#eef4ef}
+html[data-theme="dark"] .overline,html[data-theme="dark"] .eyebrow{color:#a1c9af}
+html[data-theme="dark"] p,html[data-theme="dark"] li,html[data-theme="dark"] .heading p,html[data-theme="dark"] .section-caption,html[data-theme="dark"] .note,html[data-theme="dark"] .empty,html[data-theme="dark"] .hint{color:#b0c0b5}
+html[data-theme="dark"] .stat,html[data-theme="dark"] .panel,html[data-theme="dark"] .mini,html[data-theme="dark"] .reader>.section{background:#19221e;color:#e5ebe7;border-color:#303e35}
+html[data-theme="dark"] .panel-head,html[data-theme="dark"] .result-intro,html[data-theme="dark"] .step-row{background:#19221e;border-color:#303e35;color:#dce7df}
+html[data-theme="dark"] .panel-body,html[data-theme="dark"] .placeholder{background:#19221e}
+html[data-theme="dark"] .stat .label,html[data-theme="dark"] .stat .sub,html[data-theme="dark"] .panel-head small,html[data-theme="dark"] .result-intro p,html[data-theme="dark"] .placeholder p,html[data-theme="dark"] .step-row{color:#a3b6a9}
+html[data-theme="dark"] .stat .value,html[data-theme="dark"] .step-row b{color:#e7efe8}
+html[data-theme="dark"] label{color:#d9e6dc}
+html[data-theme="dark"] input:not([type="checkbox"]),html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#111915;color:#e8f1e9;border:1px solid #405548}
+html[data-theme="dark"] input::placeholder{color:#8b9f91}
+html[data-theme="dark"] input:focus-visible,html[data-theme="dark"] select:focus-visible{border-color:#a2cdb1;outline:2px solid #5c8d6b;outline-offset:1px}
+html[data-theme="dark"] input[type="checkbox"]{accent-color:#a7d9b7}
+html[data-theme="dark"] .action,html[data-theme="dark"] .button{background:#b4dcc0;color:#183525}
+html[data-theme="dark"] .action:hover,html[data-theme="dark"] .button:hover{background:#d0e9d5}
+html[data-theme="dark"] .kv,html[data-theme="dark"] .section,html[data-theme="dark"] header{border-color:#344138;color:#dce7df}
+html[data-theme="dark"] .kv span:first-child{color:#a8baac}
+html[data-theme="dark"] .kv span:last-child{color:#e5eee7}
+html[data-theme="dark"] .evidence-box,html[data-theme="dark"] .reader>.section .panel{background:#131c17;border-color:#35453a;color:#e3ece4}
+html[data-theme="dark"] .evidence-box h3,html[data-theme="dark"] .reader>.section h2,html[data-theme="dark"] .reader>.section h3{color:#e9f2ea}
+html[data-theme="dark"] .evidence-box p,html[data-theme="dark"] .secondary-note,html[data-theme="dark"] .reader>.section p,html[data-theme="dark"] .reader>.section li{color:#b3c5b8}
+html[data-theme="dark"] .reason{background:#30291e;color:#f0d6ac;border-left-color:#d5a35d}
+html[data-theme="dark"] .verdict,html[data-theme="dark"] .pill,html[data-theme="dark"] .chip{background:#332a1d;color:#f2d4a4;border-color:#745a35}
+html[data-theme="dark"] .read-only,html[data-theme="dark"] .environment{background:#1c3024;color:#c3e4cd;border-color:#42644c}
+html[data-theme="dark"] .toc a,html[data-theme="dark"] .docs-link,html[data-theme="dark"] .mini a,html[data-theme="dark"] header a,html[data-theme="dark"] .digest-link{color:#a9d8b8}
+html[data-theme="dark"] .hero{border-color:#344138}
+html[data-theme="dark"] code{background:#243329;color:#c9ead0}
+html[data-theme="dark"] .shield{border-color:#42664d;color:#b8dec0}
+html[data-theme="dark"] .error{background:#3c2225;color:#ffceca}
+.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}
+html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}
+.veyra-theme-toggle:hover{filter:brightness(1.08)}
+.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}
+.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;margin:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}.veyra-theme-toggle:hover{filter:brightness(1.08)}.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}@media(max-width:600px){.topbar{padding:15px 18px;min-height:64px}}\n
 :root{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:#e5f0e8;background:#101713}
 *{box-sizing:border-box}body{margin:0}.wrap{max-width:790px;margin:40px auto;padding:24px}
 a{color:#b5e1c3}.panel{background:#1a2920;border:1px solid #42604a;border-radius:14px;padding:24px;margin-top:20px}
@@ -12,7 +60,26 @@ button:disabled{opacity:.45;cursor:not-allowed}.warning{border-left:4px solid #d
 code{overflow-wrap:anywhere}#status{white-space:pre-wrap;overflow-wrap:anywhere}
 
 :root{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:#17251b;background:#f5f7f4}body{background:radial-gradient(ellipse at 15% 0%,#e1eee5,transparent 40%),#f5f7f4}.wrap{max-width:900px;margin:30px auto;padding:28px 24px 70px}a{color:#376e4b;text-decoration:none;font-weight:600}h1{font-size:clamp(32px,5vw,52px);letter-spacing:-.045em;line-height:1.1;max-width:700px;margin:32px 0 12px}h2{font-size:22px;letter-spacing:-.025em;margin-top:0}p,li{color:#607166;line-height:1.65}.panel{background:#fff;border:1px solid #e0e8df;border-radius:20px;padding:28px 30px;margin-top:16px;box-shadow:0 10px 32px rgba(26,56,35,.035)}.warning{border:1px solid #eadfbb;border-radius:12px;background:#fff9e8;color:#6d5c2c;padding:15px 18px;line-height:1.55;margin-top:22px}button{background:#eef3ee;color:#25402c;border:1px solid #d9e4da;border-radius:10px;padding:13px 17px;font-size:14px;font-weight:650;cursor:pointer;margin:10px 8px 6px 0;transition:transform .15s,background .15s}button:hover:not(:disabled){background:#e0ece1;transform:translateY(-1px)}button.primary,#challenge,#sign{background:#1f613b;color:#fff;border-color:#1f613b}button.primary:hover,#challenge:hover:not(:disabled),#sign:hover:not(:disabled){background:#174d2e}button:disabled{opacity:.4;cursor:not-allowed}#wallet-picker{margin:14px 0;padding:16px;border:1px solid #dfe9df;border-radius:14px;background:#f9fbf9}#wallet-picker[hidden],select[hidden]{display:none}.wallet-choice{display:block;width:100%;text-align:left;background:#fff}code{display:block;background:#f1f6f2;color:#27533a;padding:13px;border-radius:10px;overflow-wrap:anywhere;font-size:13px}details{margin:18px 0}summary{cursor:pointer;color:#315d3d;font-weight:600}textarea{width:100%;min-height:155px;border:1px solid #dce6dc;border-radius:10px;background:#f7faf7;color:#334d3b;padding:14px;margin-top:12px;font:12px/1.6 monospace;resize:vertical}#status{padding:15px 17px;border:1px solid #dce6dc;border-radius:12px;background:#f6faf7;color:#355641;white-space:pre-wrap;overflow-wrap:anywhere}.muted{font-size:13px;color:#718175}@media(max-width:600px){.wrap{padding:18px}.panel{padding:20px}h1{margin-top:25px}}
-</style></head><body><main class="wrap">
+\nhtml[data-theme="dark"]{color-scheme:dark;background:#101513;color:#e5ebe7}html[data-theme="dark"] body,html[data-theme="dark"] .workspace,html[data-theme="dark"] .main{background:#101513;color:#e5ebe7}html[data-theme="dark"] .sidebar{background:#121c18;color:#dce8df;border-color:#2b3c32}html[data-theme="dark"] .topbar{background:#121c18;color:#dce8df;border-color:#2b3c32}html[data-theme="dark"] .panel{background:#18241c;color:#e3ece4;border-color:#34483a}html[data-theme="dark"] h1,html[data-theme="dark"] h2{color:#edf6ef}html[data-theme="dark"] p,html[data-theme="dark"] .muted{color:#b3c5b8}html[data-theme="dark"] #wallet-picker,html[data-theme="dark"] #status,html[data-theme="dark"] code{background:#213126;color:#cce6d2;border-color:#3a5843}html[data-theme="dark"] .wallet-choice{background:#203127;color:#e1efe4;border-color:#48624f}html[data-theme="dark"] textarea{background:#16241a;color:#d5e8d9;border-color:#3b5843}html[data-theme="dark"] .warning{background:#30291e;color:#f0d6ac;border-color:#745a35}html[data-theme="dark"] .brand{color:#f0f7f1}html[data-theme="dark"] .nav-item{color:#c2d7c8}html[data-theme="dark"] .nav-item.active{background:#294434;color:#f2fff5}\n.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;margin:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}.veyra-theme-toggle:hover{filter:brightness(1.08)}.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}@media(max-width:600px){.topbar{padding:15px 18px;min-height:64px}}\n.main{max-width:1000px}.wallet-content{max-width:800px}.wallet-content .panel{margin-top:18px}.wallet-content h1{margin:10px 0 12px}.wallet-content .overline{margin-bottom:6px}</style><script>(function(){
+const key="veyra.theme.v1";
+const automatic=()=>{const hour=new Date().getHours();return hour>=7&&hour<19?"light":"dark"};
+let preference="auto";try{const saved=localStorage.getItem(key);if(["auto","dark","light"].includes(saved))preference=saved}catch{}
+const resolved=()=>preference==="auto"?automatic():preference;
+function apply(){
+ const theme=resolved();document.documentElement.setAttribute("data-theme",theme);
+ const b=document.getElementById("veyra-theme-toggle");
+ if(b){b.textContent=theme==="dark"?"☾":"☀";b.title="Appearance: "+(preference==="auto"?"automatic ("+theme+")":theme)+". Click to switch; double-click for automatic.";b.setAttribute("aria-label",b.title);b.setAttribute("aria-pressed",String(preference!=="auto"))}
+}
+apply();
+document.addEventListener("DOMContentLoaded",()=>{
+ const host=document.querySelector(".veyra-header-actions");if(!host)return;
+ const b=document.createElement("button");b.type="button";b.id="veyra-theme-toggle";b.className="veyra-theme-toggle";host.append(b);apply();
+ b.addEventListener("click",()=>{preference=resolved()==="dark"?"light":"dark";try{localStorage.setItem(key,preference)}catch{}apply()});
+ b.addEventListener("dblclick",()=>{preference="auto";try{localStorage.setItem(key,preference)}catch{}apply()});
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&preference==="auto")apply()});
+ setInterval(()=>{if(preference==="auto")apply()},60000);
+});
+})();</script></head><body><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>eyra.</div><nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item" href="/">◈ &nbsp; Recipient preflight</a><a class="nav-item" href="/history">▤ &nbsp; Session history</a><a class="nav-item" href="/memory">◎ &nbsp; Memory status</a><a class="nav-item active" href="/verify-wallet" aria-current="page">◇ &nbsp; Verify wallet control</a><a class="nav-item" href="/docs">▧ &nbsp; Documentation</a></nav><div class="side-note">Wallet verification proves signing-key control only. No transfers or payment authorization.</div></aside><div class="workspace"><header class="topbar"><span>Workspace &nbsp; / &nbsp; <strong>Verify wallet control</strong></span><div class="veyra-header-actions"></div></header><main class="main"><div class="wallet-content"><div class="overline">Identity evidence / Optional</div>
 <a href="/memory">← Back to memory</a>
 <h1>Verify control of your Sui wallet</h1>
 <p>Sign a personal message to demonstrate control of the exact address. This is not a transaction, payment approval, identity check, or recipient-safety guarantee.</p>
@@ -34,8 +101,7 @@ code{overflow-wrap:anywhere}#status{white-space:pre-wrap;overflow-wrap:anywhere}
 <p id="status" role="status" aria-live="polite">No wallet proof has been submitted.</p>
 <p>Valid signatures establish signing-key control at verification time only. Veyra never signs transactions, transfers SUI, or automatically stores this result in Walrus.</p>
 </section>
-</main>
-<script>
+</div></main></div></div><script>
 (()=>{
 "use strict";
 let expected=null;
