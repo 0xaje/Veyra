@@ -11,6 +11,12 @@ Veyra currently serves its HTML frontend and JSON API from one Node process. The
 5. Confirm that the Walrus SDK's network, namespace, and credentials match the genuine previously stored memory. Do not infer Mainnet provenance from successful recall alone.
 6. Do not set `VEYRA_HISTORY_FILE` or an authorization file in public mode. Public history is deliberately disabled.
 
+## Public API admission limits
+
+The public `POST /v1/preflight` route is bounded by process-local admission control before it reaches provider calls. Defaults are **8 requests per network peer per 60 seconds** and **2 concurrent preflights**. Override with `VEYRA_PREFLIGHT_PER_MINUTE` and `VEYRA_PREFLIGHT_CONCURRENCY` (positive integers). Exceeded limits return HTTP 429 with a `Retry-After` header and `paymentAuthorized:false`.
+
+The peer identity comes from the TCP connection, not untrusted forwarding headers. On Render's proxy, multiple visitors may share a peer address; this is a conservative resource cap, **not reliable per-end-user rate limiting**. A single Node process cannot enforce distributed quotas across multiple instances. For broader public usage, add a trusted-edge identity model, shared rate-limit store, provider budget ceilings, and monitoring. Keep provider keys server-side.
+
 ## Deployment validation
 
 - Open the HTTPS home page, /docs, /memory, /history, and /health in a private browser.
@@ -23,4 +29,4 @@ Veyra currently serves its HTML frontend and JSON API from one Node process. The
 
 ## Not yet implemented
 
-Production request throttling, full authentication for memory writes, a persistent production history store, and independently confirmed deployment-side verification of Tatum proto assets. Until those exist, keep public mode read-only and do not promise production-grade abuse resistance. A public read-only endpoint can still incur provider charges, so monitor traffic and provider limits.
+Distributed abuse prevention and trusted per-end-user throttling, full authentication for memory writes, a persistent production history store, provider-budget alerts, and independently confirmed deployment-side verification of Tatum proto assets. Until those exist, keep public mode read-only and do not promise production-grade abuse resistance. A public read-only endpoint can still incur provider charges, so monitor traffic and provider limits.
