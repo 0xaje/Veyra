@@ -36,3 +36,12 @@ References:
 - `deepbook-margin-v3-package-reference`: informational package observation; blob `5nMwajzs04OUkI3VApxH1WmVLxZhtmmLKnkv7t0_Wgw`.
 
 **Total: three reported stored records, not three recipient wallets.** The hackathon eligibility of each record and the independent raw Walrus blob status remain unconfirmed.
+
+
+## Live deployed OKX verification milestone — 2026-10-23
+
+Operator-supplied 10-second screen recording of `https://veyra-rs1l.onrender.com/verify-wallet` shows the final API-backed result: `VERIFIED: Wallet signing-key control demonstrated at 2026-10-23T18:22:11.845Z`. The challenge displayed Sui Mainnet address `0x83874235f1db9761bcce93a11466a613a4516085da5ccfe121dddc3d63a0b5e8`, a purpose-bound nonce, and a five-minute expiry. The operator used OKX Wallet and supplied a separate screenshot of the wallet's personal-message signing request. This is evidence of successful live signature verification, not a Sui transaction, payment authorization, real-world identity verification, or recipient safety. The recorded UI explicitly says `No Walrus memory was written`.
+
+This observation is documented here only. It does **not** create a sixth Walrus memory, change the original recipient record's trust classification, or publish a reusable signature. A separate truthful evidence record, explicit user storage consent, completed MemWal job with blob ID, and read-only recall verification are required before any new memory is counted. The operator-reported inventory in `GENUINE-MEMORY-PLAN.md` remains **five** stored records.
+
+The earlier sections above describe the feature before it was implemented and should be read as historical planning, not the current implementation state.
