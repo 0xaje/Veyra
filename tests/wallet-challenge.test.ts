@@ -45,3 +45,19 @@ test("malformed challenge cannot authorize payment", async () => {
   assert.equal(result.status, "invalid_challenge");
   assert.equal(result.paymentAuthorized, false);
 });
+
+test("real Sui personal-message signature verifies and cannot be replayed", async () => {
+  const { Ed25519Keypair } = await import("@mysten/sui/keypairs/ed25519");
+  const keypair = new Ed25519Keypair();
+  const address = keypair.getPublicKey().toSuiAddress();
+  const challenge = issueWalletChallenge(address);
+  const signed = await keypair.signPersonalMessage(new TextEncoder().encode(challenge.message));
+  const result = await verifyWalletChallenge({ nonce: challenge.nonce, address, signature: signed.signature });
+  assert.equal(result.status, "wallet_control_verified");
+  assert.equal(result.address, address);
+  assert.equal(result.paymentAuthorized, false);
+  assert.equal(result.identityVerified, false);
+  assert.equal(result.recipientSafe, false);
+  const replay = await verifyWalletChallenge({ nonce: challenge.nonce, address, signature: signed.signature });
+  assert.equal(replay.status, "invalid_or_consumed_challenge");
+});
