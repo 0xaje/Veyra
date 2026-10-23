@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <a href="/memory">← Back to memory</a>
 <h1>Verify control of your Sui wallet</h1>
 <p>Sign a personal message to demonstrate control of the exact address. This is not a transaction, payment approval, identity check, or recipient-safety guarantee.</p>
-<div class="warning">Wallet connections are paused on the public deployment while we investigate a wallet-provider security warning. Do not bypass wallet warnings. Never enter a seed phrase, private key, or recovery words. Review any message before signing.</div>
+<div class="warning">Wallet connection is available for compatibility testing. Public signature verification remains disabled pending security review. Do not bypass wallet warnings. Never enter a seed phrase, private key, or recovery words.</div>
 <section class="panel">
 <h2>Connect a Sui wallet</h2><p>Choose any compatible wallet installed in your browser. We never request your recovery phrase.</p>
 <button id="connect" class="primary" type="button">Connect wallet →</button><button id="refresh" type="button">Rescan extensions</button><div id="wallet-picker" hidden><p class="muted">Choose a detected wallet</p><div id="wallet-options"></div></div><select id="wallet" hidden aria-label="Detected wallet"></select>
@@ -133,9 +133,8 @@ window.addEventListener("wallet-standard:register-wallet",event=>{
  else if(detail?.wallet)register(detail.wallet);
 });
 $("refresh").addEventListener("click",discover);
-$("connect").addEventListener("click",()=>{if(!verificationAvailable)return status("Wallet connections are temporarily paused while a wallet security warning is investigated.");discover();$("wallet-picker").hidden=!$("wallet-picker").hidden;if(!wallets.size)status("No compatible Sui wallet extension detected. Install or unlock one, then rescan.")});
+$("connect").addEventListener("click",()=>{discover();$("wallet-picker").hidden=!$("wallet-picker").hidden;if(!wallets.size)status("No compatible Sui wallet extension detected. Install or unlock one, then rescan.")});
 async function connectSelected(){
- if(!verificationAvailable)return status("Wallet connections are temporarily paused pending security review.");
  challenge=null;$("sign").disabled=true;$("challenge").disabled=true;$("message").value="";
  const wallet=wallets.get($("wallet").value);
  if(!wallet)return status("Select a compatible Sui wallet.");
@@ -145,7 +144,7 @@ async function connectSelected(){
   const match=candidates.find(a=>typeof a.address==="string"&&/^0x[0-9a-fA-F]{64}$/.test(a.address)&&a.chains?.includes("sui:mainnet"));
   if(!match){connected=null;account=null;$("connected").textContent="No Sui Mainnet account available.";return status("Connect a Sui Mainnet account. Nothing signed.")}
   connected=wallet;account=match;expected=match.address.toLowerCase();$("expected").textContent=expected;$("connected").textContent="Connected: "+match.address;
-  $("challenge").disabled=false;status("Address matches. Request a challenge to continue.");
+  $("challenge").disabled=!verificationAvailable;status(verificationAvailable?"Wallet connected. Request a challenge to verify signing-key control.":"Wallet connected for compatibility testing only. Public signature verification remains disabled.");
  }catch{status("Wallet connection failed or was rejected.");}
 }
 $("challenge").addEventListener("click",async()=>{
@@ -175,20 +174,19 @@ $("sign").addEventListener("click",async()=>{
  }catch{status("Signing cancelled, wallet incompatible, or verification unavailable. No payment was made.");}
 });
 async function checkAvailability(){
- $("connect").disabled=true;$("refresh").disabled=true;
+ $("connect").disabled=false;$("refresh").disabled=false;
  try{
   const response=await fetch("/health",{cache:"no-store"});
   if(!response.ok)throw Error("Health unavailable");
   const health=await response.json();
   verificationAvailable=health.walletProofEnabled===true;
-  $("connect").disabled=!verificationAvailable;$("refresh").disabled=!verificationAvailable;
+  $("connect").disabled=false;$("refresh").disabled=false;
   if(!verificationAvailable){
-   $("connected").textContent="Wallet connection temporarily paused";
-   status("The public wallet connection is paused while we investigate a wallet-provider security warning. Recipient preflight remains available without a wallet.");
+   status("Wallet connection is available for compatibility testing. Public signature verification is paused pending security review.");
   }
  }catch{
   verificationAvailable=false;
-  status("Wallet connection is unavailable because verification service status could not be confirmed.");
+  status("Wallet connection is available for compatibility testing; signature verification is unavailable.");
  }
 }
 checkAvailability();
