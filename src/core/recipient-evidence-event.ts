@@ -3,6 +3,7 @@ import { normalizeSuiAddress } from "./recipient-check.ts";
 export type RecipientEvidenceEventInput = {
   counterpartyId: string;
   address: string;
+  addressKind: "wallet" | "package" | "shared_object";
   eventType: "source_observed" | "recipient_reconfirmed" | "mismatch_reviewed";
   source: {
     kind: "public_official_document" | "direct_owner_confirmation" | "local_assessment";
@@ -26,6 +27,12 @@ export function prepareRecipientEvidenceEvent(input: RecipientEvidenceEventInput
     throw new Error("Unsupported evidence event");
   if (!input.source || !["public_official_document", "direct_owner_confirmation", "local_assessment"].includes(input.source.kind))
     throw new Error("Unsupported evidence source");
+  if (!["wallet", "package", "shared_object"].includes(input.addressKind))
+    throw new Error("Explicit valid address kind required");
+  if (input.eventType === "recipient_reconfirmed" && input.addressKind !== "wallet")
+    throw new Error("Only wallet addresses can be recipient reconfirmations");
+  if (input.eventType === "mismatch_reviewed" && input.addressKind !== "wallet")
+    throw new Error("Only wallet addresses can have recipient mismatch reviews");
   if (input.eventType === "recipient_reconfirmed" && input.source.kind !== "direct_owner_confirmation")
     throw new Error("Reconfirmation requires direct owner confirmation");
   if (input.eventType === "mismatch_reviewed" && input.source.kind !== "local_assessment")
@@ -41,6 +48,9 @@ export function prepareRecipientEvidenceEvent(input: RecipientEvidenceEventInput
     network: "mainnet" as const,
     counterpartyId: input.counterpartyId.trim(),
     address: normalizeSuiAddress(input.address),
+    addressKind: input.addressKind,
+    recipientEligible: input.addressKind === "wallet" && input.eventType === "recipient_reconfirmed",
+    warning: input.addressKind === "wallet" ? "No ownership or payment safety is established." : "This identifier is not a payment recipient; do not send funds to it.",
     eventType: input.eventType,
     source: { ...input.source, reference: input.source.reference.trim() },
     trust: "informational_unverified" as const,
