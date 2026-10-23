@@ -4,10 +4,10 @@ Veyra currently serves its HTML frontend and JSON API from one Node process. The
 
 ## Prerequisites and blockers
 
-1. Deploy a paid Render web service if consistent judge access is required. Free services may sleep.
-2. Use the Render Blueprint and connect the GitHub repository. Verify the desired branch is `feat/tatum-sui-grpc` or merge it to the intended production branch first.
+1. The Blueprint now selects Render Free (`plan: free`). Free services may spin down when idle, take time to wake, and are unsuitable for guaranteed continuous judge access. Render may still require account verification or payment details; check the dashboard before deploying.
+2. Connect the GitHub repository `0xaje/Veyra` to Render and deploy the current `main` branch. Review the Blueprint service configuration before approving deployment.
 3. Configure legitimate `MEMWAL_PRIVATE_KEY` and `MEMWAL_ACCOUNT_ID` in Render's secret environment settings, never in Git. These credentials are used for recall; the public API blocks writes.
-4. For Tatum, configure `TATUM_API_KEY` **and** `SUI_PROTO_DIR` pointing to the official sui-apis/proto files available inside the deployed filesystem. **The repository does not yet bundle the official proto dependency, so hosted gRPC will remain unavailable until this is addressed.** Do not represent the deployment as fully integrated before validating a live transaction digest.
+4. For Tatum, configure `TATUM_API_KEY`. The Blueprint clones `MystenLabs/sui-apis` at build time and sets `SUI_PROTO_DIR=.render/sui-apis/proto`. Confirm that the build actually fetches the official proto files and that a hosted live transaction-digest check succeeds. The clone is not pinned to a revision, so reproducibility and upstream availability remain risks.
 5. Confirm that the Walrus SDK's network, namespace, and credentials match the genuine previously stored memory. Do not infer Mainnet provenance from successful recall alone.
 6. Do not set `VEYRA_HISTORY_FILE` or an authorization file in public mode. Public history is deliberately disabled.
 
@@ -23,4 +23,4 @@ Veyra currently serves its HTML frontend and JSON API from one Node process. The
 
 ## Not yet implemented
 
-Production request throttling, full authentication for memory writes, a persistent production history store, and deployment-side verification of Tatum proto assets. Until those exist, keep public mode read-only and do not promise production-grade abuse resistance. A public read-only endpoint can still incur provider charges, so monitor traffic and provider limits.
+Production request throttling, full authentication for memory writes, a persistent production history store, and independently confirmed deployment-side verification of Tatum proto assets. Until those exist, keep public mode read-only and do not promise production-grade abuse resistance. A public read-only endpoint can still incur provider charges, so monitor traffic and provider limits.
