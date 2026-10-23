@@ -15,6 +15,6 @@
     "@grpc/grpc-js": "^1.14.6",
     "@grpc/proto-loader": "^0.8.1",
     "@mysten-incubation/memwal": "^0.1.9",
-    "@mysten/sui": "^1.0.0"
+    "@mysten/sui": "^2.37.0"
   }
 }
