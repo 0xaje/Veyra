@@ -142,6 +142,52 @@ async function handler(req, res) {
   }
   if (req.method === "GET" && req.url === "/health")
     return send(200, { status: "running", paymentAuthorized: false, publicMode, memoryWritesEnabled: !publicMode });
+  if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
+    const url = new URL(req.url, "http://localhost");
+    const counterpartyId = url.searchParams.get("counterpartyId");
+    if (!counterpartyId || counterpartyId.length > 128 || !/^[a-zA-Z0-9_-]+$/.test(counterpartyId))
+      return send(400, { error: "Valid counterpartyId required", paymentAuthorized: false });
+    if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID)
+      return send(503, { status: "unavailable", events: [], paymentAuthorized: false });
+    try {
+      const { MemWal } = await import("@mysten-incubation/memwal");
+      const memory = MemWal.create({
+        key: process.env.MEMWAL_PRIVATE_KEY,
+        accountId: process.env.MEMWAL_ACCOUNT_ID,
+        serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
+        namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+      });
+      const response = await Promise.race([
+        memory.recall({ query: `veyra recipient evidence source observed package ${counterpartyId}`, limit: 30 }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Recall timeout")), 15000)),
+      ]);
+      const events = [];
+      const seen = new Set();
+      for (const item of response.results ?? []) {
+        if (typeof item?.text !== "string" || typeof item?.blob_id !== "string" || seen.has(item.blob_id)) continue;
+        try {
+          const event = JSON.parse(item.text);
+          if (event.type !== "veyra.recipient_evidence.v1" || event.counterpartyId !== counterpartyId ||
+              event.chain !== "sui" || event.network !== "mainnet" || event.paymentAuthorized !== false ||
+              event.trust !== "informational_unverified" ||
+              !["wallet", "package", "shared_object"].includes(event.addressKind) ||
+              !["source_observed", "recipient_reconfirmed", "mismatch_reviewed"].includes(event.eventType) ||
+              typeof event.address !== "string" || typeof event.source?.reference !== "string" ||
+              typeof event.source?.observedAt !== "string") continue;
+          normalizeSuiAddress(event.address);
+          seen.add(item.blob_id);
+          events.push({ blobId: item.blob_id, counterpartyId, address: event.address,
+            addressKind: event.addressKind, eventType: event.eventType, source: event.source,
+            trust: event.trust, paymentAuthorized: false });
+        } catch { /* Ignore malformed or unrelated recall results. */ }
+      }
+      events.sort((a,b) => b.source.observedAt.localeCompare(a.source.observedAt));
+      return send(200, { status: "observed", counterpartyId, events, paymentAuthorized: false,
+        limitation: "Search-based recall may be incomplete; stored observations do not verify ownership or payment safety." });
+    } catch {
+      return send(503, { status: "unavailable", counterpartyId, events: [], paymentAuthorized: false });
+    }
+  }
   if (req.method === "POST" && req.url === "/v1/recipient-evidence") {
     if (publicMode) return send(403, { error: "Evidence memory writes are disabled on the public service", paymentAuthorized: false });
     if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
