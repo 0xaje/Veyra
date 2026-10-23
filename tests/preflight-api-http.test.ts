@@ -46,6 +46,20 @@ test("real local HTTP routes fail closed without Walrus credentials or persisten
     const html=await fetch(base+"/memory");
     assert.equal(html.status,200);
     assert.match(await html.text(),/Recipient memory timeline/);
+    const missingEvidenceId=await fetch(base+"/v1/evidence-timeline?counterpartyId=");
+    assert.equal(missingEvidenceId.status,400);
+    assert.equal((await missingEvidenceId.json()).paymentAuthorized,false);
+    const malformedEvidenceId=await fetch(base+"/v1/evidence-timeline?counterpartyId=%3Cscript%3E");
+    assert.equal(malformedEvidenceId.status,400);
+    const unavailableEvidence=await fetch(base+"/v1/evidence-timeline?counterpartyId=deepbook-v3-package-reference");
+    assert.equal(unavailableEvidence.status,503);
+    const unavailableEvidenceBody=await unavailableEvidence.json();
+    assert.equal(unavailableEvidenceBody.status,"unavailable");
+    assert.deepEqual(unavailableEvidenceBody.events,[]);
+    assert.equal(unavailableEvidenceBody.paymentAuthorized,false);
+    const evidencePage=await (await fetch(base+"/memory")).text();
+    assert.match(evidencePage,/Walrus evidence observations/);
+    assert.match(evidencePage,/Not a payment recipient/);
     const payload={chain:"sui",network:"mainnet",counterpartyId:"recipient",
       address:"0x2",memoryIntent:"update",confirmedAddressChange:false,
       previousAddress:"0x1",previousBlobId:"prior-blob",
