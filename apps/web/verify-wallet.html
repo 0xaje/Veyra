@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <button id="sign" type="button" disabled>Sign personal message and verify</button>
 <p id="status" role="status" aria-live="polite">No wallet proof has been submitted.</p>
 <p>Valid signatures establish signing-key control at verification time only. Veyra never signs transactions, transfers SUI, or automatically stores this result in Walrus.</p>
-<details id="receipt-review" hidden><summary>Review verification receipt for Walrus</summary><p>This is a proposed public record, not a stored Walrus memory. Download it for local review; downloading does not submit or authorize a write. A receipt alone is not cryptographic proof.</p><pre id="receipt-json" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px;overflow:auto"></pre><label><input id="receipt-consent" type="checkbox"> I have reviewed this public address and verification metadata and understand no memory is stored by this action.</label><button id="receipt-download" type="button" disabled>Download receipt for local review</button><p><label><input id="proof-consent" type="checkbox"> I understand the optional proof package contains my signature over this verification-only message. I will keep the file private and share it only with a trusted local verifier.</label></p><button id="proof-download" type="button" disabled>Download cryptographic proof for local verification</button><p id="receipt-feedback" role="status"></p></details>
+<details id="receipt-review" hidden><summary>Review verification receipt for Walrus</summary><p>This is a proposed public record, not a stored Walrus memory. Download it for local review; downloading does not submit or authorize a write. A receipt alone is not cryptographic proof.</p><pre id="receipt-json" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px;overflow:auto"></pre><label><input id="receipt-consent" type="checkbox"> I have reviewed this public address and verification metadata and understand no memory is stored by this action.</label><button id="receipt-download" type="button" disabled>Download receipt for local review</button><p><label><input id="proof-consent" type="checkbox"> I understand the optional proof package contains my signature over this verification-only message. I will keep the file private and share it only with a trusted local verifier.</label></p><button id="proof-download" type="button" disabled>Download cryptographic proof for local verification</button><p id="receipt-feedback" role="status"></p><div class="warning"><strong>Self-service recipient confirmation</strong><p>Use your connected wallet address as your intended Sui receiving address. This is your statement of intent, not proof that a transfer is safe. Your address will be visible in the exported file and, only after separate approval, may be published to Walrus.</p><label><input id="recipient-intent-consent" type="checkbox"> I confirm this connected address is the Sui Mainnet address where I intend to receive funds, and I consent to sharing this confirmation and wallet-control proof privately with the Veyra operator for review. I understand public Walrus storage requires a separate explicit approval.</label><button id="recipient-intent-download" type="button" disabled>Download recipient confirmation package</button><p id="recipient-intent-feedback" role="status"></p></div></details>
 </section>
 </div></main></div></div><script>
 (()=>{
@@ -242,9 +242,32 @@ $("connect").addEventListener("click",()=>{
   ?"Choose one of your detected Sui wallets to connect."
   :"No compatible Sui wallet detected. Install or unlock a Sui wallet extension, then click Connect Wallet again.");
 });
-function resetReceipt(){portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";}
+function resetReceipt(){$("recipient-intent-consent").checked=false;$("recipient-intent-download").disabled=true;$("recipient-intent-feedback").textContent="";portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";}
 $("receipt-consent").addEventListener("change",()=>{$("receipt-download").disabled=!proposedReceipt||!$("receipt-consent").checked;});
 $("proof-consent").addEventListener("change",()=>{$("proof-download").disabled=!portableProof||!$("proof-consent").checked;});
+$("recipient-intent-consent").addEventListener("change",()=>{
+ $("recipient-intent-download").disabled=!portableProof||!account||!expected||!$("recipient-intent-consent").checked;
+});
+$("recipient-intent-download").addEventListener("click",()=>{
+ if(!portableProof||!account||!expected||!$("recipient-intent-consent").checked)return;
+ if(portableProof.address!==expected||portableProof.receipt?.address!==expected){
+  $("recipient-intent-feedback").textContent="Connected address changed; reconnect and verify again.";return;
+ }
+ const statement={
+  type:"veyra.recipient_confirmation_package.v1",
+  chain:"sui",network:"mainnet",address:expected,
+  intent:"I confirm this connected Sui Mainnet address is where I intend to receive funds.",
+  consent:"I consent to sharing this confirmation privately for Veyra review. Any public Walrus storage requires separate explicit approval.",
+  consentCapturedAt:new Date().toISOString(),
+  attestation:"user_interface_checkbox_not_cryptographically_signed",
+  walletControlProof:portableProof,
+  independentlyVerifiedRecipientSafety:false,paymentAuthorized:false,
+  walrusMemoryWritten:false
+ };
+ const blob=new Blob([JSON.stringify(statement,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="veyra-recipient-confirmation.json";a.click();URL.revokeObjectURL(url);
+ $("recipient-intent-feedback").textContent="Package downloaded locally. Share privately with the Veyra operator for review; no Walrus memory was written.";
+});
 $("proof-download").addEventListener("click",()=>{
  if(!portableProof||!$("proof-consent").checked)return;
  const blob=new Blob([JSON.stringify(portableProof,null,2)],{type:"application/json"});
