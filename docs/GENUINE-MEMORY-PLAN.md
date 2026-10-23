@@ -31,7 +31,7 @@ No real additional memory writes have been made by this change.
 ## Address-kind safety (2026-10-23)
 Every new evidence event must explicitly specify `addressKind`: `wallet`, `package`, or `shared_object`. Package/object observations are **not payment recipients** and must never be presented as a safe transfer destination. Only wallet identifiers can be associated with recipient reconfirmation or mismatch review. This is enforced by the validator and tests; it is not a cryptographic onchain type check.
 
-### Candidate public-source observation — NOT YET WRITTEN
+### Public-source observation — REPORTED STORED, RETRIEVAL PENDING
 - `counterpartyId`: `deepbook-v3-package-reference`
 - `addressKind`: `package`
 - `eventType`: `source_observed`
@@ -45,3 +45,23 @@ Every new evidence event must explicitly specify `addressKind`: `wallet`, `packa
 
 ### Production boundary
 The public API remains write-disabled. The local `/v1/recipient-evidence` endpoint validates `addressKind` before attempting any real write. Existing `veyra.recipient.v1` recall remains separate and cannot automatically trust informational evidence events.
+
+## Actual MemWal write result — 2026-10-23 12:32:54 UTC
+
+Operator-provided local HTTP response (not independently re-fetched):
+
+- Endpoint: local `POST /v1/recipient-evidence`
+- HTTP status: `200 OK`
+- Record type: `veyra.recipient_evidence.v1`
+- Counterparty: `deepbook-v3-package-reference`
+- Address kind submitted: `package`
+- Sui package ID: `0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497`
+- MemWal status: `stored`
+- Job ID: `7090634b-cd42-4ea3-8f55-f69c8d35c470`
+- Blob ID: `r5lQKXv5DYWMV9oN-TuB0EA5v6GPGjyKyIdG9b8VSKk`
+- `paymentAuthorized`: `false`
+- Independent blob retrieval/content verification: **PENDING**
+- Recipient wallet confirmation: **NO — package reference only**
+- Official source: https://www.docs.sui.io/onchain-finance/deepbook/deepbookv3/contract-information
+
+This is one reported successfully stored informational evidence event, separate from the existing confirmed recipient record. Do not count it as a verified recipient registration. Confirm blob contents and provenance via a real read before marking retrieval verified.
