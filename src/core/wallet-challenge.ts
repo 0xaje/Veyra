@@ -6,7 +6,7 @@ const TTL_MS = 5 * 60_000;
 const MAX_PENDING = 200;
 const pending = new Map();
 
-export function issueWalletChallenge(address, now = Date.now()) {
+export function issueWalletChallenge(address: string, now = Date.now()) {
   const normalized = normalizeSuiAddress(address);
   for (const [key, item] of pending) if (item.expiresAt <= now) pending.delete(key);
   if (pending.size >= MAX_PENDING) throw new Error("Too many outstanding challenges");
@@ -26,7 +26,7 @@ export function issueWalletChallenge(address, now = Date.now()) {
   return { nonce, address: normalized, message, issuedAt, expiresAt: new Date(expiresAt).toISOString(), paymentAuthorized: false };
 }
 
-export async function verifyWalletChallenge({ nonce, address, signature }, now = Date.now()) {
+export async function verifyWalletChallenge({ nonce, address, signature }: { nonce: string; address: string; signature: string }, now = Date.now()) {
   if (typeof nonce !== "string" || !/^[0-9a-f]{48}$/.test(nonce) ||
       typeof signature !== "string" || signature.length > 2048 || !signature.length)
     return { status: "invalid_challenge", paymentAuthorized: false };
