@@ -23,13 +23,14 @@ const post=(base:string,path:string,origin?:string)=>fetch(base+path,{method:"PO
 
 test("public wallet proof remains disabled by default", {timeout:15000},async()=>{
  const p=await port();const {child,base}=await launch({VEYRA_PUBLIC_MODE:"true",VEYRA_PUBLIC_WALLET_PROOF:"false"},p);
- try{const res=await post(base,"/v1/wallet-challenge","https://veyra.example");assert.equal(res.status,403);assert.equal((await res.json()).paymentAuthorized,false)}
+ try{const health=await (await fetch(base+"/health")).json();assert.equal(health.walletProofEnabled,false);const res=await post(base,"/v1/wallet-challenge","https://veyra.example");assert.equal(res.status,403);assert.equal((await res.json()).paymentAuthorized,false)}
  finally{await stop(child)}
 });
 test("public wallet proof requires exact HTTPS origin and remains transaction-free", {timeout:15000},async()=>{
  const p=await port();const origin="https://veyra.example";
  const {child,base}=await launch({VEYRA_PUBLIC_MODE:"true",VEYRA_PUBLIC_WALLET_PROOF:"true",VEYRA_PUBLIC_ORIGIN:origin},p);
  try{
+  const health=await (await fetch(base+"/health")).json();assert.equal(health.walletProofEnabled,true);
   assert.equal((await post(base,"/v1/wallet-challenge")).status,403);
   assert.equal((await post(base,"/v1/wallet-challenge","https://evil.example")).status,403);
   const res=await post(base,"/v1/wallet-challenge",origin);
