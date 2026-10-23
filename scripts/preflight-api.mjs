@@ -140,6 +140,30 @@ async function handler(req, res) {
     try { return send(200, await loadHistory()); }
     catch { return send(503, { error: "Assessment journal unavailable" }); }
   }
+  if (req.method === "POST" && ["/v1/wallet-challenge", "/v1/wallet-verify"].includes(req.url)) {
+    if (publicMode) return send(403, { error: "Wallet proof is local-only until security review", paymentAuthorized: false });
+    if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+      return send(415, { error: "JSON required", paymentAuthorized: false });
+    if (req.headers.origin && req.headers.origin !== `http://127.0.0.1:${port}`)
+      return send(403, { error: "Cross-origin request forbidden", paymentAuthorized: false });
+    try {
+      let body = "";
+      for await (const chunk of req) {
+        body += chunk.toString();
+        if (Buffer.byteLength(body) > maxBody) return send(413, { error: "Request too large", paymentAuthorized: false });
+      }
+      const input = JSON.parse(body);
+      const { issueWalletChallenge, verifyWalletChallenge } = await import("../src/core/wallet-challenge.ts");
+      if (req.url === "/v1/wallet-challenge") {
+        if (typeof input.address !== "string") return send(400, { error: "Address required", paymentAuthorized: false });
+        return send(200, { status: "challenge_issued", ...issueWalletChallenge(input.address) });
+      }
+      const result = await verifyWalletChallenge(input);
+      return send(result.status === "wallet_control_verified" ? 200 : 400, result);
+    } catch {
+      return send(400, { error: "Wallet proof request failed", paymentAuthorized: false });
+    }
+  }
   if (req.method === "GET" && req.url === "/health")
     return send(200, { status: "running", paymentAuthorized: false, publicMode, memoryWritesEnabled: !publicMode });
   if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
