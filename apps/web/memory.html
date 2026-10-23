@@ -70,7 +70,7 @@ b.addEventListener("dblclick",()=>{preference="auto";try{localStorage.setItem(ke
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&preference==="auto")apply()});
 setInterval(()=>{if(preference==="auto")apply()},60000);
 });
-})();</script></head><body><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>eyra.</div><nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item" href="/">◈ &nbsp; Recipient preflight</a><a class="nav-item " href="/history">▤ &nbsp; Session history</a><a class="nav-item active" href="/memory">◎ &nbsp; Memory status</a><a class="nav-item" href="/docs">▧ &nbsp; Documentation</a></nav><div class="side-note">Read-only environment. No payments can be signed or authorized here.</div></aside><div class="workspace"><header class="topbar">Workspace &nbsp; / &nbsp; <strong>Memory status</strong></header><main class="main"><div class="overline">Transaction intelligence / 03</div><h1>Memory status</h1><p>Inspect the latest Walrus Memory result returned by a real recipient preflight.</p><section class="panel"><h2>Latest memory observation</h2><div id="records" class="empty">No completed assessments in this browser tab.</div><p class="note">Walrus recall is untrusted until independently matched to a locally authorized record. Unavailable does not mean no memory exists.</p></section><section class="panel"><h2>Recipient memory timeline</h2><p>Run a recipient preflight to see recalled confirmation history. Newer claims do not override earlier addresses or authorize a payment.</p><div id="timeline" class="empty" aria-live="polite">No memory timeline loaded in this browser tab.</div><p class="note">Confirmation timestamps are claims supplied with stored records, not independent proof of when ownership was verified. Results may be incomplete because Walrus recall uses search.</p></section><section class="panel"><h2>Walrus evidence observations</h2><p>Search actual stored informational evidence by counterparty ID. Package and shared-object references are not payment recipients. Search-based recall can be incomplete.</p><form id="evidence-search"><label for="evidence-counterparty">Counterparty ID</label><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px"><input id="evidence-counterparty" name="counterpartyId" required maxlength="128" pattern="[A-Za-z0-9_-]+" placeholder="deepbook-v3-package-reference" style="flex:1;min-width:230px;padding:11px;border:1px solid #9ebdab;border-radius:7px;background:transparent;color:inherit"><button class="button" type="submit">Recall evidence</button></div></form><div id="evidence-events" class="empty" aria-live="polite">No evidence lookup performed.</div><p class="note">MemWal results are untrusted observations. Neither an official link nor a recalled record establishes recipient control. Veyra cannot authorize payments.</p></section><p class="note">Session data stays in this browser tab and may disappear when it closes. Exported reports contain recipient addresses and should be handled privately.</p></main></div></div><script>
+})();</script></head><body><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>eyra.</div><nav aria-label="Primary navigation"><div class="side-label">Workspace</div><a class="nav-item" href="/">◈ &nbsp; Recipient preflight</a><a class="nav-item " href="/history">▤ &nbsp; Session history</a><a class="nav-item active" href="/memory">◎ &nbsp; Memory status</a><a class="nav-item" href="/docs">▧ &nbsp; Documentation</a></nav><div class="side-note">Read-only environment. No payments can be signed or authorized here.</div></aside><div class="workspace"><header class="topbar">Workspace &nbsp; / &nbsp; <strong>Memory status</strong></header><main class="main"><div class="overline">Transaction intelligence / 03</div><h1>Memory status</h1><p>Inspect the latest Walrus Memory result returned by a real recipient preflight.</p><section class="panel"><h2>Latest memory observation</h2><div id="records" class="empty">No completed assessments in this browser tab.</div><p class="note">Walrus recall is untrusted until independently matched to a locally authorized record. Unavailable does not mean no memory exists.</p></section><section class="panel"><h2>Recipient memory timeline</h2><p>Run a recipient preflight to see recalled confirmation history. Newer claims do not override earlier addresses or authorize a payment.</p><div id="timeline" class="empty" aria-live="polite">No memory timeline loaded in this browser tab.</div><p class="note">Confirmation timestamps are claims supplied with stored records, not independent proof of when ownership was verified. Results may be incomplete because Walrus recall uses search.</p></section><section class="panel"><h2>Walrus evidence observations</h2><p>Search actual stored informational evidence by counterparty ID. Package and shared-object references are not payment recipients. Search-based recall can be incomplete.</p><form id="evidence-search"><label for="evidence-counterparty">Counterparty ID</label><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px"><input id="evidence-counterparty" name="counterpartyId" required maxlength="128" pattern="[A-Za-z0-9_-]+" placeholder="deepbook-v3-package-reference" style="flex:1;min-width:230px;padding:11px;border:1px solid #9ebdab;border-radius:7px;background:transparent;color:inherit"><button class="button" type="submit">Recall evidence</button></div></form><div id="evidence-events" class="empty" aria-live="polite">No evidence lookup performed.</div><div style="margin-top:24px;padding-top:20px;border-top:1px solid #b5ccbd"><h2>Compare a proposed wallet address</h2><p>Uses live MemWal-recalled, user-confirmed wallet observations. A match does not prove identity or payment safety. No funds move and no memory is written.</p><form id="address-compare"><label for="compare-counterparty">Counterparty ID</label><input id="compare-counterparty" required maxlength="128" pattern="[A-Za-z0-9_-]+" placeholder="my-bybit-sui-deposit" style="display:block;width:100%;padding:11px;margin:8px 0 15px;border:1px solid #9ebdab;border-radius:7px;background:transparent;color:inherit"><label for="compare-address">Proposed Sui Mainnet address</label><input id="compare-address" required maxlength="66" minlength="66" pattern="0x[0-9a-fA-F]{64}" spellcheck="false" autocomplete="off" placeholder="0x…" style="display:block;width:100%;padding:11px;margin:8px 0 15px;border:1px solid #9ebdab;border-radius:7px;background:transparent;color:inherit"><button class="button" type="submit">Compare with recalled evidence</button></form><div id="compare-result" class="empty" role="status" aria-live="polite">No comparison performed.</div></div><p class="note">MemWal results are untrusted observations. Neither an official link nor a recalled record establishes recipient control. Veyra cannot authorize payments.</p></section><p class="note">Session data stays in this browser tab and may disappear when it closes. Exported reports contain recipient addresses and should be handled privately.</p></main></div></div><script>
 let records=[];try{const saved=JSON.parse(sessionStorage.getItem("veyra.session.v1")||"[]");if(Array.isArray(saved))records=saved}catch{}
 const host=document.getElementById("records");host.replaceChildren();
 function readable(value){const labels={review_required:"Review required",recipient_mismatch:"Recipient mismatch",match_authorized_record:"Matches authorized record",observed:"Observed",unavailable:"Unavailable"};return labels[value]||String(value??"Not established").replaceAll("_"," ")}
@@ -127,5 +127,43 @@ evidenceForm.addEventListener("submit",async event=>{
       evidenceHost.append(section);
     }
   }catch{evidenceHost.textContent="Evidence recall unavailable. No records have been invented."}
+});
+
+const compareForm=document.getElementById("address-compare");
+const compareHost=document.getElementById("compare-result");
+compareForm.addEventListener("submit",async event=>{
+  event.preventDefault();
+  const id=document.getElementById("compare-counterparty").value.trim();
+  const address=document.getElementById("compare-address").value.trim();
+  if(!/^[A-Za-z0-9_-]{1,128}$/.test(id)||!/^0x[0-9a-fA-F]{64}$/.test(address)){
+    compareHost.textContent="Enter a valid counterparty ID and 0x-prefixed 64-hex Sui address.";return;
+  }
+  compareHost.textContent="Comparing with live MemWal evidence…";
+  try{
+    const params=new URLSearchParams({counterpartyId:id,proposedAddress:address});
+    const response=await fetch("/v1/evidence-timeline?"+params,{cache:"no-store"});
+    const data=await response.json();
+    compareHost.replaceChildren();
+    if(!response.ok||data.status!=="read_only_comparison"||data.paymentAuthorized!==false){
+      compareHost.textContent="Comparison unavailable. Do not treat unavailable evidence as safe.";return;
+    }
+    const labels={
+      matches_recalled_observation:"Matches recalled observation — not verified safe",
+      differs_from_recalled_observation:"Address mismatch — verify independently before any transfer",
+      conflicting_recalled_baselines:"Conflicting recalled addresses — manual review required",
+      no_recalled_baseline:"No recalled wallet baseline — cannot establish a match"
+    };
+    const result=document.createElement("h3");
+    result.textContent=labels[data.comparison]||"Unknown result — manual review required";
+    result.style.color=data.comparison==="differs_from_recalled_observation"?"#a45e20":"inherit";
+    compareHost.append(result,kv("Action","Manual review required"),kv("Independent verification","No"),kv("Payment authorization","Not authorized"));
+    for(const recalled of data.recalledAddresses||[])compareHost.append(copyableKv("Recalled address",recalled));
+    for(const blob of data.evidenceBlobIds||[])compareHost.append(copyableKv("Evidence blob",blob));
+    const note=document.createElement("p");
+    note.textContent="MemWal search may omit records. A match does not verify the exchange deposit, address ownership or transfer safety.";
+    compareHost.append(note);
+  }catch{
+    compareHost.textContent="Comparison unavailable. No address or result has been invented.";
+  }
 });
 </script></body></html>
