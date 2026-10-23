@@ -117,3 +117,7 @@ The operator reported one explicitly approved local write and a subsequent read-
 - Limitations: semantic MemWal recall, **not** raw Walrus blob download, wallet-key control proof, guarantee of exchange deposit validity, or payment authorization
 
 **Reported progress: 4 stored records toward the 10-memory target** (one original recipient record, two package-source observations, one Bybit deposit-address evidence event). Eligibility of each record and independent raw Walrus availability remain unconfirmed. This documentation change performs no additional memory write.
+
+## Live comparison demonstration (2026-10-23)
+
+Operator-provided local HTTP outputs confirm that `GET /v1/evidence-timeline` with `counterpartyId=my-bybit-sui-deposit` and the previously observed wallet address returned `matches_recalled_observation`. Changing the proposed address's last character from `c` to `d` returned `differs_from_recalled_observation`. Both responses referenced stored blob `f6iWcaX8qv71FSQgEVxm7nUSAYi3jcwGEeRZx-uLVrw` and retained `action: manual_review_required`, `independentlyVerified: false`, and `paymentAuthorized: false`. Operator also supplied a screen recording of the local frontend showing matching and mismatching results. This is a controlled read-only comparison, not a fraud incident, independent exchange attestation, transfer, or new memory write. The deployed Render version has not been reverified after the UI commit. The reported memory count remains four; hackathon eligibility of those records remains unconfirmed.
