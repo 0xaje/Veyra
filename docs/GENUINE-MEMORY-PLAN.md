@@ -1,5 +1,21 @@
 # Genuine Walrus memory collection — evidence-first protocol
 
+## Memory #6 — completed wallet-control observation (2026-10-23)
+
+- Type: `veyra.wallet_control_memory.v1`; Sui Mainnet; public wallet `0x83874235f1db9761bcce93a11466a613a4516085da5ccfe121dddc3d63a0b5e8`.
+- Real portable OKX personal-message signature was independently verified by the operator's local CLI before preparation. This proves signing-key control at signing time, **not** identity, recipient safety, exchange-account ownership or payment authorization.
+- Explicit operator approval was obtained for the exact public record before storage.
+- Receipt ID: `89465417-50d6-4d99-89b6-03b3e58da599`.
+- Signed challenge window: `2026-10-23T20:07:27.050Z`–`2026-10-23T20:12:27.050Z`; claimed verification instant `2026-10-23T20:07:37.683Z` is **not itself signed**.
+- SHA-256 of public stored payload: `a1fd04ebb9dd2faffeed2b58a5936118dfccf1cb477947b05a81314f71e1cd8a`.
+- Real MemWal job: `e21db9b3-2cac-4f36-8d00-05f814bbcdf2`; completed with blob ID `BqFH2yf-6Z8rUwDPJBDJZC1OHUEMZql2duVopUY8ReE`.
+- Local operator output: `stored_and_verified_via_memwal_recall` after exact blob ID and exact JSON fields matched a read-only MemWal semantic recall response. **Not** a direct raw Walrus blob download.
+- The stored public record excludes raw signature and private credentials; `paymentAuthorized:false`, `identityVerified:false`, `recipientSafe:false`.
+- **Do not re-run the approved one-time write.** A completed job must not be retried just to improve recall results.
+- Operator-reported qualifying record progress: **6 of 10**, subject to organizer eligibility interpretation and independent audit of the overall set.
+
+
+
 The Total Recall rules require at least 10 real Walrus Mainnet memories. This is a **write count**, not a requirement for 10 distinct wallets. Do not assert qualification until actual successful Mainnet jobs, durable blob IDs and an independently inspectable count are available.
 
 ## Current evidence
