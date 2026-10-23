@@ -72,3 +72,25 @@ Operator ran `scripts/verify-evidence-memory.mjs` locally with real MemWal crede
 
 ## Source-version discrepancy noticed 2026-10-23
 The official DeepBook V3 contract-information page lists package `0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497` as version 6, but the official DeepBook V3 SDK documentation's embedded `mainnetPackageIds` currently lists `0x0e735f8c93a95722efd73521aca7a7652c0bb71ed1daf41b26dfd7d1ff71f748`. Both are official Sui documentation pages; do **not** claim the observed version-6 package is the uniquely current package without reconciling the discrepancy. The stored event remains an accurate timestamped observation of what the cited contract-information page states; no new write or update is implied. Source pages: https://www.docs.sui.io/onchain-finance/deepbook/deepbookv3/contract-information and https://www.docs.sui.io/onchain-finance/deepbook/deepbookv3-sdk/.
+
+
+## Memory #3 — DeepBook Margin v3 observation (2026-10-23)
+
+Operator reported a **single explicitly authorized** local write and then ran read-only MemWal recall verification:
+
+- Counterparty: `deepbook-margin-v3-package-reference`
+- Record type: `veyra.recipient_evidence.v1`
+- Sui Mainnet address: `0xfbd322126f1452fd4c89aedbaeb9fd0c44df9b5cedbe70d76bf80dc086031377`
+- Address kind: `package` — **not a wallet or payment recipient**
+- Event: `source_observed`
+- Source: `https://www.docs.sui.io/onchain-finance/deepbook/deepbook-margin/contract-information`
+- Observation time: `2026-10-23T13:13:58.921Z`
+- Local preparation: `prepared_not_stored` before the write
+- Local POST result: HTTP 200, `state.status: stored`
+- Job ID: `5b84254b-8887-4bc0-a2c7-2a9c33e9d5f0`
+- Blob ID: `5nMwajzs04OUkI3VApxH1WmVLxZhtmmLKnkv7t0_Wgw`
+- Read-only verification: `verified_via_memwal_recall` for exact blob ID, counterparty, address, event, source and timestamp (operator-provided output)
+- Trust: `informational_unverified`; `paymentAuthorized: false`
+- Limitation: **MemWal semantic recall only**, not a raw Walrus blob download, onchain ownership proof, or independently audited count
+
+**Reported progress: 3 stored records toward the 10-memory target**, consisting of one recipient record and two distinct package-source observations. Whether each qualifies under the hackathon rules still needs to be checked. No write is performed by this documentation update.
