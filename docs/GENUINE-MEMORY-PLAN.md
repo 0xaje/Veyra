@@ -27,3 +27,21 @@ Every event is marked `informational_unverified`, `independentlyVerified:false`,
 7. Independently confirm the total Mainnet memory count against the official submission requirement.
 
 No real additional memory writes have been made by this change.
+
+## Address-kind safety (2026-10-23)
+Every new evidence event must explicitly specify `addressKind`: `wallet`, `package`, or `shared_object`. Package/object observations are **not payment recipients** and must never be presented as a safe transfer destination. Only wallet identifiers can be associated with recipient reconfirmation or mismatch review. This is enforced by the validator and tests; it is not a cryptographic onchain type check.
+
+### Candidate public-source observation — NOT YET WRITTEN
+- `counterpartyId`: `deepbook-v3-package-reference`
+- `addressKind`: `package`
+- `eventType`: `source_observed`
+- `source.kind`: `public_official_document`
+- `address`: `0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497`
+- `source.reference`: `https://www.docs.sui.io/onchain-finance/deepbook/deepbookv3/contract-information`
+- Official documentation identifies this as DeepBook V3's Mainnet v6 package, not a wallet. Because published package IDs can change with upgrades, preserve the exact observed document and timestamp.
+- **Do not send tokens to this address.** A package observation is only a source-backed reference, not evidence of recipient control.
+- The observation time must be the real time the operator checks the source; it must not be fabricated or future-dated. Never submit this record without explicit approval.
+- This record must not be counted as stored until a real Walrus Mainnet job returns a durable blob ID and that blob can be verified.
+
+### Production boundary
+The public API remains write-disabled. The local `/v1/recipient-evidence` endpoint validates `addressKind` before attempting any real write. Existing `veyra.recipient.v1` recall remains separate and cannot automatically trust informational evidence events.
