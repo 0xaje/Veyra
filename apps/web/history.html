@@ -49,54 +49,18 @@ html[data-theme="dark"] .error{background:#3C1E20;color:#FFCECA}
 html[data-theme="dark"] .veyra-theme-toggle{background:#1A2A20;color:#EDEBE4;border-color:#2A3D31}
 .veyra-theme-toggle:hover{filter:brightness(1.08)}
 .veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}
-.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;margin:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}.veyra-theme-toggle:hover{filter:brightness(1.08)}.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}@media(max-width:600px){.topbar{padding:15px 18px;min-height:64px}}
-/* Mobile workspace: compact brand/header, accessible navigation, and single-column content. */
-@media (max-width:850px){
- html,body{width:100%;max-width:100%;overflow-x:clip}
- .shell{display:block!important;width:100%;height:auto!important;min-height:100dvh}
- .sidebar{position:relative!important;z-index:8;display:flex!important;flex-direction:row!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0!important;padding:12px 16px!important;min-height:64px;overflow:visible!important}
- .sidebar .brand{font-size:23px!important;padding:0!important;margin:0!important}
- .veyra-mobile-menu{display:inline-flex!important;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:8px 12px;border:1px solid #4b6859;border-radius:10px;background:#253d31;color:#eef9f0;font:600 14px/1.2 inherit;cursor:pointer}
- .sidebar nav{display:none!important;flex:0 0 100%;width:100%;flex-direction:column!important;flex-wrap:nowrap!important;gap:4px!important;margin-top:12px;padding:10px 0 3px;border-top:1px solid #456052}
- .sidebar nav.veyra-nav-open{display:flex!important}
- .sidebar nav .nav-item{display:flex!important;align-items:center;min-height:44px;width:100%;padding:12px!important;font-size:14px!important;white-space:normal}
- .sidebar .side-label,.sidebar .side-note{display:none!important}
- .workspace{width:100%;min-width:0;height:auto!important;overflow:visible!important}
- .topbar{position:relative!important;top:auto!important;min-height:56px!important;height:auto!important;padding:12px 16px!important;gap:8px!important;flex-wrap:wrap;scrollbar-gutter:auto}
- .topbar .breadcrumbs,.topbar>span{font-size:12px!important;min-width:0;overflow-wrap:anywhere}
- .veyra-header-actions{margin-left:auto!important;gap:8px!important;min-width:0}
- .topbar .right{font-size:11px!important;gap:6px!important;flex-wrap:wrap;justify-content:flex-end}
- .topbar .environment{padding:4px 6px!important}
- .main{width:100%;max-width:100%;padding:24px 16px 72px!important}
- .heading{flex-direction:column!important;align-items:flex-start!important;gap:12px!important;margin-bottom:22px!important}
- .heading h1,h1{font-size:clamp(27px,7vw,36px)!important;line-height:1.15!important;overflow-wrap:anywhere}
- .stats{grid-template-columns:1fr!important}
- .panel{padding:18px!important;min-width:0;max-width:100%;overflow-wrap:anywhere}
- .kv{flex-wrap:wrap!important;gap:5px!important;overflow-wrap:anywhere}
- .kv span:last-child{text-align:left!important;min-width:0}
- input,textarea,select{max-width:100%;min-width:0;font-size:16px!important}
- button,.button{min-height:44px}
- pre,code{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
- .wrap,.wallet-content{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:0!important}
- .read-only{white-space:normal!important}
-}
-@media (max-width:390px){
- .main{padding-left:12px!important;padding-right:12px!important}
- .panel{padding:15px!important}
- .topbar{padding-left:12px!important;padding-right:12px!important}
-}
-
+.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}
 .veyra-mobile-menu{display:none}
 
 /* Mobile-first v2: task hierarchy, compact chrome and ergonomic primary navigation. */
 @media(max-width:850px){
  body{font-size:15px;line-height:1.55}
- .sidebar{position:sticky!important;top:0!important;z-index:40!important;padding:9px 16px!important;min-height:58px!important;background:#101c18!important;border-bottom:1px solid #33473a!important}
+ .sidebar{position:sticky!important;top:0!important;z-index:40!important;padding:9px 16px!important;min-height:58px!important;background:#1A2A20!important;border-bottom:1px solid #2A3D31!important}
  .sidebar .brand{font-size:21px!important;letter-spacing:-.6px!important}
- .sidebar nav{position:absolute;left:12px;right:12px;top:calc(100% - 1px);width:auto!important;margin:0!important;padding:8px!important;border:1px solid #3b5545!important;border-radius:0 0 15px 15px!important;background:#17251d!important;box-shadow:0 18px 40px #0006}
+ .sidebar nav{position:absolute;left:12px;right:12px;top:calc(100% - 1px);width:auto!important;margin:0!important;padding:8px!important;border:1px solid #2A3D31!important;border-radius:0 0 15px 15px!important;background:#1A2A20!important;box-shadow:0 18px 40px #0006}
  .sidebar nav .nav-item{border-radius:9px!important}
- .veyra-mobile-menu{min-height:40px!important;min-width:40px!important;padding:7px 10px!important;border-radius:11px!important;font-size:13px!important}
- .topbar{min-height:46px!important;padding:8px 17px!important;border-bottom:1px solid #314139!important}
+ .veyra-mobile-menu{min-height:40px!important;min-width:40px!important;padding:7px 10px!important;border-radius:11px!important;font-size:13px!important;background:#1A2A20;border:1px solid #2A3D31;color:#EDEBE4}
+ .topbar{min-height:46px!important;padding:8px 17px!important;border-bottom:1px solid #B9B7AF!important}
  .topbar .breadcrumbs,.topbar>span{font-size:11px!important;opacity:.85}
  .topbar .right .dot{display:none!important}
  .topbar .right{font-size:11px!important}
@@ -131,12 +95,12 @@ html[data-theme="dark"] .veyra-theme-toggle{background:#1A2A20;color:#EDEBE4;bor
  .kv span:last-child{overflow-wrap:anywhere!important;word-break:break-word!important}
  .result-intro,.step-row{padding:16px!important}
  .evidence-box,.mini{padding:15px!important}
- .veyra-theme-toggle{width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;border:1px solid #829c8c!important;border-radius:50%!important;font-size:0!important;line-height:1!important;padding:0!important;margin:0!important;position:relative!important;box-shadow:none!important}
- .veyra-theme-toggle::after{content:"";display:block;width:11px;height:11px;border-radius:50%;background:#264b36;box-shadow:inset -3px -2px 0 #a4c9b0}
- html[data-theme="dark"] .veyra-theme-toggle::after{background:#c6e3cd;box-shadow:inset -3px -2px 0 #355943}
- .veyra-bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));left:0;right:0;bottom:0;z-index:35;padding:7px 6px calc(7px + env(safe-area-inset-bottom));background:#121d18;border-top:1px solid #33483b;box-shadow:0 -6px 22px #0002}
- .veyra-bottom-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:53px;padding:5px 2px;border-radius:11px;text-decoration:none;color:#b2c8b8;font:600 10px/1.3 Inter,"Segoe UI",sans-serif;text-align:center}
- .veyra-bottom-nav a[aria-current="page"]{background:#294535;color:#e0f6e5}
+ .veyra-theme-toggle{width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;border:1px solid #B9B7AF!important;border-radius:50%!important;font-size:0!important;line-height:1!important;padding:0!important;margin:0!important;position:relative!important;box-shadow:none!important}
+ .veyra-theme-toggle::after{content:"";display:block;width:11px;height:11px;border-radius:50%;background:#1A2A20;box-shadow:inset -3px -2px 0 #63C08C}
+ html[data-theme="dark"] .veyra-theme-toggle::after{background:#63C08C;box-shadow:inset -3px -2px 0 #1A2A20}
+ .veyra-bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));left:0;right:0;bottom:0;z-index:35;padding:7px 6px calc(7px + env(safe-area-inset-bottom));background:#1A2A20;border-top:1px solid #2A3D31;box-shadow:0 -6px 22px #0002}
+ .veyra-bottom-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:53px;padding:5px 2px;border-radius:11px;text-decoration:none;color:#B9B7AF;font:600 10px/1.3 Inter,"Segoe UI",sans-serif;text-align:center}
+ .veyra-bottom-nav a[aria-current="page"]{background:#63C08C;color:#1A2A20;font-weight:700}
  .veyra-bottom-nav .nav-symbol{font-size:19px;line-height:1.15}
 }
 @media(min-width:851px){.veyra-bottom-nav{display:none!important}}
