@@ -75,6 +75,19 @@ html[data-theme="dark"] .wallet-choice{background:#1c2c22;border-color:#3b5443;c
 .veyra-theme-toggle::after{content:"";display:block;width:11px;height:11px;border-radius:50%;background:#264b36;box-shadow:inset -3px -2px 0 #a4c9b0}
 html[data-theme="dark"] .veyra-theme-toggle::after{background:#c6e3cd;box-shadow:inset -3px -2px 0 #355943}
 
+.side-label,.overline,.panel-head small,.hint,.read-only{font-size:13px;font-weight:550;line-height:1.6}
+.nav-item,.breadcrumbs,.right,.heading p,.side-note p,#status,label{font-size:14px;font-weight:500;line-height:1.65}
+.panel-head h2{font-size:17px;font-weight:700}
+.button,.action,button.primary,#challenge,#sign,.secondary-btn{font-size:15px}
+
+@media(min-width:851px){
+  html,body{height:100%;overflow:hidden}
+  .shell{height:100vh;min-height:0;overflow:hidden}
+  .sidebar{height:100vh;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  .workspace{height:100vh;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+  .topbar{position:sticky;top:0;z-index:10}
+}
+
 @media(max-width:850px){
   .shell{display:block}
   .sidebar{display:none}

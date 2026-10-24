@@ -23,6 +23,10 @@ header{flex-shrink:0}.hero{flex-shrink:0;padding:25px 0 20px}.hero h1{font-size:
 .toc a{font-size:15px;font-weight:650;line-height:1.5;padding:12px 4px}
 .hero p{font-size:15px;font-weight:500}.eyebrow{font-size:13px}
 header a{font-size:14px;font-weight:650}
+.nav-back-link{font-size:13px;font-weight:600;padding:8px 14px;border:1px solid #aec9bb;border-radius:8px;background:#f5faf6;color:#1c392d;text-decoration:none;display:inline-block}
+.nav-back-link:hover{background:#e7f3eb;text-decoration:none}
+html[data-theme="dark"] .nav-back-link{background:#1a2720;color:#d5eadb;border-color:#385242}
+html[data-theme="dark"] .nav-back-link:hover{background:#23352b}
 @media(max-width:720px){.reader>.section{padding:22px 20px}.reader>.section p,.reader>.section li{font-size:15px}}
 
 
@@ -101,7 +105,7 @@ b.addEventListener("dblclick",()=>{preference="auto";try{localStorage.setItem(ke
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&preference==="auto")apply()});
 setInterval(()=>{if(preference==="auto")apply()},60000);
 });
-})();</script></head><body><div class="shell"><header><div class="brand" style="display:flex;align-items:center;gap:10px"><span style="display:grid;place-items:center;background:#286e50;color:#e7f5ec;width:32px;height:32px;border-radius:8px;font-size:19px;font-weight:800">V</span>veyra <span style="font-size:13px;color:#50685f;font-weight:500;margin-left:6px">/ Guide & Security</span></div><a href="/" style="font-size:13px;font-weight:600;padding:8px 14px;border:1px solid #aec9bb;border-radius:8px;background:#f5faf6;text-decoration:none">← Return to Check Address</a></header>
+})();</script></head><body><div class="shell"><header><div class="brand" style="display:flex;align-items:center;gap:10px"><span style="display:grid;place-items:center;background:#286e50;color:#e7f5ec;width:32px;height:32px;border-radius:8px;font-size:19px;font-weight:800">V</span>veyra <span style="font-size:13px;color:#50685f;font-weight:500;margin-left:6px">/ Guide & Security</span></div><a href="/" class="nav-back-link">← Return to Check Address</a></header>
 <div class="hero"><div class="eyebrow">Product guide / Security model</div><h1>Recipient verification, explained.</h1><p>Understand what Veyra checks, how evidence is handled, and where independent confirmation is still required.</p></div>
 <div class="layout"><nav class="toc" aria-label="Documentation sections"><a href="#overview">01 / Overview</a><a href="#workflow">02 / Verification workflow</a><a href="#evidence">03 / Evidence sources</a><a href="#threats">04 / Threat model</a><a href="#limits">05 / Known limitations</a></nav><div class="reader">
 <section class="section" id="overview"><h2>01 / Overview</h2><p>Veyra is a read-only recipient preflight tool for Sui Mainnet. It compares a proposed destination against independently authorized recipient records, when available, and supplements the review with provider-observed blockchain history.</p><div class="panel"><span class="chip">No automatic approval</span><p>A transaction's existence is not proof of recipient identity. Veyra does not sign transactions, submit transfers, or determine that an address is safe.</p></div></section>
