@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <button id="sign" type="button" disabled>Sign personal message and verify</button>
 <p id="status" role="status" aria-live="polite">No wallet proof has been submitted.</p>
 <p>Valid signatures establish signing-key control at verification time only. Veyra never signs transactions, transfers SUI, or automatically stores this result in Walrus.</p>
-<details id="receipt-review" hidden><summary>Review verification receipt for Walrus</summary><p>This is a proposed public record, not a stored Walrus memory. Download it for local review; downloading does not submit or authorize a write. A receipt alone is not cryptographic proof.</p><pre id="receipt-json" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px;overflow:auto"></pre><label><input id="receipt-consent" type="checkbox"> I have reviewed this public address and verification metadata and understand no memory is stored by this action.</label><button id="receipt-download" type="button" disabled>Download receipt for local review</button><p><label><input id="proof-consent" type="checkbox"> I understand the optional proof package contains my signature over this verification-only message. I will keep the file private and share it only with a trusted local verifier.</label></p><button id="proof-download" type="button" disabled>Download cryptographic proof for local verification</button><p id="receipt-feedback" role="status"></p><div class="warning"><strong>Self-service recipient confirmation</strong><p>Use your connected wallet address as your intended Sui receiving address. This is your statement of intent, not proof that a transfer is safe. Your address will be visible in the exported file and, only after separate approval, may be published to Walrus.</p><label><input id="recipient-intent-consent" type="checkbox"> I confirm this connected address is the Sui Mainnet address where I intend to receive funds, and I consent to sharing this confirmation and wallet-control proof privately with the Veyra operator for review. I understand public Walrus storage requires a separate explicit approval.</label><button id="recipient-intent-download" type="button" disabled>Download recipient confirmation package</button><p id="recipient-intent-feedback" role="status"></p></div></details>
+<details id="receipt-review" hidden><summary>Review verification receipt for Walrus</summary><p>This is a proposed public record, not a stored Walrus memory. Download it for local review; downloading does not submit or authorize a write. A receipt alone is not cryptographic proof.</p><pre id="receipt-json" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px;overflow:auto"></pre><label><input id="receipt-consent" type="checkbox"> I have reviewed this public address and verification metadata and understand no memory is stored by this action.</label><button id="receipt-download" type="button" disabled>Download receipt for local review</button><p><label><input id="proof-consent" type="checkbox"> I understand the optional proof package contains my signature over this verification-only message. I will keep the file private and share it only with a trusted local verifier.</label></p><button id="proof-download" type="button" disabled>Download cryptographic proof for local verification</button><p id="receipt-feedback" role="status"></p><div class="warning"><strong>Self-service recipient confirmation (Option A)</strong><p>Publish an intended receiving address confirmation to Walrus with your explicit, cryptographically bound signature. This provides transparent provenance to prospective payers without exposing private keys or raw signatures.</p><div style="margin:12px 0"><label for="selfCounterparty">Recipient identifier (e.g. your username or business handle)</label><input id="selfCounterparty" placeholder="e.g. my-business-sui-wallet" maxlength="128" style="margin-top:6px"></div><button id="prepare-publication" type="button" class="primary" style="margin-top:8px">Prepare publication consent</button><div id="publication-box" hidden style="margin-top:16px;padding:16px;border:1px solid #c9dcd0;border-radius:10px;background:#f5faf7"><p><strong>Review exact non-secret record for Walrus:</strong></p><pre id="pub-record-json" style="max-height:220px;overflow:auto;background:#fff;padding:10px;border-radius:8px;font-size:12px"></pre><p style="font-size:12px;color:#456b53">Record SHA-256: <code id="pub-record-hash" style="display:inline;padding:2px 6px"></code></p><details style="margin:10px 0"><summary>View consent message to be signed</summary><textarea id="pub-consent-message" readonly style="min-height:120px"></textarea></details><label><input id="pub-consent-check" type="checkbox"> I confirm this connected address is where I intend to receive Sui funds, and I authorize publishing this non-secret confirmation record to Walrus Mainnet. I understand Walrus storage is permanent and public.</label><button id="pub-sign-submit" type="button" class="primary" disabled style="margin-top:10px">Sign publication consent & store in Walrus</button><p id="pub-status" role="status" style="margin-top:10px;font-weight:600"></p><div id="pub-receipt-box" hidden style="margin-top:12px;padding:12px;background:#eef7f1;border-radius:8px"><p><strong>Storage receipt confirmed:</strong></p><p>Blob ID: <code id="receipt-blob-id" style="display:inline;padding:2px 6px"></code></p><p>Job ID: <span id="receipt-job-id"></span></p><p>Receipt ID: <span id="receipt-receipt-id"></span></p></div></div><div style="margin-top:20px;border-top:1px dashed #d5e5da;padding-top:12px"><p class="muted">Or download private package for offline review:</p><label><input id="recipient-intent-consent" type="checkbox"> I confirm this connected address is where I intend to receive funds, and consent to exporting the package.</label><button id="recipient-intent-download" type="button" disabled>Download offline confirmation package</button><p id="recipient-intent-feedback" role="status"></p></div></div></details>
 </section>
 </div></main></div></div><script>
 (()=>{
@@ -242,7 +242,56 @@ $("connect").addEventListener("click",()=>{
   ?"Choose one of your detected Sui wallets to connect."
   :"No compatible Sui wallet detected. Install or unlock a Sui wallet extension, then click Connect Wallet again.");
 });
-function resetReceipt(){$("recipient-intent-consent").checked=false;$("recipient-intent-download").disabled=true;$("recipient-intent-feedback").textContent="";portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";}
+function resetReceipt(){$("recipient-intent-consent").checked=false;$("recipient-intent-download").disabled=true;$("recipient-intent-feedback").textContent="";portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";$("publication-box").hidden=true;$("pub-receipt-box").hidden=true;$("pub-status").textContent="";$("pub-consent-check").checked=false;$("pub-sign-submit").disabled=true;}
+let preparedConsentPayload=null;
+$("prepare-publication").addEventListener("click",async()=>{
+  const cId=$("selfCounterparty").value.trim();
+  if(!cId){alert("Please enter a recipient identifier (e.g. your username or business handle)");return;}
+  if(!expected){alert("Please connect your Sui wallet first");return;}
+  try{
+    $("pub-status").textContent="Preparing non-secret confirmation record...";
+    const res=await fetch("/v1/self-service/prepare-consent",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({address:expected,counterpartyId:cId})});
+    const data=await res.json();
+    if(!res.ok||data.status!=="consent_prepared")throw new Error(data.error||"Preparation failed");
+    preparedConsentPayload=data.consentPayload;
+    $("pub-record-json").textContent=JSON.stringify(data.candidateRecord,null,2);
+    $("pub-record-hash").textContent=data.recordHash;
+    $("pub-consent-message").value=data.consentMessage;
+    $("publication-box").hidden=false;
+    $("pub-status").textContent="Review record and consent message above. Check consent box to sign.";
+  }catch(err){
+    $("pub-status").textContent="Failed to prepare consent: "+err.message;
+  }
+});
+$("pub-consent-check").addEventListener("change",()=>{
+  $("pub-sign-submit").disabled=!preparedConsentPayload||!$("pub-consent-check").checked;
+});
+$("pub-sign-submit").addEventListener("click",async()=>{
+  if(!preparedConsentPayload||!connected||!account)return;
+  const msg=$("pub-consent-message").value;
+  try{
+    $("pub-sign-submit").disabled=true;
+    $("pub-status").textContent="Requesting wallet signature for publication consent...";
+    const sign=connected.features["sui:signPersonalMessage"].signPersonalMessage;
+    const signed=await sign({account,message:new TextEncoder().encode(msg)});
+    if(typeof signed?.signature!=="string")throw new Error("No signature returned from wallet");
+    $("pub-status").textContent="Submitting signed confirmation to Walrus Mainnet via secured backend...";
+    const res=await fetch("/v1/self-service/confirm-and-store",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({consent:preparedConsentPayload,signature:signed.signature})});
+    const data=await res.json();
+    if(!res.ok||(data.status!=="stored"&&data.status!=="already_stored_idempotent")){
+      throw new Error(data.error||"Walrus storage failed");
+    }
+    const receipt=data.receipt;
+    $("pub-status").textContent="CONFIRMED: Recipient confirmation stored permanently on Walrus Mainnet.";
+    $("receipt-blob-id").textContent=receipt.blobId;
+    $("receipt-job-id").textContent=receipt.jobId;
+    $("receipt-receipt-id").textContent=receipt.receiptId;
+    $("pub-receipt-box").hidden=false;
+  }catch(err){
+    $("pub-status").textContent="Publication failed: "+err.message;
+    $("pub-sign-submit").disabled=false;
+  }
+});
 $("receipt-consent").addEventListener("change",()=>{$("receipt-download").disabled=!proposedReceipt||!$("receipt-consent").checked;});
 $("proof-consent").addEventListener("change",()=>{$("proof-download").disabled=!portableProof||!$("proof-consent").checked;});
 $("recipient-intent-consent").addEventListener("change",()=>{

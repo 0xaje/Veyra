@@ -9,6 +9,12 @@ import { spawn } from "node:child_process";
 import { normalizeSuiAddress } from "../src/core/recipient-check.ts";
 import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
 import { createPreflightLimiter } from "./preflight-limiter.mjs";
+import { RecipientEvidenceIndex } from "../src/core/recipient-evidence-index.ts";
+import { StorageSafeguardsLedger } from "../src/core/storage-safeguards.ts";
+import {
+  prepareConsentedRecipientConfirmation,
+  verifyPublicationConsent,
+} from "../src/core/self-service-confirmation.ts";
 
 const port = Number(process.env.PORT || process.env.VEYRA_PORT || 8787);
 const publicMode = process.env.VEYRA_PUBLIC_MODE === "true";
@@ -35,6 +41,12 @@ const limiter = createPreflightLimiter({
   perClient: Number(process.env.VEYRA_PREFLIGHT_PER_MINUTE ?? 8),
   maxConcurrent: Number(process.env.VEYRA_PREFLIGHT_CONCURRENCY ?? 2),
 });
+const safeguardsLedgerPath = resolve(process.env.VEYRA_SAFEGUARDS_FILE || "data/safeguards-ledger.json");
+const safeguardsLedger = await StorageSafeguardsLedger.loadOrCreate(safeguardsLedgerPath, {
+  maxDailyWritesPerWallet: Number(process.env.VEYRA_MAX_DAILY_CONFIRMATIONS_PER_WALLET || 3),
+  maxGlobalDailyWrites: Number(process.env.VEYRA_MAX_GLOBAL_DAILY_WRITES || 50),
+});
+const localIndex = new RecipientEvidenceIndex();
 const historyPath = !publicMode && process.env.VEYRA_HISTORY_FILE ? resolve(process.env.VEYRA_HISTORY_FILE) : null;
 let historyWrite = Promise.resolve();
 function persistAssessment(entry) {
@@ -230,6 +242,163 @@ async function handler(req, res) {
     } catch {
       return send(400, { error: "Wallet proof request failed", paymentAuthorized: false });
     }
+  }
+  if (req.method === "POST" && req.url === "/v1/self-service/prepare-consent") {
+    if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+      return send(415, { error: "JSON required", paymentAuthorized: false });
+    try {
+      let body = "";
+      for await (const chunk of req) {
+        body += chunk.toString();
+        if (Buffer.byteLength(body) > maxBody) return send(413, { error: "Request too large", paymentAuthorized: false });
+      }
+      const input = JSON.parse(body);
+      if (typeof input.address !== "string" || typeof input.counterpartyId !== "string" || !input.counterpartyId.trim())
+        return send(400, { error: "Address and counterpartyId required", paymentAuthorized: false });
+
+      const prepared = prepareConsentedRecipientConfirmation({
+        address: input.address,
+        counterpartyId: input.counterpartyId,
+      });
+
+      const nonce = randomUUID().replace(/-/g, "");
+      const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString();
+      const consentPayload = {
+        address: prepared.candidate.address,
+        counterpartyId: prepared.candidate.counterpartyId,
+        recordHash: prepared.recordHash,
+        scope: "public_walrus_recipient_confirmation",
+        network: "sui-mainnet",
+        expiresAt,
+        nonce,
+      };
+
+      const { buildPublicationConsentMessage } = await import("../src/core/self-service-confirmation.ts");
+      const consentMessage = buildPublicationConsentMessage(consentPayload);
+
+      return send(200, {
+        status: "consent_prepared",
+        consentPayload,
+        consentMessage,
+        candidateRecord: prepared.candidate,
+        recordHash: prepared.recordHash,
+        paymentAuthorized: false,
+      });
+    } catch (error) {
+      return send(400, { error: error instanceof Error ? error.message : "Preparation failed", paymentAuthorized: false });
+    }
+  }
+  if (req.method === "POST" && req.url === "/v1/self-service/confirm-and-store") {
+    if (publicMode && !process.env.VEYRA_ENABLE_SELF_SERVICE_WRITES) {
+      return send(403, { error: "Public self-service writes are not enabled on this deployment", paymentAuthorized: false });
+    }
+    if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+      return send(415, { error: "JSON required", paymentAuthorized: false });
+    if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID)
+      return send(503, { error: "Walrus storage provider credentials unavailable", paymentAuthorized: false });
+
+    try {
+      let body = "";
+      for await (const chunk of req) {
+        body += chunk.toString();
+        if (Buffer.byteLength(body) > maxBody) return send(413, { error: "Request too large", paymentAuthorized: false });
+      }
+      const input = JSON.parse(body);
+      const { consent, signature, idempotencyKey } = input;
+      if (!consent || typeof signature !== "string" || !signature.trim()) {
+        return send(400, { error: "Valid signed publication consent and signature required", paymentAuthorized: false });
+      }
+      const idKey = typeof idempotencyKey === "string" && idempotencyKey.trim() ? idempotencyKey.trim() : randomUUID();
+
+      // 1. Verify publication consent signature
+      const verification = await verifyPublicationConsent(consent, signature);
+      if (verification.status !== "valid" || !verification.verifiedConsent) {
+        return send(400, { error: verification.error || "Publication consent signature verification failed", paymentAuthorized: false });
+      }
+
+      // 2. Safeguards admission check (quotas, idempotency, rate-limits)
+      const admission = safeguardsLedger.checkAdmission(consent.address, idKey, consent.recordHash);
+      if (!admission.allowed) {
+        return send(429, { error: admission.reason, paymentAuthorized: false });
+      }
+      if (admission.existingReceipt) {
+        return send(200, {
+          status: "already_stored_idempotent",
+          receipt: admission.existingReceipt,
+          paymentAuthorized: false,
+        });
+      }
+
+      // 3. Prepare exact non-secret candidate matching verified consent hash
+      const prepared = prepareConsentedRecipientConfirmation({
+        address: consent.address,
+        counterpartyId: consent.counterpartyId,
+      });
+      if (prepared.recordHash !== consent.recordHash) {
+        return send(400, { error: "Record hash mismatch against signed publication consent", paymentAuthorized: false });
+      }
+
+      // 4. Submit to genuine MemWal with accepted -> completed pipeline
+      const { MemWal } = await import("@mysten-incubation/memwal");
+      const memory = MemWal.create({
+        key: process.env.MEMWAL_PRIVATE_KEY,
+        accountId: process.env.MEMWAL_ACCOUNT_ID,
+        serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
+        namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+      });
+
+      const accepted = await memory.remember(prepared.candidateJson, { idempotencyKey: idKey });
+      if (!accepted || !accepted.job_id) {
+        return send(503, { error: "Walrus relayer did not accept memory job", paymentAuthorized: false });
+      }
+
+      const completed = await memory.waitForRememberJob(accepted.job_id);
+      if (completed.status !== "done" || !completed.blob_id) {
+        return send(503, {
+          error: completed.error || "Walrus memory job did not complete successfully",
+          jobId: accepted.job_id,
+          paymentAuthorized: false,
+        });
+      }
+
+      // 5. Generate durable receipt and record in safeguards ledger and index
+      const receipt = {
+        schema: "veyra.storage_receipt.v1",
+        receiptId: randomUUID(),
+        jobId: accepted.job_id,
+        blobId: completed.blob_id,
+        address: prepared.candidate.address,
+        counterpartyId: prepared.candidate.counterpartyId,
+        recordHash: prepared.recordHash,
+        storedAt: new Date().toISOString(),
+        status: "completed",
+        paymentAuthorized: false,
+      };
+
+      safeguardsLedger.recordSuccess(idKey, receipt);
+      await safeguardsLedger.persist();
+
+      localIndex.addRecord(completed.blob_id, prepared.candidateJson, receipt.storedAt);
+
+      return send(200, {
+        status: "stored",
+        receipt,
+        candidateRecord: prepared.candidate,
+        paymentAuthorized: false,
+      });
+    } catch (error) {
+      return send(500, { error: error instanceof Error ? error.message : "Storage failed", paymentAuthorized: false });
+    }
+  }
+  if (req.method === "GET" && req.url?.startsWith("/v1/self-service/receipts?")) {
+    const url = new URL(req.url, "http://localhost");
+    const address = url.searchParams.get("address");
+    if (!address) return send(400, { error: "Address required" });
+    return send(200, {
+      schema: "veyra.receipt_list.v1",
+      address,
+      receipts: safeguardsLedger.getReceiptsForWallet(address),
+    });
   }
   if (req.method === "GET" && req.url === "/health")
     return send(200, { status: "running", paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode });
