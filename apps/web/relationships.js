@@ -40,7 +40,7 @@ async function request(path,data){const version=generation;const response=await 
  headers:{...(data===undefined?{}:{'content-type':'application/json'}),...(session?{'x-veyra-csrf':session.csrfToken}:{})},
  ...(data===undefined?{}:{body:JSON.stringify(data)})});const result=await response.json();
  if(version!==generation)throw new Error('Wallet session changed; refresh your private contacts.');
- if(response.status===401&&session)expireView();
+ if((response.status===401||response.status===403)&&session)expireView();
  if(!response.ok)throw new Error(result.error||result.reason||'Private request failed');return result;}
 function resetPrivateView(){if(contactSelect.value||document.getElementById('private-confirmation-trace')){document.getElementById('private-confirmation-trace')?.remove();const address=document.getElementById('address');if(address)address.value='';const results=document.getElementById('results'),empty=document.getElementById('empty');if(results)results.hidden=true;if(empty)empty.hidden=false;}contacts=[];draft=null;content.replaceChildren();contactSelect.replaceChildren(new Option('Public evidence check — no private contact',''));contactSelect.disabled=true;
  const field=document.getElementById('counterparty');if(field){field.readOnly=false;if(field.dataset.private==='true'){field.value='';delete field.dataset.private;}}
@@ -50,7 +50,7 @@ window.addEventListener('veyra-private-session-expired',expireView);
 async function logout(){const previous=session;generation++;session=null;account=null;selectedWallet=null;draft=null;resetPrivateView();
  signIn.hidden=false;signOut.hidden=true;accountSelect.hidden=true;setStatus('Signed out of private contacts.');
  if(unsubscribe){unsubscribe();unsubscribe=null;}
- if(previous)try{await fetch('/v1/private/logout',{method:'POST',headers:{'content-type':'application/json','x-veyra-csrf':previous.csrfToken},body:'{}'});}catch{setStatus('Local view cleared. Server sign-out could not be confirmed; close this browser session or retry sign-out.');}}
+ if(previous)try{await fetch('/v1/private/logout',{method:'POST',headers:{'content-type':'application/json','x-veyra-csrf':previous.csrfToken},body:'{}'});}catch{session=previous;signOut.hidden=false;signOut.textContent='Retry secure sign-out';setStatus('Private view cleared, but server sign-out was not confirmed. Retry secure sign-out before leaving a shared device.');}}
 async function login(){if(!available)return;signIn.disabled=true;
  try{
   window.dispatchEvent(new CustomEvent('wallet-standard:app-ready',{detail:{register}}));
@@ -83,7 +83,7 @@ async function refresh(){if(!session)return;const data=await request('/v1/privat
  const selected=contactSelect.value;contactSelect.replaceChildren(new Option('Public evidence check — no private contact',''));
  for(const c of contacts)if(c.state==='active')contactSelect.add(new Option(c.label,c.id));
  if(contacts.some(c=>c.id===selected&&c.state==='active'))contactSelect.value=selected;contactSelect.disabled=false;contactSelection();
- signOut.hidden=false;setStatus('Private session: '+session.address+'. Contact confirmations remain subject to independent review.');
+ signOut.hidden=false;signOut.textContent='Sign out';setStatus('Private session: '+session.address+'. Contact confirmations remain subject to independent review.');
  content.replaceChildren();if(receiving)renderRecipient();else renderPayer();}
 function renderPayer(){
  const manager=node('details');manager.append(node('summary','Create invitations and confirm contacts'));
@@ -108,7 +108,7 @@ function renderPayer(){
   }catch(e){setStatus(e.message);}finally{accept.disabled=false;}});
   card.append(code.host,method,consent,accept);
  }
- const audit=node('details');audit.append(node('summary','Private confirmation history'));
+ const audit=node('details');audit.append(node('summary','Recent private confirmation history (up to 200 events)'));
  const auditBody=node('div');audit.append(auditBody);let loaded=false;
  audit.addEventListener('toggle',async()=>{if(!audit.open||loaded)return;try{const result=await request('/v1/private/relationship-history?relationshipId='+encodeURIComponent(c.id));
   for(const event of result.events)auditBody.append(node('p',new Date(event.created).toLocaleString()+' · '+event.event.replaceAll('_',' ')));loaded=true;}catch(e){auditBody.textContent=e.message;}});

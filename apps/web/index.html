@@ -352,7 +352,7 @@ try{
 const response=await fetch("/v1/preflight",{method:"POST",headers:{"Content-Type":"application/json",...(privateContext?{"x-veyra-csrf":privateContext.csrfToken}:{})},body:JSON.stringify(payload)});
 const data=await response.json();const latestContext=window.veyraRelationshipContext?.();
 if((privateContext?.relationshipId||null)!==(latestContext?.relationshipId||null)||(privateContext&&privateContext.csrfToken!==latestContext?.csrfToken)||field("address")!==payload.proposedAddress)throw new Error("Inputs or private session changed; run a fresh check.");
-if(privateContext&&response.status===401)window.dispatchEvent(new Event("veyra-private-session-expired"));if(!response.ok||data.status!=="read_only_preflight")throw new Error(data.reason||data.error||"Preflight unavailable");
+if(privateContext&&(response.status===401||response.status===403))window.dispatchEvent(new Event("veyra-private-session-expired"));if(!response.ok||data.status!=="read_only_preflight")throw new Error(data.reason||data.error||"Preflight unavailable");
 document.getElementById("empty").hidden=true;document.getElementById("results").hidden=false;
 setText("verdict","Manual review required");setText("recipientVerdict",data.recipient?.verdict||"Unknown");
 setText("tatum",data.providers?.tatum||"Unknown");setText("walrus", "Legacy: "+(data.providers?.walrus||"Unknown")+" · Observations: "+(data.providers?.walrusRecipientEvidence||"Unknown")+" · Wallet control: "+(data.providers?.walrusWalletControl||"Unknown")+" · Search completeness unknown; exact-ID verification not performed");

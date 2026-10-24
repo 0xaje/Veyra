@@ -298,7 +298,7 @@ export class RecipientRelationships {
   }
   history(session: RelationshipSession, relationshipId: string, now = Date.now()) {
     this.liveSession(session, now); this.contact(session.address, relationshipId);
-    return this.db.prepare("SELECT event,claim_id,created FROM rel_audit WHERE relationship_id=? ORDER BY rowid LIMIT 200").all(relationshipId);
+    return this.db.prepare("SELECT event,claim_id,created FROM rel_audit WHERE relationship_id=? ORDER BY rowid DESC LIMIT 200").all(relationshipId).reverse();
   }
   close() { this.db.close(); }
 }
