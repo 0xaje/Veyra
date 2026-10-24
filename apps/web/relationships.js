@@ -21,7 +21,8 @@ if(receiving&&invite)for(const existing of main.querySelectorAll(':scope > .pane
 const walletSelect=node('select');walletSelect.setAttribute('aria-label','Signing wallet');
 const accountSelect=node('select');accountSelect.setAttribute('aria-label','Wallet account');accountSelect.hidden=true;
 const signIn=button('Sign in with your wallet',login),signOut=button('Sign out',logout);
-signIn.disabled=true;signOut.hidden=true;controls.append(walletSelect,accountSelect,signIn,signOut);
+const refreshContacts=button('Refresh private contacts',async()=>{refreshContacts.disabled=true;try{await refresh();}catch(e){setStatus(e.message);}finally{refreshContacts.disabled=false;}});refreshContacts.hidden=true;
+signIn.disabled=true;signOut.hidden=true;controls.append(walletSelect,accountSelect,signIn,refreshContacts,signOut);
 const wallets=new Map();let session=null,selectedWallet=null,account=null,contacts=[],draft=null,generation=0,available=false,unsubscribe=null;
 const contactSelect=node('select');contactSelect.id='private-contact-select';contactSelect.setAttribute('aria-label','Private recipient contact');
 const form=document.getElementById('preflight');let contactLabel=null;
@@ -45,10 +46,10 @@ async function request(path,data){const version=generation;const response=await 
 function resetPrivateView(){if(contactSelect.value||document.getElementById('private-confirmation-trace')){document.getElementById('private-confirmation-trace')?.remove();const address=document.getElementById('address');if(address)address.value='';const results=document.getElementById('results'),empty=document.getElementById('empty');if(results)results.hidden=true;if(empty)empty.hidden=false;}contacts=[];draft=null;content.replaceChildren();contactSelect.replaceChildren(new Option('Public evidence check — no private contact',''));contactSelect.disabled=true;if(contactLabel)contactLabel.hidden=true;
  const field=document.getElementById('counterparty');if(field){field.readOnly=false;if(field.dataset.private==='true'){field.value='';delete field.dataset.private;}}
 }
-function expireView(){generation++;session=null;account=null;draft=null;resetPrivateView();signIn.hidden=false;signOut.hidden=true;setStatus('Your private session expired. Sign in again.');}
+function expireView(){generation++;session=null;account=null;draft=null;resetPrivateView();signIn.hidden=false;signOut.hidden=true;refreshContacts.hidden=true;setStatus('Your private session expired. Sign in again.');}
 window.addEventListener('veyra-private-session-expired',expireView);
 async function logout(){const previous=session;generation++;session=null;account=null;selectedWallet=null;draft=null;resetPrivateView();
- signIn.hidden=false;signOut.hidden=true;accountSelect.hidden=true;setStatus('Signed out of private contacts.');
+ signIn.hidden=false;signOut.hidden=true;refreshContacts.hidden=true;accountSelect.hidden=true;setStatus('Signed out of private contacts.');
  if(unsubscribe){unsubscribe();unsubscribe=null;}
  if(previous)try{await fetch('/v1/private/logout',{method:'POST',headers:{'content-type':'application/json','x-veyra-csrf':previous.csrfToken},body:'{}'});}catch{session=previous;signOut.hidden=false;signOut.textContent='Retry secure sign-out';setStatus('Private view cleared, but server sign-out was not confirmed. Retry secure sign-out before leaving a shared device.');}}
 async function login(){if(!available)return;signIn.disabled=true;
@@ -83,7 +84,7 @@ async function refresh(){if(!session)return;const data=await request('/v1/privat
  const selected=contactSelect.value;contactSelect.replaceChildren(new Option('Public evidence check — no private contact',''));
  for(const c of contacts)if(c.state==='active')contactSelect.add(new Option(c.label,c.id));
  if(contacts.some(c=>c.id===selected&&c.state==='active'))contactSelect.value=selected;contactSelect.disabled=false;if(contactLabel)contactLabel.hidden=!contacts.some(c=>c.state==='active');contactSelection();
- signOut.hidden=false;signOut.textContent='Sign out';setStatus('Private session: '+session.address+'. Contact confirmations remain subject to independent review.');
+ signOut.hidden=false;refreshContacts.hidden=false;signOut.textContent='Sign out';setStatus('Private session: '+session.address+'. Contact confirmations remain subject to independent review.');
  content.replaceChildren();if(receiving)renderRecipient();else renderPayer();}
 function renderPayer(){
  const manager=node('details');manager.append(node('summary','Create invitations and confirm contacts'));
@@ -115,7 +116,7 @@ function renderPayer(){
  card.append(audit);manager.append(card);
  }
 }
-function showInvitation(result){const box=node('section',undefined,'private-contact-card');box.append(node('h3','Send this link privately to '+result.label),node('p','Use an existing trusted conversation. Anyone with the link can propose an address; you must still independently accept the person, full address and code. Expires '+new Date(result.expiresAt).toLocaleString()+'.'));
+function showInvitation(result){const box=node('section',undefined,'private-contact-card');box.append(node('h3','Send this link privately to '+result.label),node('p','After the recipient replies, select Refresh private contacts. Use an existing trusted conversation. Anyone with the link can propose an address; you must still independently accept the person, full address and code. Expires '+new Date(result.expiresAt).toLocaleString()+'.'));
  const link=node('input');link.value=result.invitationUrl;link.readOnly=true;link.setAttribute('aria-label','Private invitation link');
  box.append(link,button('Copy invitation link',async()=>{try{await navigator.clipboard.writeText(result.invitationUrl);setStatus('Invitation copied. Send it yourself through your trusted conversation.');}catch{link.focus();link.select();setStatus('Select and copy the invitation link.');}}));content.prepend(box);}
 function renderRecipient(){

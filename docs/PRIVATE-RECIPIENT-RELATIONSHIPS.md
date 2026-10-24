@@ -12,7 +12,7 @@ This workflow does not publish any Walrus memory. Existing genuine Tatum and Mem
 2. Open Create invitations and confirm contacts. Create a private label and copy the generated invitation. Send it yourself through an existing trusted conversation. Veyra sends no message.
 3. The recipient opens `/verify-wallet#invite=...`, signs in with their intended receiving wallet, reviews the exact private record, checks their receiving intent and signs its relationship-bound message.
 4. The recipient gives the code and full address to the payer through the trusted channel. The payer API deliberately does not reveal the recipient's code.
-5. The payer selects the actual trusted channel, enters the supplied code and explicitly accepts. A recipient signature alone stays pending.
+5. The payer refreshes private contacts, selects the actual trusted channel, enters the supplied code and explicitly accepts. A recipient signature alone stays pending.
 6. Select that private contact in the existing address-check form. The API authenticates ownership and compares the full destination with the accepted private address, while separately querying genuine provider evidence using only the opaque relationship ID.
 7. A fresh invitation is required for a new address. The old accepted address remains until explicit payer acceptance; pending changes are shown. Previous accepted addresses and private audit events are retained. Revocation prevents further acceptance and is visible to preflight.
 
