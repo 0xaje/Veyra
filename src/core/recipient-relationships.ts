@@ -302,7 +302,7 @@ export class RecipientRelationships {
   }
   exportContacts(session: RelationshipSession, now = Date.now()) {
     this.liveSession(session, now);
-    const contacts = this.list(session, now).map(contact => ({ ...contact, history: this.history(session, contact.id, now) }));
+    const contacts = this.list(session, now).map(contact => ({ ...contact, history: this.history(session, String(contact.id), now) }));
     return { schema: "veyra.private_contacts_export.v1", exportedAt: new Date(now).toISOString(), owner: session.address,
       contacts, paymentAuthorized: false, memoryWritten: false,
       disclosure: "Private export. Contains contact labels and wallet addresses; store securely. No session, invitation token, verification code or raw signature is exported." };
