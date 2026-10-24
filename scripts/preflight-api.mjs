@@ -9,6 +9,7 @@ import { spawn } from "node:child_process";
 import { normalizeSuiAddress } from "../src/core/recipient-check.ts";
 import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
 import { createPreflightLimiter } from "./preflight-limiter.mjs";
+import { createPrivateRelationshipsApi } from "./private-relationships-api.mjs";
 import { PublicationLedger } from "../src/core/publication-ledger.ts";
 import { existsSync } from "node:fs";
 import { collectMemoryInventory } from "../src/core/memory-inventory.ts";
@@ -43,6 +44,15 @@ const limiter = createPreflightLimiter({
   perClient: Number(process.env.VEYRA_PREFLIGHT_PER_MINUTE ?? 8),
   maxConcurrent: Number(process.env.VEYRA_PREFLIGHT_CONCURRENCY ?? 2),
 });
+const privateRequestCounts = new Map();
+function privateRequestAllowed(ip,now=Date.now()) {
+  for(const [key,value] of privateRequestCounts)if(now-value.start>=60000)privateRequestCounts.delete(key);
+  const key=String(ip||"unknown").slice(0,128),value=privateRequestCounts.get(key);
+  if(value){if(value.count>=60)return false;value.count++;return true;}
+  if(privateRequestCounts.size>=5000)return false;
+  privateRequestCounts.set(key,{start:now,count:1});return true;
+}
+const privateRelationships = createPrivateRelationshipsApi({publicMode,port,requestAllowed:privateRequestAllowed});
 const publicationDbPath = process.env.VEYRA_PUBLICATION_DB || "";
 if (!publicMode && publicationDbPath &&
     existsSync(resolve(process.env.VEYRA_SAFEGUARDS_FILE || "data/safeguards-ledger.json")))
@@ -220,6 +230,13 @@ async function recallRecipientEvidence(counterpartyId, proposedAddress) {
 }
 
 async function handler(req, res) {
+  if(await privateRelationships.handle(req,res))return;
+  if(req.method==="GET"&&req.url==="/relationships.js"){
+    try{
+      const source=await readFile(resolve(webRoot,"relationships.js"),"utf8");
+      res.writeHead(200,{"content-type":"text/javascript; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"});res.end(source);return;
+    }catch{res.writeHead(503);res.end();return;}
+  }
   const send = (status, data) => {
     res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" });
     res.end(JSON.stringify(data));
@@ -231,7 +248,8 @@ async function handler(req, res) {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "no-store",
         "x-content-type-options": "nosniff",
-        "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+        "referrer-policy": "no-referrer",
+        "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
       });
       return res.end(html);
     } catch { return send(503, { error: "Interface unavailable" }); }
@@ -458,7 +476,7 @@ async function handler(req, res) {
     }
   }
   if (req.method === "GET" && req.url === "/health")
-    return send(200, { status: "running", buildCommit: process.env.RENDER_GIT_COMMIT || null, paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode, selfServiceWritesEnabled: Boolean(publicationLedger && process.env.MEMWAL_PRIVATE_KEY && process.env.MEMWAL_ACCOUNT_ID), publicationSecurityGatesComplete: false });
+    return send(200, { status: "running", buildCommit: process.env.RENDER_GIT_COMMIT || null, paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode, selfServiceWritesEnabled: Boolean(publicationLedger && process.env.MEMWAL_PRIVATE_KEY && process.env.MEMWAL_ACCOUNT_ID), publicationSecurityGatesComplete: false, privateRelationshipsEnabled: privateRelationships.enabled });
   if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
     const url = new URL(req.url, "http://localhost");
     const counterpartyId = url.searchParams.get("counterpartyId");
@@ -621,6 +639,7 @@ async function handler(req, res) {
     let data;
     try { data = JSON.parse(body); }
     catch { return send(400, { status: "preflight_failed", action: "manual_review_required", paymentAuthorized: false, reason: "Malformed JSON request body" }); }
+    if(data?.relationshipId!==undefined)data.counterpartyId=data.relationshipId;
     if (typeof data.counterpartyId !== "string" || !data.counterpartyId.trim() ||
         data.counterpartyId.length > 128 || typeof data.proposedAddress !== "string" ||
         (data.transactionDigest !== undefined &&
@@ -629,6 +648,13 @@ async function handler(req, res) {
     let proposedAddress;
     try { proposedAddress = normalizeSuiAddress(data.proposedAddress); }
     catch { return send(400, { status: "preflight_failed", action: "manual_review_required", paymentAuthorized: false, reason: "Invalid Sui recipient address" }); }
+    let relationshipComparison=null;
+    if(data.relationshipId!==undefined){
+      try{relationshipComparison=privateRelationships.relationshipPreflight(req,data.relationshipId,proposedAddress);}
+      catch(error){return send(error.status||400,{status:"preflight_failed",reason:error.message,paymentAuthorized:false});}
+      // Private labels never enter external semantic queries or public records.
+      data.counterpartyId=relationshipComparison.relationshipId;
+    }
     // Authorization is deliberately NOT accepted from the HTTP caller.
     // Configure a locally controlled file only after independently verifying provenance.
     let authorizations = [];
@@ -650,7 +676,7 @@ async function handler(req, res) {
     const assessmentId = randomUUID();
     const checkedAt = new Date().toISOString();
     const providers = { tatum: chain.status, walrus: memory.status, walrusRecipientEvidence: recipientEvidence.status, walrusWalletControl: recipientEvidence.walletControlStatus };
-    if (historyPath) {
+    if (historyPath && !relationshipComparison) {
       try {
         await persistAssessment({
           schema: "veyra.assessment.v1", id: assessmentId, checkedAt,
@@ -669,7 +695,15 @@ async function handler(req, res) {
       }
     }
     return send(200, {
-      ...result, assessmentId, checkedAt, historyPersisted: Boolean(historyPath), providers,
+      ...result,
+      conclusion: relationshipComparison ? {
+        status:relationshipComparison.status,message:relationshipComparison.message,
+        source:relationshipComparison.source,action:"manual_review_required",identityVerified:false,
+        memoryWritten:false,paymentAuthorized:false,
+      } : result.conclusion,
+      walrusEvidenceConclusion: result.conclusion,
+      reasons: relationshipComparison ? [relationshipComparison.message,...result.reasons] : result.reasons,
+      relationshipComparison, assessmentId, checkedAt, historyPersisted: Boolean(historyPath && !relationshipComparison), providers,
       retrieval: {
         mode: "semantic_recall", completeness: "unknown", exactIdVerification: "not_performed",
         status: [memory.status, recipientEvidence.status, recipientEvidence.walletControlStatus].every(status => status === "observed") ? "observed" :

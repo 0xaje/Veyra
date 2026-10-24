@@ -84,3 +84,9 @@ Sources reviewed on 24 October 2026:
 - https://github.com/MystenLabs/walrus-memory/blob/dev/packages/sdk/src/manual.ts
 
 Next release gates remain authenticated wallet sessions and payer-recipient relationship binding, supported exact-ID payload verification, persistent deployment/budget review, and genuine wallet/publication/browser acceptance. Public writes remain disabled.
+
+## Private relationship implementation — M3/M4/M5
+
+Wallet-authenticated sessions, origin/CSRF protection, private payer-owned invitations, signed recipient intent, payer code/channel acceptance, revocation and retained address history are now implemented and integrated with the existing preflight form. Contact labels stay private and are never external semantic queries. The top-level private conclusion and separately scoped Walrus conclusion do not claim the same source.
+
+See [PRIVATE-RECIPIENT-RELATIONSHIPS.md](PRIVATE-RECIPIENT-RELATIONSHIPS.md) for setup, threat boundaries and tests. Hosted private contacts remain disabled pending persistent-storage/access/retention review and interactive wallet/browser acceptance. This does not enable public Walrus publication or complete exact-ID verification.

@@ -5,6 +5,9 @@ on:
     paths:
       - "scripts/live-readonly-preflight.mjs"
       - ".github/workflows/live-readonly.yml"
+      - "scripts/private-relationships-api.mjs"
+      - "src/core/recipient-relationships.ts"
+      - "apps/web/relationships.js"
   workflow_dispatch:
 permissions:
   contents: read

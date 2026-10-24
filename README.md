@@ -21,6 +21,10 @@ Fresh hosted read-only checks on 24 October recalled the friend's observation, s
 
 The local self-service path now retains exact signed candidate bytes, reserves capacity transactionally, persists accepted jobs and receipts, and supports poll-only recovery. It requires an explicitly configured private SQLite path and genuine provider credentials. This does not enable public self-service. See [hardening status and acceptance gates](docs/PRODUCT-HARDENING.md).
 
+## Private recipient relationships
+
+The payer can create a private invitation, the recipient signs a relationship-bound receiving statement, and the payer independently checks the full address and code before accepting. Accepted contacts feed the existing address-check form. Labels stay private; no Walrus publication occurs. This path requires reviewed persistent storage and remains disabled on the current hosted configuration. See [workflow, setup and security boundaries](docs/PRIVATE-RECIPIENT-RELATIONSHIPS.md).
+
 ## Quick start
 
 Requires Node.js 24 and a locally configured environment file with legitimate provider credentials. Do not commit credentials.
