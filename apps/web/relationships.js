@@ -21,11 +21,11 @@ if(receiving&&invite)for(const existing of main.querySelectorAll(':scope > .pane
 const walletSelect=node('select');walletSelect.setAttribute('aria-label','Signing wallet');
 const accountSelect=node('select');accountSelect.setAttribute('aria-label','Wallet account');accountSelect.hidden=true;
 const signIn=button('Sign in with your wallet',login),signOut=button('Sign out',logout);
-signOut.hidden=true;controls.append(walletSelect,accountSelect,signIn,signOut);
+signIn.disabled=true;signOut.hidden=true;controls.append(walletSelect,accountSelect,signIn,signOut);
 const wallets=new Map();let session=null,selectedWallet=null,account=null,contacts=[],draft=null,generation=0,available=false,unsubscribe=null;
 const contactSelect=node('select');contactSelect.id='private-contact-select';contactSelect.setAttribute('aria-label','Private recipient contact');
-const form=document.getElementById('preflight');
-if(form){const label=node('label','Use a private contact (optional)');label.append(contactSelect);form.prepend(label);contactSelect.disabled=true;}
+const form=document.getElementById('preflight');let contactLabel=null;
+if(form){contactLabel=node('label','Use a private contact (optional)');contactLabel.id='private-contact-label';contactLabel.hidden=true;contactLabel.append(contactSelect);form.prepend(contactLabel);contactSelect.disabled=true;}
 function supported(w){return Boolean(w?.features?.['standard:connect']?.connect&&w?.features?.['sui:signPersonalMessage']?.signPersonalMessage&&
  (w.chains?.some(c=>c.startsWith('sui:'))||w.accounts?.some(a=>a.chains?.some(c=>c.startsWith('sui:')))));}
 function renderWallets(){const old=walletSelect.value;walletSelect.replaceChildren(new Option(wallets.size?'Choose your wallet':'No compatible Sui wallet detected',''));
@@ -42,7 +42,7 @@ async function request(path,data){const version=generation;const response=await 
  if(version!==generation)throw new Error('Wallet session changed; refresh your private contacts.');
  if((response.status===401||response.status===403)&&session)expireView();
  if(!response.ok)throw new Error(result.error||result.reason||'Private request failed');return result;}
-function resetPrivateView(){if(contactSelect.value||document.getElementById('private-confirmation-trace')){document.getElementById('private-confirmation-trace')?.remove();const address=document.getElementById('address');if(address)address.value='';const results=document.getElementById('results'),empty=document.getElementById('empty');if(results)results.hidden=true;if(empty)empty.hidden=false;}contacts=[];draft=null;content.replaceChildren();contactSelect.replaceChildren(new Option('Public evidence check — no private contact',''));contactSelect.disabled=true;
+function resetPrivateView(){if(contactSelect.value||document.getElementById('private-confirmation-trace')){document.getElementById('private-confirmation-trace')?.remove();const address=document.getElementById('address');if(address)address.value='';const results=document.getElementById('results'),empty=document.getElementById('empty');if(results)results.hidden=true;if(empty)empty.hidden=false;}contacts=[];draft=null;content.replaceChildren();contactSelect.replaceChildren(new Option('Public evidence check — no private contact',''));contactSelect.disabled=true;if(contactLabel)contactLabel.hidden=true;
  const field=document.getElementById('counterparty');if(field){field.readOnly=false;if(field.dataset.private==='true'){field.value='';delete field.dataset.private;}}
 }
 function expireView(){generation++;session=null;account=null;draft=null;resetPrivateView();signIn.hidden=false;signOut.hidden=true;setStatus('Your private session expired. Sign in again.');}
@@ -82,7 +82,7 @@ for(const id of ['example-friend','example-lookalike'])document.getElementById(i
 async function refresh(){if(!session)return;const data=await request('/v1/private/relationships');contacts=data.relationships;
  const selected=contactSelect.value;contactSelect.replaceChildren(new Option('Public evidence check — no private contact',''));
  for(const c of contacts)if(c.state==='active')contactSelect.add(new Option(c.label,c.id));
- if(contacts.some(c=>c.id===selected&&c.state==='active'))contactSelect.value=selected;contactSelect.disabled=false;contactSelection();
+ if(contacts.some(c=>c.id===selected&&c.state==='active'))contactSelect.value=selected;contactSelect.disabled=false;if(contactLabel)contactLabel.hidden=!contacts.some(c=>c.state==='active');contactSelection();
  signOut.hidden=false;signOut.textContent='Sign out';setStatus('Private session: '+session.address+'. Contact confirmations remain subject to independent review.');
  content.replaceChildren();if(receiving)renderRecipient();else renderPayer();}
 function renderPayer(){
@@ -143,7 +143,7 @@ async function received(host){try{const data=await request('/v1/private/recipien
  for(const c of data.confirmations){const item=node('section',undefined,'private-contact-card');item.append(node('code',c.verificationCode),node('code',c.receivingAddress),node('p','Payer wallet: '+c.payerAddress+' · '+c.status));history.append(item);}host.append(history);
  }catch(e){setStatus(e.message);}}
 (async()=>{try{
- const health=await fetch('/health',{cache:'no-store'}).then(r=>r.json());available=health.privateRelationshipsEnabled===true;
+ const health=await fetch('/health',{cache:'no-store'}).then(r=>r.json());available=health.privateRelationshipsEnabled===true;signIn.disabled=!available;
  if(!available){controls.hidden=true;contactSelect.disabled=true;setStatus('Private contacts are disabled until persistent storage and deployment security are configured. Public read-only address checks remain available.');return;}
  try{session=await request('/v1/private/session');await refresh();}catch{setStatus('Sign in with the wallet you want to use for this private relationship. No wallet transaction is requested.');}
  }catch{controls.hidden=true;setStatus('Private-contact availability could not be checked.');}})();
