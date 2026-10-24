@@ -1,6 +1,49 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Veyra — Verify wallet control</title><style>:root{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:#1b382d;background:#d5eddf}*{box-sizing:border-box}body{margin:0}a{color:inherit;text-decoration:none}.shell{display:grid;grid-template-columns:232px minmax(0,1fr);height:100vh}.sidebar{background:#20342f;color:#e5f5ea;padding:28px 19px;display:flex;flex-direction:column;gap:30px;overflow-y:auto}.brand{font-size:25px;font-weight:800;letter-spacing:-1px;padding:5px 10px}.mark{color:#bfe6d1}.side-label{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:#b5cdbd;padding:0 12px}.nav-item{display:block;padding:13px;border-radius:8px;color:#c1d9cc;font-size:13px}.nav-item.active{background:#bfe6d1;color:#17372b;font-weight:700}.side-note{margin-top:auto;padding:17px;border:1px solid #456253;border-radius:10px;font-size:12px;line-height:1.6;color:#c4dacb}.workspace{height:100vh;overflow-y:auto;min-width:0;scrollbar-gutter:stable}.topbar{position:sticky;top:0;z-index:3;background:#d5eddf;border-bottom:1px solid #b0cbbc;padding:23px 35px;font-size:13px;color:#3d5c4c}.main{max-width:1200px;margin:auto;padding:38px 35px 80px}.overline{font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:#2a7052;font-weight:700}h1{font-size:33px;letter-spacing:-1px;margin:10px 0}h2{font-size:16px;margin:0 0 15px}p{font-size:13px;color:#516c60;line-height:1.8}.panel{background:#f5faf6;border:1px solid #b5ccbd;border-radius:11px;padding:24px;margin-top:24px}.kv{display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid #d3e2d6;padding:14px 0;font-size:12px;overflow-wrap:anywhere}.kv span:last-child{text-align:right;color:#295440}.button{border:0;border-radius:7px;background:#203c31;color:#e5f5e9;padding:12px 17px;font-weight:700;cursor:pointer}.button:disabled{opacity:.5;cursor:not-allowed}.empty{color:#5d7668;font-size:13px;padding:15px 0}.note{font-size:12px;color:#60796b}.pill{font-size:11px;color:#725425;background:#fff0d3;padding:6px 9px;border-radius:5px} @media(max-width:850px){.shell{display:block;height:auto}.sidebar{padding:12px;display:block}.sidebar .side-note,.sidebar .side-label{display:none}.sidebar nav{display:flex;flex-wrap:wrap}.nav-item{padding:9px}.workspace{height:auto;overflow:visible}.topbar{position:static}.main{padding:26px 18px}} .nav-item,.topbar,.kv,.note,.empty,.side-note{font-size:14px;font-weight:550;line-height:1.65}.side-label,.overline{font-size:12px;font-weight:700}.panel h2{font-size:18px}p{font-size:15px;font-weight:500}.button{font-size:14px}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Veyra — Confirm receiving address</title>
+<style>
+:root{font-family:Inter,"Segoe UI",Arial,sans-serif;color:#172d28;background:#d5eddf;font-synthesis:none}*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}a{color:inherit}.shell{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.sidebar{background:#20342f;border-right:1px solid #355149;padding:29px 19px;display:flex;flex-direction:column;gap:32px;color:#e7f5ec}
+.brand{display:flex;align-items:center;gap:12px;padding:2px 9px;font-size:23px;font-weight:750;letter-spacing:-1px}
+.mark{display:grid;place-items:center;background:#e0eee9;color:#10251f;width:34px;height:34px;border-radius:9px;font-size:21px;font-weight:800}
+.side-label{color:#b0cbbb;text-transform:uppercase;font-size:10px;letter-spacing:1.8px;margin:0 10px 13px;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:12px;padding:13px;border-radius:8px;font-size:13px;color:#c1d9cc;text-decoration:none}
+.nav-item.active{background:#bfe6d1;color:#17372b;font-weight:650}
+.nav-icon{width:18px;text-align:center;font-size:16px}
+.side-note{margin-top:auto;padding:17px;border:1px solid #426255;border-radius:11px;background:#29463c}
+.side-note strong{font-size:12px}
+.side-note p{font-size:12px;color:#bfd5ca;line-height:1.6;margin-bottom:0}
+.workspace{min-width:0}
+.topbar{height:74px;border-bottom:1px solid #aec9bb;display:flex;align-items:center;justify-content:space-between;padding:0 40px;gap:20px;background:#d5eddf}
+.breadcrumbs{font-size:13px;color:#50685f}
+.breadcrumbs b{color:#18382e;font-weight:600}
+.right{display:flex;align-items:center;gap:12px;font-size:12px;color:#50685f}
+.dot{width:7px;height:7px;background:#286e50;border-radius:50%;display:inline-block}
+.environment{border:1px solid #abc9b8;border-radius:6px;padding:7px 10px;color:#254a39}
+.main{max-width:960px;margin:auto;padding:37px 40px 80px}
+.heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px}
+.overline{font-size:11px;color:#286e50;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
+.heading h1{font-size:30px;letter-spacing:-.9px;margin:9px 0 9px;font-weight:690;color:#17372b}
+.heading p{margin:0;color:#50685f;font-size:13px;line-height:1.6}
+.read-only{border:1px solid #a3cbb2;background:#e5f3e9;color:#22533d;padding:9px 13px;border-radius:6px;font-size:11px;white-space:nowrap}
+.panel{border:1px solid #b1cbbd;border-radius:12px;background:#f5faf6;overflow:hidden;margin-top:20px}
+.panel-head{padding:18px 24px 16px;border-bottom:1px solid #c7dcd0;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.panel-head h2{margin:0;font-size:16px;font-weight:700;color:#17372b}
+.panel-head small{color:#526c60;font-size:12px}
+.panel-body{padding:22px 24px}
+.button,.action,button.primary,#challenge,#sign{border:0;border-radius:8px;background:#213c31;color:#e4f4e9;padding:12px 18px;font-weight:750;cursor:pointer;font-size:14px;transition:background .15s}
+.button:hover,.action:hover,button.primary:hover:not(:disabled),#challenge:hover:not(:disabled),#sign:hover:not(:disabled){background:#315a46}
+.secondary-btn{background:#e2ece5;color:#17372b;border:1px solid #a9c7b5;border-radius:8px;padding:10px 16px;font-weight:600;font-size:13px;cursor:pointer}
+.secondary-btn:hover:not(:disabled){background:#d4e4d8}
+.warning{border:1px solid #e2cb99;border-left:4px solid #b6813b;border-radius:9px;background:#fff8eb;color:#5c4a30;padding:14px 18px;font-size:13px;line-height:1.6;margin-top:16px}
+code{background:#e8f2ec;color:#19402f;padding:10px 14px;border-radius:8px;display:block;overflow-wrap:anywhere;font-size:13px;border:1px solid #c3ded0;font-family:monospace}
+#status{margin-top:14px;padding:14px 16px;border-radius:9px;background:#eaf4ee;border:1px solid #b6d5c2;color:#1d4231;font-size:13px;line-height:1.6}
+input{display:block;width:100%;background:#fff;border:1px solid #a9c7b5;color:#18372c;border-radius:8px;padding:12px 14px;font-size:14px;margin-top:8px}
+textarea{width:100%;background:#fff;border:1px solid #a9c7b5;color:#18372c;border-radius:8px;padding:12px 14px;font-size:12px;font-family:monospace;resize:vertical}
+label{display:block;font-size:13px;font-weight:600;color:#1c3a2f;margin-bottom:6px}
+#wallet-picker{margin:14px 0;padding:16px;border:1px solid #b5ccbd;border-radius:10px;background:#eef6f1}
+.wallet-choice{display:block;width:100%;text-align:left;background:#fff;margin:6px 0;border:1px solid #b5ccbd;border-radius:7px;padding:10px 14px;font-weight:600;color:#17372b}
+.wallet-choice:hover{background:#e0ede4}
 
-/* Nightfall: neutral graphite surfaces, restrained sage accents, quiet hierarchy. */
+/* Dark mode */
 html[data-theme="dark"]{color-scheme:dark;background:#101513;color:#e5ebe7}
 html[data-theme="dark"] body,html[data-theme="dark"] .workspace,html[data-theme="dark"] .main{background:#101513;color:#e5ebe7}
 html[data-theme="dark"] .sidebar{background:#121c18;color:#dce8df;border-color:#2b3c32}
@@ -12,194 +55,215 @@ html[data-theme="dark"] .nav-item:hover{background:#1e3027;color:#eaf5ec}
 html[data-theme="dark"] .nav-item.active{background:#264636;color:#e5f5e9}
 html[data-theme="dark"] .side-note{background:#192820;border-color:#32483a;color:#c2d5c8}
 html[data-theme="dark"] .side-note p{color:#b1c8b9}
-html[data-theme="dark"] .topbar,html[data-theme="dark"] .mobile-bar{background:#101513;color:#c9d7ce;border-color:#2a3730}
+html[data-theme="dark"] .topbar{background:#101513;color:#c9d7ce;border-color:#2a3730}
 html[data-theme="dark"] .breadcrumbs{color:#9daf9f}
 html[data-theme="dark"] .breadcrumbs b{color:#e5ebe7}
 html[data-theme="dark"] .right{color:#b5c6b9}
-html[data-theme="dark"] .heading h1,html[data-theme="dark"] h1,html[data-theme="dark"] h2,html[data-theme="dark"] h3{color:#eef4ef}
-html[data-theme="dark"] .overline,html[data-theme="dark"] .eyebrow{color:#a1c9af}
-html[data-theme="dark"] p,html[data-theme="dark"] li,html[data-theme="dark"] .heading p,html[data-theme="dark"] .section-caption,html[data-theme="dark"] .note,html[data-theme="dark"] .empty,html[data-theme="dark"] .hint{color:#b0c0b5}
-html[data-theme="dark"] .stat,html[data-theme="dark"] .panel,html[data-theme="dark"] .mini,html[data-theme="dark"] .reader>.section{background:#19221e;color:#e5ebe7;border-color:#303e35}
-html[data-theme="dark"] .panel-head,html[data-theme="dark"] .result-intro,html[data-theme="dark"] .step-row{background:#19221e;border-color:#303e35;color:#dce7df}
-html[data-theme="dark"] .panel-body,html[data-theme="dark"] .placeholder{background:#19221e}
-html[data-theme="dark"] .stat .label,html[data-theme="dark"] .stat .sub,html[data-theme="dark"] .panel-head small,html[data-theme="dark"] .result-intro p,html[data-theme="dark"] .placeholder p,html[data-theme="dark"] .step-row{color:#a3b6a9}
-html[data-theme="dark"] .stat .value,html[data-theme="dark"] .step-row b{color:#e7efe8}
-html[data-theme="dark"] label{color:#d9e6dc}
-html[data-theme="dark"] input:not([type="checkbox"]),html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#111915;color:#e8f1e9;border:1px solid #405548}
-html[data-theme="dark"] input::placeholder{color:#8b9f91}
-html[data-theme="dark"] input:focus-visible,html[data-theme="dark"] select:focus-visible{border-color:#a2cdb1;outline:2px solid #5c8d6b;outline-offset:1px}
-html[data-theme="dark"] input[type="checkbox"]{accent-color:#a7d9b7}
-html[data-theme="dark"] .action,html[data-theme="dark"] .button{background:#b4dcc0;color:#183525}
-html[data-theme="dark"] .action:hover,html[data-theme="dark"] .button:hover{background:#d0e9d5}
-html[data-theme="dark"] .kv,html[data-theme="dark"] .section,html[data-theme="dark"] header{border-color:#344138;color:#dce7df}
-html[data-theme="dark"] .kv span:first-child{color:#a8baac}
-html[data-theme="dark"] .kv span:last-child{color:#e5eee7}
-html[data-theme="dark"] .evidence-box,html[data-theme="dark"] .reader>.section .panel{background:#131c17;border-color:#35453a;color:#e3ece4}
-html[data-theme="dark"] .evidence-box h3,html[data-theme="dark"] .reader>.section h2,html[data-theme="dark"] .reader>.section h3{color:#e9f2ea}
-html[data-theme="dark"] .evidence-box p,html[data-theme="dark"] .secondary-note,html[data-theme="dark"] .reader>.section p,html[data-theme="dark"] .reader>.section li{color:#b3c5b8}
-html[data-theme="dark"] .reason{background:#30291e;color:#f0d6ac;border-left-color:#d5a35d}
-html[data-theme="dark"] .verdict,html[data-theme="dark"] .pill,html[data-theme="dark"] .chip{background:#332a1d;color:#f2d4a4;border-color:#745a35}
-html[data-theme="dark"] .read-only,html[data-theme="dark"] .environment{background:#1c3024;color:#c3e4cd;border-color:#42644c}
-html[data-theme="dark"] .toc a,html[data-theme="dark"] .docs-link,html[data-theme="dark"] .mini a,html[data-theme="dark"] header a,html[data-theme="dark"] .digest-link{color:#a9d8b8}
-html[data-theme="dark"] .hero{border-color:#344138}
-html[data-theme="dark"] code{background:#243329;color:#c9ead0}
-html[data-theme="dark"] .shield{border-color:#42664d;color:#b8dec0}
-html[data-theme="dark"] .error{background:#3c2225;color:#ffceca}
-.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}
-html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}
-.veyra-theme-toggle:hover{filter:brightness(1.08)}
-.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}
-.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;margin:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}.veyra-theme-toggle:hover{filter:brightness(1.08)}.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}@media(max-width:600px){.topbar{padding:15px 18px;min-height:64px}}\n
-:root{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:#e5f0e8;background:#101713}
-*{box-sizing:border-box}body{margin:0}.wrap{max-width:790px;margin:40px auto;padding:24px}
-a{color:#b5e1c3}.panel{background:#1a2920;border:1px solid #42604a;border-radius:14px;padding:24px;margin-top:20px}
-h1{font-size:30px}p,li{line-height:1.7;color:#c0d2c4}label{display:block;margin:15px 0 8px}
-input,select,textarea{width:100%;background:#101713;border:1px solid #6b8572;border-radius:8px;padding:12px;color:#fff;font:inherit}
-textarea{min-height:190px;resize:vertical}button{padding:12px 18px;margin:14px 10px 4px 0;background:#bfe7c8;color:#183b25;border:0;border-radius:8px;font-weight:700;cursor:pointer}
-button:disabled{opacity:.45;cursor:not-allowed}.warning{border-left:4px solid #d3ac69;padding:12px;background:#342b1d;color:#ffe5b6}
-code{overflow-wrap:anywhere}#status{white-space:pre-wrap;overflow-wrap:anywhere}
+html[data-theme="dark"] .heading h1,html[data-theme="dark"] h1,html[data-theme="dark"] h2{color:#eef4ef}
+html[data-theme="dark"] .panel{background:#19221e;color:#e5ebe7;border-color:#303e35}
+html[data-theme="dark"] .panel-head{background:#19221e;border-color:#303e35;color:#dce7df}
+html[data-theme="dark"] input,html[data-theme="dark"] textarea{background:#111915;color:#e8f1e9;border:1px solid #405548}
+html[data-theme="dark"] code{background:#142219;color:#b4e5c4;border-color:#304d3a}
+html[data-theme="dark"] #status{background:#192820;border-color:#32483a;color:#d3ebd9}
+html[data-theme="dark"] .button,html[data-theme="dark"] .action,html[data-theme="dark"] button.primary,html[data-theme="dark"] #challenge,html[data-theme="dark"] #sign{background:#b4dcc0;color:#183525}
+html[data-theme="dark"] .secondary-btn{background:#213328;color:#cde7d5;border-color:#3b5645}
+html[data-theme="dark"] .warning{background:#30291e;color:#f0d6ac;border-color:#745a35}
+html[data-theme="dark"] #wallet-picker{background:#142018;border-color:#34483a}
+html[data-theme="dark"] .wallet-choice{background:#1c2c22;border-color:#3b5443;color:#d8eedf}
 
-:root{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:#17251b;background:#f5f7f4}body{background:radial-gradient(ellipse at 15% 0%,#e1eee5,transparent 40%),#f5f7f4}.wrap{max-width:900px;margin:30px auto;padding:28px 24px 70px}a{color:#376e4b;text-decoration:none;font-weight:600}h1{font-size:clamp(32px,5vw,52px);letter-spacing:-.045em;line-height:1.1;max-width:700px;margin:32px 0 12px}h2{font-size:22px;letter-spacing:-.025em;margin-top:0}p,li{color:#607166;line-height:1.65}.panel{background:#fff;border:1px solid #e0e8df;border-radius:20px;padding:28px 30px;margin-top:16px;box-shadow:0 10px 32px rgba(26,56,35,.035)}.warning{border:1px solid #eadfbb;border-radius:12px;background:#fff9e8;color:#6d5c2c;padding:15px 18px;line-height:1.55;margin-top:22px}button{background:#eef3ee;color:#25402c;border:1px solid #d9e4da;border-radius:10px;padding:13px 17px;font-size:14px;font-weight:650;cursor:pointer;margin:10px 8px 6px 0;transition:transform .15s,background .15s}button:hover:not(:disabled){background:#e0ece1;transform:translateY(-1px)}button.primary,#challenge,#sign{background:#1f613b;color:#fff;border-color:#1f613b}button.primary:hover,#challenge:hover:not(:disabled),#sign:hover:not(:disabled){background:#174d2e}button:disabled{opacity:.4;cursor:not-allowed}#wallet-picker{margin:14px 0;padding:16px;border:1px solid #dfe9df;border-radius:14px;background:#f9fbf9}#wallet-picker[hidden],select[hidden]{display:none}.wallet-choice{display:block;width:100%;text-align:left;background:#fff}code{display:block;background:#f1f6f2;color:#27533a;padding:13px;border-radius:10px;overflow-wrap:anywhere;font-size:13px}details{margin:18px 0}summary{cursor:pointer;color:#315d3d;font-weight:600}textarea{width:100%;min-height:155px;border:1px solid #dce6dc;border-radius:10px;background:#f7faf7;color:#334d3b;padding:14px;margin-top:12px;font:12px/1.6 monospace;resize:vertical}#status{padding:15px 17px;border:1px solid #dce6dc;border-radius:12px;background:#f6faf7;color:#355641;white-space:pre-wrap;overflow-wrap:anywhere}.muted{font-size:13px;color:#718175}@media(max-width:600px){.wrap{padding:18px}.panel{padding:20px}h1{margin-top:25px}}
-\nhtml[data-theme="dark"]{color-scheme:dark;background:#101513;color:#e5ebe7}html[data-theme="dark"] body,html[data-theme="dark"] .workspace,html[data-theme="dark"] .main{background:#101513;color:#e5ebe7}html[data-theme="dark"] .sidebar{background:#121c18;color:#dce8df;border-color:#2b3c32}html[data-theme="dark"] .topbar{background:#121c18;color:#dce8df;border-color:#2b3c32}html[data-theme="dark"] .panel{background:#18241c;color:#e3ece4;border-color:#34483a}html[data-theme="dark"] h1,html[data-theme="dark"] h2{color:#edf6ef}html[data-theme="dark"] p,html[data-theme="dark"] .muted{color:#b3c5b8}html[data-theme="dark"] #wallet-picker,html[data-theme="dark"] #status,html[data-theme="dark"] code{background:#213126;color:#cce6d2;border-color:#3a5843}html[data-theme="dark"] .wallet-choice{background:#203127;color:#e1efe4;border-color:#48624f}html[data-theme="dark"] textarea{background:#16241a;color:#d5e8d9;border-color:#3b5843}html[data-theme="dark"] .warning{background:#30291e;color:#f0d6ac;border-color:#745a35}html[data-theme="dark"] .brand{color:#f0f7f1}html[data-theme="dark"] .nav-item{color:#c2d7c8}html[data-theme="dark"] .nav-item.active{background:#294434;color:#f2fff5}\n.veyra-header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:74px}.veyra-theme-toggle{display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;margin:0;border:1px solid #a7c9b1;border-radius:9px;background:#f2faf4;color:#1e4430;font:600 20px/1 Inter,"Segoe UI",Arial,sans-serif;cursor:pointer}.veyra-theme-toggle:hover{filter:brightness(1.08)}.veyra-theme-toggle:focus-visible{outline:2px solid #a4d7b2;outline-offset:3px}html[data-theme="dark"] .veyra-theme-toggle{background:#202e25;color:#d5eadb;border-color:#465e4c}@media(max-width:600px){.topbar{padding:15px 18px;min-height:64px}}\n.main{max-width:1000px}.wallet-content{max-width:800px}.wallet-content .panel{margin-top:18px}.wallet-content h1{margin:10px 0 12px}.wallet-content .overline{margin-bottom:6px}
-/* Mobile workspace: compact brand/header, accessible navigation, and single-column content. */
-@media (max-width:850px){
- html,body{width:100%;max-width:100%;overflow-x:clip}
- .shell{display:block!important;width:100%;height:auto!important;min-height:100dvh}
- .sidebar{position:relative!important;z-index:8;display:flex!important;flex-direction:row!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0!important;padding:12px 16px!important;min-height:64px;overflow:visible!important}
- .sidebar .brand{font-size:23px!important;padding:0!important;margin:0!important}
- .veyra-mobile-menu{display:inline-flex!important;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:8px 12px;border:1px solid #4b6859;border-radius:10px;background:#253d31;color:#eef9f0;font:600 14px/1.2 inherit;cursor:pointer}
- .sidebar nav{display:none!important;flex:0 0 100%;width:100%;flex-direction:column!important;flex-wrap:nowrap!important;gap:4px!important;margin-top:12px;padding:10px 0 3px;border-top:1px solid #456052}
- .sidebar nav.veyra-nav-open{display:flex!important}
- .sidebar nav .nav-item{display:flex!important;align-items:center;min-height:44px;width:100%;padding:12px!important;font-size:14px!important;white-space:normal}
- .sidebar .side-label,.sidebar .side-note{display:none!important}
- .workspace{width:100%;min-width:0;height:auto!important;overflow:visible!important}
- .topbar{position:relative!important;top:auto!important;min-height:56px!important;height:auto!important;padding:12px 16px!important;gap:8px!important;flex-wrap:wrap;scrollbar-gutter:auto}
- .topbar .breadcrumbs,.topbar>span{font-size:12px!important;min-width:0;overflow-wrap:anywhere}
- .veyra-header-actions{margin-left:auto!important;gap:8px!important;min-width:0}
- .topbar .right{font-size:11px!important;gap:6px!important;flex-wrap:wrap;justify-content:flex-end}
- .topbar .environment{padding:4px 6px!important}
- .main{width:100%;max-width:100%;padding:24px 16px 72px!important}
- .heading{flex-direction:column!important;align-items:flex-start!important;gap:12px!important;margin-bottom:22px!important}
- .heading h1,h1{font-size:clamp(27px,7vw,36px)!important;line-height:1.15!important;overflow-wrap:anywhere}
- .stats{grid-template-columns:1fr!important}
- .panel{padding:18px!important;min-width:0;max-width:100%;overflow-wrap:anywhere}
- .kv{flex-wrap:wrap!important;gap:5px!important;overflow-wrap:anywhere}
- .kv span:last-child{text-align:left!important;min-width:0}
- input,textarea,select{max-width:100%;min-width:0;font-size:16px!important}
- button,.button{min-height:44px}
- pre,code{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
- .wrap,.wallet-content{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:0!important}
- .read-only{white-space:normal!important}
-}
-@media (max-width:390px){
- .main{padding-left:12px!important;padding-right:12px!important}
- .panel{padding:15px!important}
- .topbar{padding-left:12px!important;padding-right:12px!important}
-}
-
-.veyra-mobile-menu{display:none}
-
-/* Mobile-first v2: task hierarchy, compact chrome and ergonomic primary navigation. */
-@media(max-width:850px){
- body{font-size:15px;line-height:1.55}
- .sidebar{position:sticky!important;top:0!important;z-index:40!important;padding:9px 16px!important;min-height:58px!important;background:#101c18!important;border-bottom:1px solid #33473a!important}
- .sidebar .brand{font-size:21px!important;letter-spacing:-.6px!important}
- .sidebar nav{position:absolute;left:12px;right:12px;top:calc(100% - 1px);width:auto!important;margin:0!important;padding:8px!important;border:1px solid #3b5545!important;border-radius:0 0 15px 15px!important;background:#17251d!important;box-shadow:0 18px 40px #0006}
- .sidebar nav .nav-item{border-radius:9px!important}
- .veyra-mobile-menu{min-height:40px!important;min-width:40px!important;padding:7px 10px!important;border-radius:11px!important;font-size:13px!important}
- .topbar{min-height:46px!important;padding:8px 17px!important;border-bottom:1px solid #314139!important}
- .topbar .breadcrumbs,.topbar>span{font-size:11px!important;opacity:.85}
- .topbar .right .dot{display:none!important}
- .topbar .right{font-size:11px!important}
- .main{padding:23px 16px calc(104px + env(safe-area-inset-bottom))!important}
- .heading{gap:10px!important;margin-bottom:19px!important}
- .heading h1,h1{font-size:clamp(28px,7vw,34px)!important;letter-spacing:-.8px!important;margin:9px 0 10px!important}
- .heading p,.main>p{font-size:14px!important;line-height:1.65!important}
- .overline{font-size:10px!important;letter-spacing:1.4px!important}
- .read-only{font-size:11px!important;padding:7px 10px!important}
- .stats{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-bottom:14px!important}
- .stat{padding:13px!important;min-height:92px!important;border-radius:13px!important}
- .stat:nth-child(3){grid-column:1/-1;min-height:74px!important}
- .stat .label{font-size:11px!important}
- .stat .value{font-size:17px!important;margin:6px 0 3px!important}
- .stat .sub{font-size:11px!important}
- .grid,.bottom{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
- .panel,.mini{border-radius:16px!important;margin-top:14px!important;overflow:hidden!important}
- .panel-head{padding:17px!important;align-items:flex-start!important;flex-wrap:wrap!important;gap:6px!important}
- .panel-head h2{font-size:16px!important}
- .panel-body{padding:17px!important}
- .section-caption{font-size:13px!important;margin-bottom:18px!important}
- .field{margin-bottom:18px!important}
- label{font-size:13px!important;line-height:1.45!important}
- .hint{display:block!important;margin:5px 0 0!important;line-height:1.5!important}
- input:not([type=checkbox]),select,textarea{width:100%!important;max-width:100%!important;border-radius:11px!important;padding:13px!important;font-size:16px!important}
- .action,.button.primary,#connect,#challenge,#sign{width:100%!important;max-width:100%!important;min-height:48px!important;margin:9px 0 5px!important;display:block!important}
- .wallet-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:6px!important}
- .wallet-content .panel{padding:18px!important}
- .wallet-content{padding:0!important}
- .warning{padding:14px!important;font-size:13px!important;line-height:1.6!important}
- .kv{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:3px!important;padding:11px 0!important}
- .kv span:last-child{overflow-wrap:anywhere!important;word-break:break-word!important}
- .result-intro,.step-row{padding:16px!important}
- .evidence-box,.mini{padding:15px!important}
- .veyra-theme-toggle{width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;border:1px solid #829c8c!important;border-radius:50%!important;font-size:0!important;line-height:1!important;padding:0!important;margin:0!important;position:relative!important;box-shadow:none!important}
- .veyra-theme-toggle::after{content:"";display:block;width:11px;height:11px;border-radius:50%;background:#264b36;box-shadow:inset -3px -2px 0 #a4c9b0}
- html[data-theme="dark"] .veyra-theme-toggle::after{background:#c6e3cd;box-shadow:inset -3px -2px 0 #355943}
- .veyra-bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));left:0;right:0;bottom:0;z-index:35;padding:7px 6px calc(7px + env(safe-area-inset-bottom));background:#121d18;border-top:1px solid #33483b;box-shadow:0 -6px 22px #0002}
- .veyra-bottom-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:53px;padding:5px 2px;border-radius:11px;text-decoration:none;color:#b2c8b8;font:600 10px/1.3 Inter,"Segoe UI",sans-serif;text-align:center}
- .veyra-bottom-nav a[aria-current="page"]{background:#294535;color:#e0f6e5}
- .veyra-bottom-nav .nav-symbol{font-size:19px;line-height:1.15}
-}
-@media(min-width:851px){.veyra-bottom-nav{display:none!important}}
-@media(max-width:360px){.main{padding-left:12px!important;padding-right:12px!important}.stat{padding:10px!important}}
-
-/* Shared appearance control: identical compact day/night dot on every Veyra page. */
-.veyra-theme-toggle{width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;border:1px solid #829c8c!important;border-radius:50%!important;font-size:0!important;line-height:1!important;padding:0!important;margin:0!important;position:relative!important;display:inline-grid!important;place-items:center!important;box-shadow:none!important}
+.veyra-theme-toggle{width:28px!important;height:28px!important;border:1px solid #829c8c!important;border-radius:50%!important;padding:0!important;margin:0!important;display:inline-grid!important;place-items:center!important;cursor:pointer}
 .veyra-theme-toggle::after{content:"";display:block;width:11px;height:11px;border-radius:50%;background:#264b36;box-shadow:inset -3px -2px 0 #a4c9b0}
 html[data-theme="dark"] .veyra-theme-toggle::after{background:#c6e3cd;box-shadow:inset -3px -2px 0 #355943}
-</style><script>(function(){
+
+@media(max-width:850px){
+  .shell{display:block}
+  .sidebar{display:none}
+  .topbar{padding:12px 18px;height:auto}
+  .main{padding:24px 16px 80px}
+}
+</style>
+<script>
+(function(){
 const key="veyra.theme.v1";
-const automatic=()=>{const hour=new Date().getHours();return hour>=7&&hour<19?"light":"dark"};
-let preference="auto";try{const saved=localStorage.getItem(key);if(["auto","dark","light"].includes(saved))preference=saved}catch{}
+const automatic=()=>{const h=new Date().getHours();return h>=7&&h<19?"light":"dark"};
+let preference="auto";try{const s=localStorage.getItem(key);if(["auto","dark","light"].includes(s))preference=s}catch{}
 const resolved=()=>preference==="auto"?automatic():preference;
 function apply(){
- const theme=resolved();document.documentElement.setAttribute("data-theme",theme);
- const b=document.getElementById("veyra-theme-toggle");
- if(b){b.textContent=theme==="dark"?"☾":"☀";b.title="Appearance: "+(preference==="auto"?"automatic ("+theme+")":theme)+". Click to switch; double-click for automatic.";b.setAttribute("aria-label",b.title);b.setAttribute("aria-pressed",String(preference!=="auto"))}
+  const theme=resolved();document.documentElement.setAttribute("data-theme",theme);
+  const b=document.getElementById("veyra-theme-toggle");
+  if(b){b.title="Appearance: "+preference+". Click to toggle.";b.setAttribute("aria-label",b.title)}
 }
 apply();
 document.addEventListener("DOMContentLoaded",()=>{
- const host=document.querySelector(".veyra-header-actions");if(!host)return;
- const b=document.createElement("button");b.type="button";b.id="veyra-theme-toggle";b.className="veyra-theme-toggle";host.append(b);apply();
- b.addEventListener("click",()=>{preference=resolved()==="dark"?"light":"dark";try{localStorage.setItem(key,preference)}catch{}apply()});
- b.addEventListener("dblclick",()=>{preference="auto";try{localStorage.setItem(key,preference)}catch{}apply()});
- document.addEventListener("visibilitychange",()=>{if(!document.hidden&&preference==="auto")apply()});
- setInterval(()=>{if(preference==="auto")apply()},60000);
+  const host=document.querySelector(".veyra-header-actions");if(!host)return;
+  const b=document.createElement("button");b.type="button";b.id="veyra-theme-toggle";b.className="veyra-theme-toggle";host.append(b);apply();
+  b.addEventListener("click",()=>{preference=resolved()==="dark"?"light":"dark";try{localStorage.setItem(key,preference)}catch{}apply()});
 });
-})();</script></head><body><div class="shell"><aside class="sidebar"><div class="brand"><span class="mark">V</span>veyra</div><nav aria-label="Primary navigation"><div class="side-label">Workflow</div><a class="nav-item" href="/">◈ &nbsp; Check recipient destination</a><a class="nav-item active" href="/verify-wallet" aria-current="page">◇ &nbsp; Confirm your receiving address</a><a class="nav-item" href="/memory">◎ &nbsp; Walrus evidence & memories</a><a class="nav-item" href="/history">▤ &nbsp; Session history</a><a class="nav-item" href="/docs">▧ &nbsp; Documentation & security</a></nav><div class="side-note"><strong>Recipient decision support</strong><p>Proves signing-key control and publication consent. Never signs, executes, or authorizes transfers.</p></div></aside><div class="workspace"><header class="topbar"><span>Workflow &nbsp; / &nbsp; <strong>Confirm your receiving address</strong></span><div class="veyra-header-actions"></div></header><main class="main"><div class="wallet-content"><div class="overline">Recipient Onboarding / Self-Service</div>
-<a href="/">← Back to preflight check</a>
-<h1>Verify control of your Sui wallet</h1>
-<p>Sign a personal message to demonstrate control of the exact address. This is not a transaction, payment approval, identity check, or recipient-safety guarantee.</p>
-<div class="warning">Wallet connection is available for compatibility testing. Signature verification availability depends on the deployment configuration. Do not bypass wallet warnings. Never enter a seed phrase, private key, or recovery words.</div>
-<section class="panel">
-<h2>Connect a Sui wallet</h2><p>Connect with any compatible Sui wallet installed in your browser. If more than one is available, choose the wallet you prefer.</p>
-<div class="wallet-actions"><button id="connect" class="primary" type="button">Connect Wallet →</button></div><div id="wallet-picker" hidden><p class="muted">Choose a detected wallet</p><div id="wallet-options"></div></div><select id="wallet" hidden aria-label="Detected wallet"></select>
-<p id="connected">Not connected</p>
-</section>
-<section class="panel">
-<h2>Verify your address</h2>
-<p>Connected wallet address</p><code id="expected">Connect a wallet to see its address</code>
-<button id="challenge" type="button" disabled>Request 5-minute challenge</button>
-<details><summary>View exact signature message</summary><label for="message">Read-only message sent to your wallet</label><textarea id="message" readonly placeholder="Connect and request a challenge"></textarea></details>
-</section>
-<section class="panel">
-<h2>Confirm wallet control</h2>
-<button id="sign" type="button" disabled>Sign personal message and verify</button>
-<p id="status" role="status" aria-live="polite">No wallet proof has been submitted.</p>
-<p>Valid signatures establish signing-key control at verification time only. Veyra never signs transactions, transfers SUI, or automatically stores this result in Walrus.</p>
-<details id="receipt-review" hidden><summary>Review verification receipt for Walrus</summary><p>This is a proposed public record, not a stored Walrus memory. Download it for local review; downloading does not submit or authorize a write. A receipt alone is not cryptographic proof.</p><pre id="receipt-json" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:340px;overflow:auto"></pre><label><input id="receipt-consent" type="checkbox"> I have reviewed this public address and verification metadata and understand no memory is stored by this action.</label><button id="receipt-download" type="button" disabled>Download receipt for local review</button><p><label><input id="proof-consent" type="checkbox"> I understand the optional proof package contains my signature over this verification-only message. I will keep the file private and share it only with a trusted local verifier.</label></p><button id="proof-download" type="button" disabled>Download cryptographic proof for local verification</button><p id="receipt-feedback" role="status"></p><div class="warning"><strong>Self-service recipient confirmation (Option A)</strong><p>Publish an intended receiving address confirmation to Walrus with your explicit, cryptographically bound signature. This provides transparent provenance to prospective payers without exposing private keys or raw signatures.</p><div style="margin:12px 0"><label for="selfCounterparty">Recipient identifier (e.g. your username or business handle)</label><input id="selfCounterparty" placeholder="e.g. my-business-sui-wallet" maxlength="128" style="margin-top:6px"></div><button id="prepare-publication" type="button" class="primary" style="margin-top:8px">Prepare publication consent</button><div id="publication-box" hidden style="margin-top:16px;padding:16px;border:1px solid #c9dcd0;border-radius:10px;background:#f5faf7"><p><strong>Review exact non-secret record for Walrus:</strong></p><pre id="pub-record-json" style="max-height:220px;overflow:auto;background:#fff;padding:10px;border-radius:8px;font-size:12px"></pre><p style="font-size:12px;color:#456b53">Record SHA-256: <code id="pub-record-hash" style="display:inline;padding:2px 6px"></code></p><details style="margin:10px 0"><summary>View consent message to be signed</summary><textarea id="pub-consent-message" readonly style="min-height:120px"></textarea></details><label><input id="pub-consent-check" type="checkbox"> I confirm this connected address is where I intend to receive Sui funds, and I authorize publishing this non-secret confirmation record to Walrus Mainnet. I understand Walrus storage is permanent and public.</label><button id="pub-sign-submit" type="button" class="primary" disabled style="margin-top:10px">Sign publication consent & store in Walrus</button><p id="pub-status" role="status" style="margin-top:10px;font-weight:600"></p><div id="pub-receipt-box" hidden style="margin-top:12px;padding:12px;background:#eef7f1;border-radius:8px"><p><strong>Storage receipt confirmed:</strong></p><p>Blob ID: <code id="receipt-blob-id" style="display:inline;padding:2px 6px"></code></p><p>Job ID: <span id="receipt-job-id"></span></p><p>Receipt ID: <span id="receipt-receipt-id"></span></p></div></div><div style="margin-top:20px;border-top:1px dashed #d5e5da;padding-top:12px"><p class="muted">Or download private package for offline review:</p><label><input id="recipient-intent-consent" type="checkbox"> I confirm this connected address is where I intend to receive funds, and consent to exporting the package.</label><button id="recipient-intent-download" type="button" disabled>Download offline confirmation package</button><p id="recipient-intent-feedback" role="status"></p></div></div></details>
-</section>
-</div></main></div></div><script>
+})();
+</script>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand"><span class="mark">V</span>veyra</div>
+  <nav aria-label="Primary navigation">
+    <div class="side-label">Workflow</div>
+    <a class="nav-item" href="/"><span class="nav-icon">◈</span>Check recipient destination</a>
+    <a class="nav-item active" href="/verify-wallet" aria-current="page"><span class="nav-icon">◇</span>Confirm your receiving address</a>
+    <a class="nav-item" href="/memory"><span class="nav-icon">◎</span>Walrus evidence & memories</a>
+    <a class="nav-item" href="/history"><span class="nav-icon">▤</span>Session history</a>
+    <a class="nav-item" href="/docs"><span class="nav-icon">▧</span>Documentation & security</a>
+  </nav>
+  <div class="side-note">
+    <strong>Self-Service Confirmation</strong>
+    <p>Publish your intended receiving address to Walrus with your cryptographic signature. Never authorizes payments or transfers SUI.</p>
+  </div>
+</aside>
+
+<div class="workspace">
+  <header class="topbar">
+    <div class="breadcrumbs">Workflow &nbsp;/&nbsp; <b>Confirm your receiving address</b></div>
+    <div class="veyra-header-actions">
+      <div class="right"><span class="dot"></span> Sui Mainnet <span class="environment">Self-Service Storage</span></div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="heading">
+      <div>
+        <div class="overline">Recipient Onboarding · Walrus Storage</div>
+        <h1>Confirm your receiving address</h1>
+        <p>Are you expecting to receive funds? Connect your Sui wallet and store your confirmed receiving address on Walrus Mainnet.</p>
+      </div>
+      <span class="read-only">◉ &nbsp; Wallet Standard</span>
+    </div>
+
+    <div class="warning">
+      <strong>Zero Risk to Funds:</strong> This confirmation signs a personal message only. Veyra never requests seed phrases, private keys, or transaction permissions. No SUI is transferred.
+    </div>
+
+    <!-- Step 1: Connect Wallet -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Step 1: Connect your Sui wallet</h2>
+        <small id="wallet-status-badge">Required</small>
+      </div>
+      <div class="panel-body">
+        <p style="margin:0 0 14px;color:#526c60;font-size:13px">
+          Connect with any compatible Sui wallet extension (Sui Wallet, Nightly, Martian, OKX, etc.).
+        </p>
+        <button id="connect" class="primary" type="button">Connect Wallet →</button>
+        <div id="wallet-picker" hidden>
+          <p style="font-weight:600;margin:0 0 8px;font-size:13px">Choose a detected wallet:</p>
+          <div id="wallet-options"></div>
+        </div>
+        <select id="wallet" hidden aria-label="Detected wallet"></select>
+        <p id="connected" style="margin:12px 0 0;font-size:13px;font-weight:600;color:#286e50">Not connected</p>
+      </div>
+    </section>
+
+    <!-- Step 2: Confirm & Store in Walrus (Primary Self-Service Flow) -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Step 2: Publish recipient confirmation to Walrus</h2>
+        <small>Option A Safeguarded Storage</small>
+      </div>
+      <div class="panel-body">
+        <p style="margin:0 0 14px;color:#526c60;font-size:13px">
+          Enter an identifier (your username, business name, or counterparty handle) that payers use to find your address. Your confirmation is cryptographically signed and stored permanently in Walrus.
+        </p>
+
+        <div style="margin-bottom:16px">
+          <label for="selfCounterparty">Recipient identifier (handle or username)</label>
+          <input id="selfCounterparty" placeholder="e.g. alice-sui-recipient" maxlength="128" pattern="[A-Za-z0-9_-]+">
+        </div>
+
+        <button id="prepare-publication" type="button" class="primary">Prepare confirmation consent →</button>
+
+        <div id="publication-box" hidden style="margin-top:18px;padding:18px;border:1px solid #b5ccbd;border-radius:10px;background:#eef6f1">
+          <p style="margin:0 0 10px;font-weight:600;font-size:13px;color:#17372b">Review record to be stored on Walrus:</p>
+          <pre id="pub-record-json" style="max-height:180px;overflow:auto;background:#fff;padding:12px;border-radius:8px;font-size:12px;border:1px solid #a9c7b5;margin:0 0 10px"></pre>
+          <p style="font-size:12px;color:#456b53;margin:0 0 12px">Record SHA-256 fingerprint: <code id="pub-record-hash" style="display:inline;padding:3px 6px"></code></p>
+
+          <details style="margin:10px 0">
+            <summary style="font-size:13px;cursor:pointer;color:#286e50;font-weight:600">View exact consent text to sign</summary>
+            <textarea id="pub-consent-message" readonly style="min-height:95px;margin-top:8px"></textarea>
+          </details>
+
+          <label style="margin:14px 0 12px;font-weight:500;display:flex;gap:10px;align-items:flex-start">
+            <input id="pub-consent-check" type="checkbox" style="width:auto;margin-top:3px">
+            <span>I confirm this connected address is where I intend to receive Sui funds, and I authorize publishing this non-secret confirmation record to Walrus Mainnet.</span>
+          </label>
+
+          <button id="pub-sign-submit" type="button" class="primary" disabled>Sign consent in wallet & publish to Walrus →</button>
+          <p id="pub-status" role="status" style="margin:12px 0 0;font-weight:600;font-size:13px"></p>
+
+          <div id="pub-receipt-box" hidden style="margin-top:14px;padding:14px;background:#e4f4ea;border-radius:8px;border:1px solid #9bcbb0">
+            <p style="margin:0 0 8px;font-weight:700;color:#18402f">✓ Walrus Storage Confirmed:</p>
+            <p style="margin:4px 0;font-size:13px">Blob ID: <code id="receipt-blob-id" style="display:inline;padding:2px 6px"></code></p>
+            <p style="margin:4px 0;font-size:13px">Job ID: <span id="receipt-job-id" style="font-family:monospace"></span></p>
+            <p style="margin:4px 0;font-size:13px">Receipt ID: <span id="receipt-receipt-id" style="font-family:monospace"></span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Optional / Advanced: Ephemeral Challenge Verification & Offline Package -->
+    <details class="panel" style="margin-top:20px;border-color:#c4dacb">
+      <summary style="padding:18px 24px;cursor:pointer;font-weight:700;color:#286e50;font-size:14px">
+        Advanced options: Ephemeral challenge & offline package
+      </summary>
+      <div class="panel-body" style="border-top:1px solid #c7dcd0">
+        <p style="margin:0 0 12px;color:#526c60;font-size:13px">
+          These optional tools allow you to test signing without storing to Walrus, or download a local offline JSON proof package for manual operator review.
+        </p>
+
+        <div style="margin-bottom:14px">
+          <p style="font-size:12px;color:#526c60;margin:0 0 4px">Connected address:</p>
+          <code id="expected">Connect a wallet above</code>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <button id="challenge" type="button" class="secondary-btn" disabled>1. Request 5-min challenge</button>
+          <button id="sign" type="button" class="secondary-btn" disabled>2. Sign challenge message</button>
+        </div>
+
+        <details style="margin:10px 0">
+          <summary style="font-size:12px;cursor:pointer;color:#526c60">View ephemeral challenge text</summary>
+          <textarea id="message" readonly placeholder="Connect and request a challenge" style="min-height:90px;margin-top:6px"></textarea>
+        </details>
+
+        <p id="status" role="status" aria-live="polite">No wallet proof has been submitted.</p>
+
+        <details id="receipt-review" hidden style="margin-top:14px">
+          <summary style="font-size:12px;cursor:pointer;color:#286e50;font-weight:600">Review offline verification receipt</summary>
+          <pre id="receipt-json" style="max-height:160px;overflow:auto;background:#fff;padding:10px;border-radius:8px;font-size:11px;border:1px solid #a9c7b5;margin-top:8px"></pre>
+          <div style="margin-top:10px">
+            <label style="font-size:12px;font-weight:400"><input id="receipt-consent" type="checkbox"> I have reviewed this public address metadata (no memory is stored).</label>
+            <button id="receipt-download" type="button" class="secondary-btn" disabled style="margin-top:6px">Download receipt (.json)</button>
+          </div>
+          <div style="margin-top:10px">
+            <label style="font-size:12px;font-weight:400"><input id="proof-consent" type="checkbox"> I understand this proof contains my cryptographic signature.</label>
+            <button id="proof-download" type="button" class="secondary-btn" disabled style="margin-top:6px">Download cryptographic proof (.json)</button>
+            <p id="receipt-feedback" role="status" style="font-size:12px;margin:6px 0 0;color:#286e50"></p>
+          </div>
+          <div style="margin-top:14px;border-top:1px dashed #c0d8c8;padding-top:10px">
+            <label style="font-size:12px;font-weight:400"><input id="recipient-intent-consent" type="checkbox"> I consent to exporting an offline confirmation package.</label>
+            <button id="recipient-intent-download" type="button" class="secondary-btn" disabled style="margin-top:6px">Download offline confirmation package</button>
+            <p id="recipient-intent-feedback" role="status" style="font-size:12px;margin:6px 0 0;color:#286e50"></p>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <p style="font-size:12px;color:#567267;line-height:1.6;margin-top:20px">
+      Publishing to Walrus creates a transparent, public recipient confirmation. A confirmation indicates your intended destination at the time of publication, but does not guarantee payment safety or replace the sender's own preflight check.
+    </p>
+  </main>
+</div>
+</div>
+
+<script>
 (()=>{
 "use strict";
 let expected=null;
@@ -221,7 +285,6 @@ function render(){
  if(wallets.has(selected))select.value=selected;
 }
 function discover(){
- // Standard discovery works with any compatible registered Sui wallet, not a brand allowlist.
  window.dispatchEvent(new CustomEvent("wallet-standard:app-ready",{detail:{register:register}}));
  render();
 }
@@ -247,7 +310,7 @@ let preparedConsentPayload=null;
 $("prepare-publication").addEventListener("click",async()=>{
   const cId=$("selfCounterparty").value.trim();
   if(!cId){alert("Please enter a recipient identifier (e.g. your username or business handle)");return;}
-  if(!expected){alert("Please connect your Sui wallet first");return;}
+  if(!expected){alert("Please connect your Sui wallet first in Step 1.");return;}
   try{
     $("pub-status").textContent="Preparing non-secret confirmation record...";
     const res=await fetch("/v1/self-service/prepare-consent",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({address:expected,counterpartyId:cId})});
@@ -338,10 +401,10 @@ async function connectSelected(){
   const candidates=result?.accounts||wallet.accounts||[];
   const match=candidates.find(a=>typeof a.address==="string"&&/^0x[0-9a-fA-F]{64}$/.test(a.address)&&a.chains?.includes("sui:mainnet"));
   if(!match){connected=null;account=null;$("connected").textContent="No Sui Mainnet account available.";return status("Connect a Sui Mainnet account. Nothing signed.")}
-  connected=wallet;account=match;expected=match.address.toLowerCase();$("expected").textContent=expected;$("connected").textContent="Connected: "+wallet.name+" · "+match.address;$("connect").textContent="Change wallet →";
+  connected=wallet;account=match;expected=match.address.toLowerCase();$("expected").textContent=expected;$("connected").textContent="Connected: "+wallet.name+" ("+match.address.slice(0,8)+"…"+match.address.slice(-6)+")";$("connect").textContent="Change wallet →";
   const canSign=typeof wallet.features["sui:signPersonalMessage"]?.signPersonalMessage==="function";
   $("challenge").disabled=!verificationAvailable||!canSign;
-  status(!canSign?"Wallet connected successfully. This wallet does not expose Sui personal-message signing through Wallet Standard; signature verification is unavailable.":verificationAvailable?"Wallet connected. Request a challenge to verify signing-key control.":"Wallet connected for compatibility testing only. Signature verification is not currently enabled on this deployment.");
+  status(!canSign?"Wallet connected. This wallet does not expose Sui personal-message signing through Wallet Standard.":verificationAvailable?"Wallet connected. Enter your identifier in Step 2 to confirm your receiving address in Walrus.":"Wallet connected for compatibility testing.");
  }catch{status("Wallet connection failed or was rejected.");}
 }
 $("challenge").addEventListener("click",async()=>{
@@ -382,13 +445,15 @@ async function checkAvailability(){
   verificationAvailable=health.walletProofEnabled===true;
   $("connect").disabled=false;
   if(!verificationAvailable){
-   status("Wallet connection is available for compatibility testing. Signature verification is not currently enabled on this deployment.");
+   status("Wallet connection is available. Signature verification is not enabled in this deployment configuration.");
   }
  }catch{
   verificationAvailable=false;
-  status("Wallet connection is available for compatibility testing; signature verification is unavailable.");
+  status("Wallet connection is available; server health unreachable.");
  }
 }
 checkAvailability();
 })();
-</script><script>(function(){const sidebar=document.querySelector(".sidebar");const nav=sidebar?.querySelector("nav");const brand=sidebar?.querySelector(".brand");if(!nav||!brand)return;const button=document.createElement("button");button.type="button";button.className="veyra-mobile-menu";button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation");button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","veyra-mobile-navigation");nav.id="veyra-mobile-navigation";brand.after(button);function close(){nav.classList.remove("veyra-nav-open");button.setAttribute("aria-expanded","false");button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation")}button.addEventListener("click",()=>{const open=nav.classList.toggle("veyra-nav-open");button.setAttribute("aria-expanded",String(open));button.textContent=open?"✕ Close":"☰ Menu";button.setAttribute("aria-label",open?"Close navigation":"Open navigation")});nav.addEventListener("click",event=>{if(event.target.closest("a"))close()});document.addEventListener("keydown",event=>{if(event.key==="Escape")close()});})();</script><script>(function(){if(document.querySelector(".veyra-bottom-nav"))return;const nav=document.createElement("nav");nav.className="veyra-bottom-nav";nav.setAttribute("aria-label","Mobile primary navigation");const items=[["/","⌂","Preflight"],["/verify-wallet","◇","Verify"],["/memory","◎","Memory"],["/history","▤","History"]];for(const [href,icon,label] of items){const a=document.createElement("a");a.href=href;const current=location.pathname==="/"?href==="/":location.pathname===href;if(current)a.setAttribute("aria-current","page");const symbol=document.createElement("span");symbol.className="nav-symbol";symbol.setAttribute("aria-hidden","true");symbol.textContent=icon;const name=document.createElement("span");name.textContent=label;a.append(symbol,name);nav.append(a)}document.body.append(nav)})();</script></body></html>
+</script>
+</body>
+</html>
