@@ -88,20 +88,61 @@ html[data-theme="dark"] .veyra-theme-toggle::after{background:#c6e3cd;box-shadow
 .stat .value{font-size:19px}.panel-head h2{font-size:17px;font-weight:700}
 .button,.action{font-size:15px}
 
+.veyra-mobile-menu{display:none}
+
 @media(min-width:851px){
   html,body{height:100%;overflow:hidden}
   .shell{height:100vh;min-height:0;overflow:hidden}
   .sidebar{height:100vh;min-height:0;overflow-y:auto;overscroll-behavior:contain}
   .workspace{height:100vh;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .topbar{position:sticky;top:0;z-index:10}
+  .veyra-bottom-nav{display:none!important}
 }
 
 @media(max-width:850px){
-  .shell{display:block}
-  .sidebar{display:none}
-  .topbar{padding:12px 18px;height:auto}
-  .main{padding:24px 16px 80px}
-  .stats{grid-template-columns:1fr}
+  html,body{width:100%;max-width:100%;overflow-x:clip}
+  .shell{display:block!important;width:100%;height:auto!important;min-height:100dvh}
+  .sidebar{position:sticky!important;top:0!important;z-index:40!important;display:flex!important;flex-direction:row!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0!important;padding:9px 16px!important;min-height:58px!important;background:#101c18!important;border-bottom:1px solid #33473a!important}
+  .sidebar .brand{font-size:21px!important;letter-spacing:-.6px!important;padding:0!important;margin:0!important}
+  .veyra-mobile-menu{display:inline-flex!important;align-items:center;justify-content:center;min-height:40px!important;min-width:40px!important;padding:7px 10px!important;border:1px solid #4b6859;border-radius:11px!important;background:#253d31;color:#eef9f0;font:600 13px/1.2 inherit;cursor:pointer}
+  .sidebar nav{display:none!important;position:absolute;left:12px;right:12px;top:calc(100% - 1px);width:auto!important;flex-direction:column!important;flex-wrap:nowrap!important;gap:4px!important;margin:0!important;padding:8px!important;border:1px solid #3b5545!important;border-radius:0 0 15px 15px!important;background:#17251d!important;box-shadow:0 18px 40px #0006}
+  .sidebar nav.veyra-nav-open{display:flex!important}
+  .sidebar nav .nav-item{display:flex!important;align-items:center;min-height:44px;width:100%;padding:12px!important;font-size:14px!important;white-space:normal;border-radius:9px!important}
+  .sidebar .side-label,.sidebar .side-note{display:none!important}
+  .workspace{width:100%;min-width:0;height:auto!important;overflow:visible!important}
+  .topbar{position:relative!important;top:auto!important;min-height:46px!important;height:auto!important;padding:8px 17px!important;border-bottom:1px solid #314139!important;gap:8px!important;flex-wrap:wrap;scrollbar-gutter:auto}
+  .topbar .breadcrumbs{font-size:11px!important;opacity:.85}
+  .topbar .right{font-size:11px!important;gap:6px!important;flex-wrap:wrap;justify-content:flex-end}
+  .topbar .right .dot{display:none!important}
+  .topbar .environment{padding:4px 6px!important}
+  .main{width:100%;max-width:100%;padding:23px 16px calc(104px + env(safe-area-inset-bottom))!important}
+  .heading{flex-direction:column!important;align-items:flex-start!important;gap:10px!important;margin-bottom:19px!important}
+  .heading h1,h1{font-size:clamp(28px,7vw,34px)!important;letter-spacing:-.8px!important;line-height:1.15!important;margin:9px 0 10px!important;overflow-wrap:anywhere}
+  .heading p{font-size:14px!important;line-height:1.65!important}
+  .stats{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-bottom:14px!important}
+  .stat{padding:13px!important;min-height:92px!important;border-radius:13px!important}
+  .stat:nth-child(3){grid-column:1/-1;min-height:74px!important}
+  .stat .label{font-size:11px!important}
+  .stat .value{font-size:17px!important;margin:6px 0 3px!important}
+  .stat .sub{font-size:11px!important}
+  .panel{border-radius:16px!important;margin-top:14px!important;padding:18px!important;min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .panel-head{padding:17px!important;align-items:flex-start!important;flex-wrap:wrap!important;gap:6px!important}
+  .panel-head h2{font-size:16px!important}
+  .panel-body{padding:17px!important}
+  .kv{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:3px!important;padding:11px 0!important}
+  .kv span:last-child{overflow-wrap:anywhere!important;word-break:break-word!important;text-align:left!important}
+  .button,.action{width:100%!important;max-width:100%!important;min-height:48px!important;margin:9px 0 5px!important;display:block!important}
+  .evidence-card{padding:14px!important}
+  pre,code{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+  .read-only{font-size:11px!important;padding:7px 10px!important;white-space:normal!important}
+  .veyra-bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));left:0;right:0;bottom:0;z-index:35;padding:7px 6px calc(7px + env(safe-area-inset-bottom));background:#121d18;border-top:1px solid #33483b;box-shadow:0 -6px 22px #0002}
+  .veyra-bottom-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:53px;padding:5px 2px;border-radius:11px;text-decoration:none;color:#b2c8b8;font:600 10px/1.3 Inter,"Segoe UI",sans-serif;text-align:center}
+  .veyra-bottom-nav a[aria-current="page"]{background:#294535;color:#e0f6e5}
+  .veyra-bottom-nav .nav-symbol{font-size:19px;line-height:1.15}
+}
+@media(max-width:360px){
+  .main{padding-left:12px!important;padding-right:12px!important}
+  .stat{padding:10px!important}
 }
 </style>
 <script>
@@ -371,5 +412,5 @@ try {
   }
 } catch {}
 </script>
-</body>
+<script>(function(){const sidebar=document.querySelector(".sidebar");const nav=sidebar?.querySelector("nav");const brand=sidebar?.querySelector(".brand");if(!nav||!brand)return;const button=document.createElement("button");button.type="button";button.className="veyra-mobile-menu";button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation");button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","veyra-mobile-navigation");nav.id="veyra-mobile-navigation";brand.after(button);function close(){nav.classList.remove("veyra-nav-open");button.setAttribute("aria-expanded","false");button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation")}button.addEventListener("click",()=>{const open=nav.classList.toggle("veyra-nav-open");button.setAttribute("aria-expanded",String(open));button.textContent=open?"✕ Close":"☰ Menu";button.setAttribute("aria-label",open?"Close navigation":"Open navigation")});nav.addEventListener("click",event=>{if(event.target.closest("a"))close()});document.addEventListener("keydown",event=>{if(event.key==="Escape")close()});})();</script><script>(function(){if(document.querySelector(".veyra-bottom-nav"))return;const nav=document.createElement("nav");nav.className="veyra-bottom-nav";nav.setAttribute("aria-label","Mobile primary navigation");const items=[["/","⌂","Preflight"],["/verify-wallet","◇","Verify"],["/memory","◎","Memory"],["/history","▤","History"]];for(const [href,icon,label] of items){const a=document.createElement("a");a.href=href;const current=location.pathname==="/"?href==="/":location.pathname===href;if(current)a.setAttribute("aria-current","page");const symbol=document.createElement("span");symbol.className="nav-symbol";symbol.setAttribute("aria-hidden","true");symbol.textContent=icon;const name=document.createElement("span");name.textContent=label;a.append(symbol,name);nav.append(a)}document.body.append(nav)})();</script></body>
 </html>
