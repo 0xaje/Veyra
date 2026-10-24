@@ -51,3 +51,16 @@ These remain open; batch 1 does not establish production readiness or a competit
 Batch 1 adds real local signature verification, record-byte/hash binding, writer-reader compatibility, conflicting timeline, SDK return-shape, public-write lock and HTML safety regression checks. These are automated tests, not live network evidence. Batch 1 passed 116/116 tests in clean GitHub CI before main advanced. Batch 2 adds real SQLite reopen, multi-connection and concurrent-process tests. Its suite must pass CI before main advances again.
 
 Public writes must stay disabled until all security, recovery, deployment and budget gates are satisfied. No Mainnet write was performed while preparing this batch.
+
+## Local durable-publication configuration
+
+Use Node 24 and an explicitly chosen private local path:
+
+```bash
+VEYRA_PUBLICATION_DB="$PWD/.veyra-data/publication.sqlite" \
+node --experimental-strip-types --env-file=/path/to/private/provider.env scripts/preflight-api.mjs
+```
+
+The operator must use the real existing provider environment and approved genuine recipient confirmations. Starting the service does not publish a memory. Configuring this path does not enable public writes. Do not deploy SQLite on ephemeral storage or point independent hosts at independent files and describe their budgets as globally shared.
+
+Outstanding jobs are read using GET /v1/self-service/jobs?nonce=... in local mode. POST /v1/self-service/recover with the same nonce polls an accepted job only. Keep the database, its WAL/SHM files, and backups private and together. Unknown provider acceptance requires operator reconciliation; do not create another preparation as a workaround.

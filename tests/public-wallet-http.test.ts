@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { once } from "node:events";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { PublicationLedger } from "../src/core/publication-ledger.ts";
 
 async function port() {
  const server=createServer();server.listen(0,"127.0.0.1");await once(server,"listening");
@@ -66,4 +70,42 @@ test("M3: public publication cannot be enabled by an environment flag", {timeout
   }
   assert.equal((await fetch(base+"/v1/self-service/receipts?address="+ADDRESS)).status,403);
  }finally{await stop(child)}
+});
+
+test("M3: actual local HTTP preparation and pending status survive server restart", {timeout:20000},async()=>{
+ const dir=await mkdtemp(join(tmpdir(),"veyra-http-publication-"));
+ const path=join(dir,"state.sqlite");
+ const p=await port();
+ const env={VEYRA_PUBLIC_MODE:"false",VEYRA_PUBLIC_WALLET_PROOF:"false",VEYRA_PUBLICATION_DB:path,MEMWAL_PRIVATE_KEY:"",MEMWAL_ACCOUNT_ID:""};
+ let server=await launch(env,p);
+ try{
+  const preparedResponse=await fetch(server.base+"/v1/self-service/prepare-consent",{
+   method:"POST",headers:{"content-type":"application/json",origin:server.base},
+   body:JSON.stringify({address:ADDRESS,counterpartyId:"local-test-recipient"})
+  });
+  assert.equal(preparedResponse.status,200);
+  const prepared=await preparedResponse.json();
+  assert.equal(prepared.status,"consent_prepared");
+  await stop(server.child);
+  // Explicit local reservation fixture: no signature/provider/store is claimed.
+  const ledger=new PublicationLedger(path,{maxDailyWritesPerWallet:3,maxGlobalDailyWrites:50});
+  assert.equal(ledger.get(prepared.consentPayload)?.candidateJson,JSON.stringify(prepared.candidateRecord));
+  ledger.reserve(prepared.consentPayload);ledger.close();
+  server=await launch(env,p);
+  const status=await fetch(server.base+"/v1/self-service/jobs?nonce="+prepared.consentPayload.nonce);
+  assert.equal(status.status,202);
+  const state=await status.json();
+  assert.equal(state.phase,"reserved");assert.equal(state.status,"pending");
+  assert.equal(state.receipt,null);assert.equal(state.paymentAuthorized,false);
+  const recovery=await fetch(server.base+"/v1/self-service/recover",{
+   method:"POST",headers:{"content-type":"application/json",origin:server.base},
+   body:JSON.stringify({nonce:prepared.consentPayload.nonce})
+  });
+  assert.equal(recovery.status,202);
+  assert.match((await recovery.json()).limitation,/automatic resubmission is forbidden/);
+  const foreign=await fetch(server.base+"/v1/self-service/recover",{
+   method:"POST",headers:{"content-type":"application/json",origin:"https://evil.example"},body:"{}"
+  });
+  assert.equal(foreign.status,403);
+ }finally{await stop(server.child);await rm(dir,{recursive:true,force:true})}
 });
