@@ -36,3 +36,20 @@ test("M1: main preflight carries unified evidence but never authorizes payment",
   assert.equal(result.paymentAuthorized, false);
   assert.equal(result.action, "manual_review_required");
 });
+
+test("M1: new-format observation produces one conservative preflight conclusion despite empty legacy records", () => {
+  const result = preflightWithEvidence({ counterpartyId: "supplier", proposedAddress: b, recalled: [], authorizations: [], evidenceEvents: [observation] });
+  assert.equal(result.conclusion.status, "matches_observed_address");
+  assert.equal(result.conclusion.evidenceCount, 1);
+  assert.equal(result.memoryComparison.status, "not_found");
+  assert.equal(result.recipient.verdict, "review_required");
+  assert.equal(result.conclusion.paymentAuthorized, false);
+  assert.equal(result.action, "manual_review_required");
+  assert.match(result.reasons[0], /not proof of identity/);
+});
+test("M1: changed address is highlighted in unified conclusion", () => {
+  const result = preflightWithEvidence({ counterpartyId: "supplier", proposedAddress: a, recalled: [], authorizations: [], evidenceEvents: [observation] });
+  assert.equal(result.conclusion.status, "differs_from_observed_address");
+  assert.match(result.conclusion.message, /differs/);
+  assert.equal(result.paymentAuthorized, false);
+});
