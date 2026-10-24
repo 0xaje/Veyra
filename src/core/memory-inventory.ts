@@ -41,7 +41,7 @@ export async function collectMemoryInventory(
       if (m && typeof m.namespace_id === "string" && m.namespace_id !== namespace) continue;
       if (!m || m.namespace_id !== namespace ||
           typeof m.memory_id !== "string" || !m.memory_id || m.memory_id.length > 256 ||
-          typeof m.blob_id !== "string" || !/^[A-Za-z0-9_-]{1,256}$/.test(m.blob_id)) continue;
+          typeof m.blob_id !== "string" || !/^[A-Za-z0-9_-]{1,256}$/.test(m.blob_id)) { dropped++; continue; }
       const value: Metadata = {
         memory_id: m.memory_id, blob_id: m.blob_id, namespace_id: namespace,
         created_at: typeof m.created_at === "string" ? m.created_at : null,
