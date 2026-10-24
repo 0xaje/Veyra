@@ -170,9 +170,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <div class="workspace">
   <header class="topbar">
     <div class="breadcrumbs">Veyra &nbsp;/&nbsp; <b>Receive & Verify</b></div>
-    <div class="veyra-header-actions">
-      <div class="right"><span class="dot"></span> Sui Mainnet <span class="environment">Self-Service Storage</span></div>
-    </div>
+    <div class="veyra-header-actions"></div>
   </header>
 
   <main class="main">
@@ -186,22 +184,22 @@ document.addEventListener("DOMContentLoaded",()=>{
     </div>
 
     <div class="warning">
-      <strong>Zero Risk to Funds:</strong> This confirmation signs a personal message only. Veyra never requests seed phrases, private keys, or transaction permissions. No SUI is transferred.
+      <strong>Safe Confirmation:</strong> Signs a standard personal message. Never accesses private keys or moves funds.
     </div>
 
     <!-- Step 1: Connect Wallet -->
     <section class="panel">
       <div class="panel-head">
-        <h2>Step 1: Connect your Sui wallet</h2>
+        <h2>1. Connect wallet</h2>
         <small id="wallet-status-badge">Required</small>
       </div>
       <div class="panel-body">
         <p style="margin:0 0 14px;color:#526c60;font-size:13px">
-          Connect with any compatible Sui wallet extension (Sui Wallet, Nightly, Martian, OKX, etc.).
+          Connect your Sui wallet (Sui Wallet, Nightly, OKX, Martian).
         </p>
         <button id="connect" class="primary" type="button">Connect Wallet →</button>
         <div id="wallet-picker" hidden>
-          <p style="font-weight:600;margin:0 0 8px;font-size:13px">Choose a detected wallet:</p>
+          <p style="font-weight:600;margin:0 0 8px;font-size:13px">Choose wallet:</p>
           <div id="wallet-options"></div>
         </div>
         <select id="wallet" hidden aria-label="Detected wallet"></select>
@@ -212,20 +210,20 @@ document.addEventListener("DOMContentLoaded",()=>{
     <!-- Step 2: Confirm & Store in Walrus (Primary Self-Service Flow) -->
     <section class="panel">
       <div class="panel-head">
-        <h2>Step 2: Publish recipient confirmation to Walrus</h2>
-        <small>Option A Safeguarded Storage</small>
+        <h2>2. Publish receiving confirmation</h2>
+        <small>Decentralized Memory</small>
       </div>
       <div class="panel-body">
         <p style="margin:0 0 14px;color:#526c60;font-size:13px">
-          Enter an identifier (your username, business name, or counterparty handle) that payers use to find your address. Your confirmation is cryptographically signed and stored permanently in Walrus.
+          Enter your recipient ID (username or business handle). Your confirmation is signed and stored on Walrus.
         </p>
 
         <div style="margin-bottom:16px">
-          <label for="selfCounterparty">Recipient identifier (handle or username)</label>
+          <label for="selfCounterparty">Recipient identifier</label>
           <input id="selfCounterparty" placeholder="e.g. alice-sui-recipient" maxlength="128" pattern="[A-Za-z0-9_-]+">
         </div>
 
-        <button id="prepare-publication" type="button" class="primary">Prepare confirmation consent →</button>
+        <button id="prepare-publication" type="button" class="primary">Prepare confirmation →</button>
 
         <div id="publication-box" hidden style="margin-top:18px;padding:18px;border:1px solid #b5ccbd;border-radius:10px;background:#eef6f1">
           <p style="margin:0 0 10px;font-weight:600;font-size:13px;color:#17372b">Review record to be stored on Walrus:</p>
