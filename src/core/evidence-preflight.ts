@@ -80,8 +80,23 @@ export function preflightWithEvidence(input: {
   const assessment = assess({
     recipient: proposedAddress, chain: "sui", network: "mainnet", evidence,
   });
+  const unifiedConclusion = {
+    status: unifiedEvidence.status,
+    message: unifiedEvidence.status === "matches_observed_address"
+      ? "The proposed address matches recalled recipient evidence. This is not proof of identity, current intent, or safety."
+      : unifiedEvidence.status === "differs_from_observed_address"
+      ? "The proposed address differs from recalled recipient evidence. Independently confirm the change before proceeding."
+      : unifiedEvidence.status === "conflicting_observations"
+      ? "Recalled recipient evidence contains different addresses. Resolve the conflict independently."
+      : "No applicable recipient evidence was recalled. Search may be incomplete; independently confirm the address.",
+    evidenceCount: unifiedEvidence.entries.filter(entry => entry.kind !== "wallet_control").length,
+    retrievalCompleteness: "unknown" as const,
+    action: "manual_review_required" as const,
+    paymentAuthorized: false as const,
+  };
   return {
     status: "read_only_preflight" as const,
+    conclusion: unifiedConclusion,
     recipient,
     unifiedEvidence,
     memoryComparison,
@@ -108,7 +123,7 @@ export function preflightWithEvidence(input: {
     action: "manual_review_required" as const,
     paymentAuthorized: false as const,
     reasons: [
-      ...recipient.reasons,
+      unifiedConclusion.message,
       historicalAddressObserved
         ? "Address appeared in provider-observed transaction history; this does not prove ownership or authorization."
         : "No relevant historical address observation was established.",
