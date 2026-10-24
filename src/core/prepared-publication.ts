@@ -15,7 +15,8 @@ type Prepared = ReturnType<typeof prepareConsentedRecipientConfirmation> & {
  */
 export class PreparedPublications {
   private pending = new Map<string, Prepared>();
-  constructor(private readonly capacity = 200) {}
+  private readonly capacity: number;
+  constructor(capacity = 200) { this.capacity = capacity; }
   issue(address: string, counterpartyId: string, now = Date.now()): Prepared {
     for (const [nonce, value] of this.pending)
       if (Date.parse(value.consentPayload.expiresAt) <= now) this.pending.delete(nonce);
