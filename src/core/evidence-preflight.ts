@@ -1,4 +1,5 @@
 import { normalizeSuiAddress } from "./recipient-check.ts";
+import { unifyRecipientEvidence, type RecalledEvidence } from "./unified-recipient-evidence.ts";
 import { buildRecipientMemoryTimeline } from "./recipient-memory-timeline.ts";
 import { assess, type Evidence } from "./assessment.ts";
 import { preflightRememberedRecipient, type RecalledRecipient, type RecipientAuthorization } from "./recipient-preflight.ts";
@@ -23,9 +24,12 @@ export function preflightWithEvidence(input: {
   proposedAddress: string;
   recalled: RecalledRecipient[];
   authorizations: RecipientAuthorization[];
+  evidenceEvents?: RecalledEvidence[];
+  walletControlEvents?: RecalledEvidence[];
   tatumObservation?: TatumTransactionObservation | null;
 }) {
   const proposedAddress = normalizeSuiAddress(input.proposedAddress);
+  const unifiedEvidence = unifyRecipientEvidence({ counterpartyId: input.counterpartyId, proposedAddress, recipientClaims: input.recalled, evidenceEvents: input.evidenceEvents, walletControlEvents: input.walletControlEvents });
   const recipient = preflightRememberedRecipient({
     counterpartyId: input.counterpartyId,
     proposedAddress,
@@ -79,6 +83,7 @@ export function preflightWithEvidence(input: {
   return {
     status: "read_only_preflight" as const,
     recipient,
+    unifiedEvidence,
     memoryComparison,
     memoryTimeline,
     historicalAddressObserved: Boolean(historicalAddressObserved),
