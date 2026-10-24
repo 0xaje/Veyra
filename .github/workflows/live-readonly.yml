@@ -8,6 +8,8 @@ on:
       - "scripts/private-relationships-api.mjs"
       - "src/core/recipient-relationships.ts"
       - "apps/web/relationships.js"
+      - "apps/web/*.html"
+      - "scripts/preflight-api.mjs"
   workflow_dispatch:
 permissions:
   contents: read

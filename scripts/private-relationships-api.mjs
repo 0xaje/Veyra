@@ -64,6 +64,10 @@ export function createPrivateRelationshipsApi({publicMode,port,requestAllowed}) 
         store.logout(current);res.setHeader('set-cookie',cookie(sessionName,'',0));return send(200,{status:'signed_out'});
       }
       if(req.method==='GET'&&url.pathname==='/v1/private/recipient-confirmations')return send(200,{confirmations:store.received(current)});
+      if(req.method==='GET'&&url.pathname==='/v1/private/export')return send(200,store.exportContacts(current));
+      if(req.method==='POST'&&url.pathname==='/v1/private/delete-contact'){
+        const input=await body(req);return send(200,store.deleteContact(current,input.relationshipId,input.confirmLabel));
+      }
       if(req.method==='GET'&&url.pathname==='/v1/private/relationships')return send(200,{relationships:store.list(current)});
       if(req.method==='GET'&&url.pathname==='/v1/private/relationship-history')
         return send(200,{events:store.history(current,url.searchParams.get('relationshipId'))});

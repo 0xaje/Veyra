@@ -43,6 +43,7 @@ test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acce
  const p=await payer.login(),r=await recipient.login();await stranger.login();
  const invitation=await payer.call('/v1/private/invitations',{label:'Private name never sent to providers'});assert.equal(invitation.response.status,201);
  assert.equal(new URL(invitation.body.invitationUrl).search,'');
+ assert.equal(new URL(invitation.body.invitationUrl).pathname,'/receive-private');
  const bearer=new URLSearchParams(new URL(invitation.body.invitationUrl).hash.slice(1)).get('invite');
  const prepared=await recipient.call('/v1/private/recipient-prepare',{token:bearer});assert.equal(prepared.response.status,200);
  assert.ok(!JSON.stringify(prepared.body).includes('Private name never'));
@@ -69,6 +70,20 @@ test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acce
  const restored=await payer.call('/v1/private/session');assert.equal(restored.response.status,200);assert.equal(restored.body.address,p.key.toSuiAddress());
  const contacts=await payer.call('/v1/private/relationships');assert.equal(contacts.body.relationships[0].acceptedAddress,r.key.toSuiAddress());
  const received=await recipient.call('/v1/private/recipient-confirmations');assert.equal(received.body.confirmations[0].verificationCode,claim.body.verificationCode);
+ const exported=await payer.call('/v1/private/export');assert.equal(exported.response.status,200);
+ assert.equal(exported.body.owner,p.key.toSuiAddress());assert.equal(exported.body.contacts.length,1);
+ assert.ok(!JSON.stringify(exported.body).includes(claim.body.verificationCode));
+ assert.ok(!JSON.stringify(exported.body).includes(signed.signature));
+ assert.equal((await stranger.call('/v1/private/export')).body.contacts.length,0);
+ const deletion={relationshipId:rel,confirmLabel:'Private name never sent to providers'};
+ assert.equal((await stranger.call('/v1/private/delete-contact',deletion)).response.status,404);
+ assert.equal((await payer.call('/v1/private/delete-contact',deletion,{'x-veyra-csrf':'wrong'})).response.status,403);
+ assert.equal((await payer.call('/v1/private/delete-contact',{...deletion,confirmLabel:'wrong'})).response.status,400);
+ assert.equal((await payer.call('/v1/private/delete-contact',deletion)).response.status,200);
+ assert.equal((await payer.call('/v1/private/relationships')).body.relationships.length,0);
+ assert.equal((await recipient.call('/v1/private/recipient-confirmations')).body.confirmations.length,0);
+ assert.equal((await payer.call('/v1/preflight',payload)).response.status,404);
+ await api.restart();assert.equal((await payer.call('/v1/private/export')).body.contacts.length,0);
  await payer.call('/v1/private/logout',{});assert.equal((await payer.call('/v1/private/relationships')).response.status,401);
 });
 test('M3: public HTTPS cookies, origin checks and publication lock remain separate', {timeout:15000},async t=>{
@@ -88,4 +103,22 @@ test('M3: unconfigured private storage fails closed while public address checks 
  assert.equal(publicCheck.response.status,200);assert.equal(publicCheck.body.relationshipComparison,null);
  const script=await fetch(api.base+'/relationships.js');assert.equal(script.status,200);assert.match(script.headers.get('content-type')||'',/javascript/);
  const html=await fetch(api.base+'/').then(r=>r.text());assert.match(html,/relationships\.js/);
+});
+
+
+test('M5: optional saved recipients and private receiving have distinct accessible routes', {timeout:15000},async t=>{
+ const api=await launch(t,false,false);
+ for(const [path,title]of [['/contacts','Saved recipients'],['/receive-private','Confirm a private invitation']]){
+  const response=await fetch(api.base+path);assert.equal(response.status,200);
+  assert.equal(response.headers.get('referrer-policy'),'no-referrer');
+  const html=await response.text();assert.ok(html.includes('<h1>'+title+'</h1>'));
+  assert.match(html,/id="private-workspace"/);assert.match(html,/src="\/relationships.js"/);
+  assert.ok(!html.includes('id="preflight"'));assert.ok(!html.includes('const form=document.getElementById("preflight")'));
+  assert.match(html,/href="\/contacts"/);assert.match(html,/veyra-mobile-menu/);
+ }
+ const home=await fetch(api.base+'/').then(r=>r.text());assert.match(home,/id="preflight"/);
+ assert.match(home,/Manage saved recipients \(optional\)/);
+ const receiving=await fetch(api.base+'/verify-wallet').then(r=>r.text());assert.match(receiving,/href="\/receive-private"/);
+ const source=await fetch(api.base+'/relationships.js').then(r=>r.text());
+ assert.ok(source.includes('else panel.hidden=true')); // Never mount management above the main form.
 });

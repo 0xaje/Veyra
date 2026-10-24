@@ -90,3 +90,10 @@ Next release gates remain authenticated wallet sessions and payer-recipient rela
 Wallet-authenticated sessions, origin/CSRF protection, private payer-owned invitations, signed recipient intent, payer code/channel acceptance, revocation and retained address history are now implemented and integrated with the existing preflight form. Contact labels stay private and are never external semantic queries. The top-level private conclusion and separately scoped Walrus conclusion do not claim the same source.
 
 See [PRIVATE-RECIPIENT-RELATIONSHIPS.md](PRIVATE-RECIPIENT-RELATIONSHIPS.md) for setup, threat boundaries and tests. Hosted private contacts remain disabled pending persistent-storage/access/retention review and interactive wallet/browser acceptance. This does not enable public Walrus publication or complete exact-ID verification.
+
+
+### M5 — optional consumer entry points
+
+Check recipient remains the landing page's first task. Private contact management now lives at `/contacts`; invitation-based receiving lives at `/receive-private`, separate from existing wallet-control verification. Existing invitation links remain compatible. Hosted activation and the remaining public self-service gates are explicitly tracked in PRIVATE-RECIPIENT-RELATIONSHIPS.md; this layout change does not claim to remove them.
+
+M3 privacy controls: authenticated owners can export private contact summaries/history and delete individual contacts with exact-label confirmation. Export omits tokens, codes and raw signatures; deletion removes associated records from active storage. HTTP tests cover ownership, CSRF, deletion persistence and refusal to assess deleted contacts. Backups/retention policy and hosted activation remain open; public Walrus writes remain disabled. Validation: 146 automated tests and TypeScript checking pass locally.

@@ -44,13 +44,13 @@ try {
     return { buildCommit: health.buildCommit, publicWrites: false };
   });
   await check("public_pages_available", async () => {
-    for (const path of ["/", "/verify-wallet", "/memory", "/history", "/docs"]) {
+    for (const path of ["/", "/verify-wallet", "/memory", "/history", "/docs", "/contacts", "/receive-private"]) {
       const response = await fetch(base + path, { signal: AbortSignal.timeout(20_000) });
       assert.equal(response.status, 200, path);
       assert.match(response.headers.get("content-type") || "", /text\/html/);
       assert.match(await response.text(), /Veyra|veyra/);
     }
-    return { pageCount: 5, scope: "HTTP availability; not a browser or accessibility audit" };
+    return { pageCount: 7, scope: "HTTP availability; not a browser or accessibility audit" };
   });
   await check("public_write_routes_reject_before_processing", async () => {
     for (const path of ["/v1/self-service/prepare-consent", "/v1/self-service/confirm-and-store"]) {

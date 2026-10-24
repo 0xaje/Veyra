@@ -165,7 +165,7 @@ export class RecipientRelationships {
       this.db.prepare("INSERT INTO rel_invites(id,relationship_id,token_hash,expires,created) VALUES(?,?,?,?,?)")
         .run(invitationId, relationshipId, hash(bearer), now + INVITE_TTL, now);
       this.audit(relationshipId, session.address, "invitation_created", null, now);
-      return { relationshipId, invitationId, invitationUrl: this.origin + "/verify-wallet#invite=" + bearer,
+      return { relationshipId, invitationId, invitationUrl: this.origin + "/receive-private#invite=" + bearer,
         expiresAt: now + INVITE_TTL, label: relationship.label, memoryWritten: false, paymentAuthorized: false };
     });
   }
@@ -299,6 +299,27 @@ export class RecipientRelationships {
   history(session: RelationshipSession, relationshipId: string, now = Date.now()) {
     this.liveSession(session, now); this.contact(session.address, relationshipId);
     return this.db.prepare("SELECT event,claim_id,created FROM rel_audit WHERE relationship_id=? ORDER BY rowid DESC LIMIT 200").all(relationshipId).reverse();
+  }
+  exportContacts(session: RelationshipSession, now = Date.now()) {
+    this.liveSession(session, now);
+    const contacts = this.list(session, now).map(contact => ({ ...contact, history: this.history(session, contact.id, now) }));
+    return { schema: "veyra.private_contacts_export.v1", exportedAt: new Date(now).toISOString(), owner: session.address,
+      contacts, paymentAuthorized: false, memoryWritten: false,
+      disclosure: "Private export. Contains contact labels and wallet addresses; store securely. No session, invitation token, verification code or raw signature is exported." };
+  }
+  deleteContact(session: RelationshipSession, relationshipId: string, confirmLabel: string, now = Date.now()) {
+    this.liveSession(session, now);
+    return this.transaction(() => {
+      const contact = this.contact(session.address, relationshipId);
+      requireValue(confirmLabel === contact.label, 400, "Type the exact private contact name to delete it");
+      this.db.prepare("DELETE FROM rel_drafts WHERE invitation_id IN (SELECT id FROM rel_invites WHERE relationship_id=?)").run(contact.id);
+      this.db.prepare("DELETE FROM rel_claims WHERE relationship_id=?").run(contact.id);
+      this.db.prepare("DELETE FROM rel_invites WHERE relationship_id=?").run(contact.id);
+      this.db.prepare("DELETE FROM rel_audit WHERE relationship_id=?").run(contact.id);
+      this.db.prepare("DELETE FROM rel_contacts WHERE id=?").run(contact.id);
+      return { status: "deleted", relationshipId: contact.id, memoryWritten: false, paymentAuthorized: false,
+        scope: "Removed from active private storage, including associated confirmations. Existing exports, backups and public immutable records are not erased by this action." };
+    });
   }
   close() { this.db.close(); }
 }
