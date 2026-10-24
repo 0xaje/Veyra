@@ -1,4 +1,5 @@
-import test from 'node:test';
+import nodeTest, { type TestContext } from 'node:test';
+import { postgresFixture } from './relationship-storage-fixtures.ts';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
@@ -8,17 +9,20 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
+for(const backend of ['sqlite', ...(process.env.TEST_DATABASE_URL ? ['postgres'] : [])]) {
+const test=(name:string, options:{timeout:number}, fn:(t:TestContext)=>Promise<void>)=>nodeTest(backend+': '+name,options,fn);
 async function unusedPort(){const server=createServer();server.listen(0,'127.0.0.1');await once(server,'listening');const a=server.address();if(!a||typeof a==='string')throw Error('No port');server.close();await once(server,'close');return a.port;}
 async function launch(t:{after:(fn:()=>Promise<void>)=>void},publicMode=false,enabled=true){
  const dir=await mkdtemp(join(tmpdir(),'veyra-private-http-')),p=await unusedPort(),base='http://127.0.0.1:'+p;
  const origin=publicMode?'https://veyra.example':base;
+ const fixture=backend==='postgres'&&enabled&&!publicMode?await postgresFixture():null;
  const env={...process.env,PORT:String(p),VEYRA_HOST:'127.0.0.1',VEYRA_PUBLIC_MODE:String(publicMode),
-  VEYRA_PUBLIC_ORIGIN:origin,VEYRA_PUBLIC_WALLET_PROOF:'false',VEYRA_RELATIONSHIP_DB:enabled?join(dir,'relationships.sqlite'):'',
+  VEYRA_PUBLIC_ORIGIN:origin,VEYRA_PUBLIC_WALLET_PROOF:'false',DATABASE_URL:fixture?.url||'',VEYRA_RELATIONSHIP_DB:enabled&&!fixture?join(dir,'relationships.sqlite'):'',
   VEYRA_ENABLE_PRIVATE_RELATIONSHIPS:String(publicMode&&enabled),VEYRA_RELATIONSHIP_STORAGE_REVIEWED:'true',
   VEYRA_HISTORY_FILE:join(dir,'history.jsonl'),MEMWAL_PRIVATE_KEY:'',MEMWAL_ACCOUNT_ID:'',TATUM_API_KEY:'',SUI_PROTO_DIR:''};
  let child=spawn(process.execPath,['--experimental-strip-types','scripts/preflight-api.mjs'],{cwd:process.cwd(),env,stdio:'ignore'});
  async function stop(){if(child.exitCode===null){child.kill('SIGTERM');await once(child,'exit')}}
- t.after(async()=>{await stop();await rm(dir,{recursive:true,force:true})});
+ t.after(async()=>{await stop();await fixture?.dispose();await rm(dir,{recursive:true,force:true})});
  async function ready(){for(let i=0;i<80;i++){if(child.exitCode!==null)throw Error('API exited');try{if((await fetch(base+'/health')).ok)return}catch{}await new Promise(r=>setTimeout(r,75))}throw Error('API not ready')}
  await ready();
  return{base,origin,dir,restart:async()=>{await stop();child=spawn(process.execPath,['--experimental-strip-types','scripts/preflight-api.mjs'],{cwd:process.cwd(),env,stdio:'ignore'});await ready();}};
@@ -124,3 +128,5 @@ test('M5: optional saved recipients and private receiving have distinct accessib
  const source=await fetch(api.base+'/relationships.js').then(r=>r.text());
  assert.ok(source.includes('else panel.hidden=true')); // Never mount management above the main form.
 });
+
+}

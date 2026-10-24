@@ -52,7 +52,7 @@ function privateRequestAllowed(ip,now=Date.now()) {
   if(privateRequestCounts.size>=5000)return false;
   privateRequestCounts.set(key,{start:now,count:1});return true;
 }
-const privateRelationships = createPrivateRelationshipsApi({publicMode,port,requestAllowed:privateRequestAllowed});
+const privateRelationships = await createPrivateRelationshipsApi({publicMode,port,requestAllowed:privateRequestAllowed});
 const publicationDbPath = process.env.VEYRA_PUBLICATION_DB || "";
 if (!publicMode && publicationDbPath &&
     existsSync(resolve(process.env.VEYRA_SAFEGUARDS_FILE || "data/safeguards-ledger.json")))
@@ -476,7 +476,7 @@ async function handler(req, res) {
     }
   }
   if (req.method === "GET" && req.url === "/health")
-    return send(200, { status: "running", buildCommit: process.env.RENDER_GIT_COMMIT || null, paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode, selfServiceWritesEnabled: Boolean(publicationLedger && process.env.MEMWAL_PRIVATE_KEY && process.env.MEMWAL_ACCOUNT_ID), publicationSecurityGatesComplete: false, privateRelationshipsEnabled: privateRelationships.enabled });
+    return send(200, { status: "running", buildCommit: process.env.RENDER_GIT_COMMIT || null, paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode, selfServiceWritesEnabled: Boolean(publicationLedger && process.env.MEMWAL_PRIVATE_KEY && process.env.MEMWAL_ACCOUNT_ID), publicationSecurityGatesComplete: false, privateRelationshipsEnabled: privateRelationships.enabled, privateRelationshipStorage: privateRelationships.storage });
   if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
     const url = new URL(req.url, "http://localhost");
     const counterpartyId = url.searchParams.get("counterpartyId");
@@ -650,7 +650,7 @@ async function handler(req, res) {
     catch { return send(400, { status: "preflight_failed", action: "manual_review_required", paymentAuthorized: false, reason: "Invalid Sui recipient address" }); }
     let relationshipComparison=null;
     if(data.relationshipId!==undefined){
-      try{relationshipComparison=privateRelationships.relationshipPreflight(req,data.relationshipId,proposedAddress);}
+      try{relationshipComparison=await privateRelationships.relationshipPreflight(req,data.relationshipId,proposedAddress);}
       catch(error){return send(error.status||400,{status:"preflight_failed",reason:error.message,paymentAuthorized:false});}
       // Private labels never enter external semantic queries or public records.
       data.counterpartyId=relationshipComparison.relationshipId;
