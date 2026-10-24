@@ -15,7 +15,7 @@ Veyra is a **read-only Sui Mainnet recipient preflight application** for the Tat
 - Local durable publication with separate pending/completed states; public publication is disabled.
 - Expandable technical evidence alongside the consumer-facing assessment.
 
-**Verification:** On 24 October 2026, clean GitHub CI passed **125/125 tests** plus TypeScript and API syntax checks for the durable-publication batch. See [the verified run](https://github.com/0xaje/Veyra/actions/runs/40133118459). Automated tests use labelled local fixtures and real local signatures/HTTP/SQLite; they are not Mainnet evidence.
+**Verification:** On 24 October 2026, clean GitHub CI passed **130/130 tests** plus TypeScript and API syntax checks for the inventory-hardening batch. See [the verified run](https://github.com/0xaje/Veyra/actions/runs/40133309906). Automated tests use labelled local fixtures and real local signatures/HTTP/SQLite; they are not Mainnet evidence.
 
 Fresh hosted read-only checks on 24 October recalled the friend's observation, showed an address-match result and a one-character-difference warning, and returned Tatum Sui Mainnet transaction data. Public writes remain disabled. The observed inventory listed nine records; qualifying Mainnet memory count, exact-ID payload verification, full browser/wallet publication acceptance and submission assets remain open.
 

@@ -52,7 +52,11 @@ M6: Real browser and wallet, Tatum, Walrus Mainnet end-to-end evidence, threat r
 
 No mock transaction, fabricated incident, invented storage receipt or fake provider response qualifies as live evidence. Tests can validate pure functions with fixtures, but such tests are never represented as live integrations.
 
-## Current verified limits
+## Original baseline limits (superseded by PRODUCT-HARDENING.md)
+
+The bullets below record the starting checkpoint, not the current implementation. Subsequent code, CI results and remaining acceptance gates are tracked in [PRODUCT-HARDENING.md](PRODUCT-HARDENING.md).
+
+### Starting checkpoint
 - 91 local automated tests passed on 2026-10-24 (operator report), but the integrated journey has not passed live end-to-end testing.
 - Seven operator-reported genuine MemWal stores with semantic recall, not direct raw-blob verification; organizer qualification not yet established.
 - Public memory writes and durable public session history are disabled.

@@ -64,3 +64,23 @@ node --experimental-strip-types --env-file=/path/to/private/provider.env scripts
 The operator must use the real existing provider environment and approved genuine recipient confirmations. Starting the service does not publish a memory. Configuring this path does not enable public writes. Do not deploy SQLite on ephemeral storage or point independent hosts at independent files and describe their budgets as globally shared.
 
 Outstanding jobs are read using GET /v1/self-service/jobs?nonce=... in local mode. POST /v1/self-service/recover with the same nonce polls an accepted job only. Keep the database, its WAL/SHM files, and backups private and together. Unknown provider acceptance requires operator reconciliation; do not create another preparation as a workaround.
+
+## Batch 3: M2/M5 retrieval honesty
+
+Metadata inventory now follows bounded snapshot pagination, handles filtered empty pages, rejects cursor loops/resync or conflicting metadata, and labels partial/unknown retrieval. It reports contentVerified:false and qualifyingMemoryCountVerified:false. Public inventory and timeline reads share provider admission limits. README and architecture now distinguish the working read-only product from open public-publication gates.
+
+Clean GitHub CI for this batch passed 130/130 tests plus TypeScript and syntax checks: https://github.com/0xaje/Veyra/actions/runs/40133309906
+
+## Batch 4: M6 hosted read-only evidence
+
+A separate workflow waits for the exact Render commit and records genuine hosted health, five-page HTTP availability, public-write rejection, Walrus match/difference and unified timeline, and Tatum Mainnet transaction observation. It produces a JSON artifact and fails rather than inventing a result. No wallet signing, valid publication request or payment occurs. HTTP checks do not replace visual/browser/mobile/wallet acceptance.
+
+## Provider API investigation
+
+The official default MemWal SDK API documents semantic recall and metadata inventory, not a public exact-ID plaintext getter. Manual-mode SEAL decryption must be integrated through supported public APIs and verified against genuine authorized blobs; private SDK methods or invented relayer endpoints are unacceptable.
+
+Sources reviewed on 24 October 2026:
+- https://github.com/MystenLabs/walrus-memory/blob/dev/docs/sdk/api-reference.md
+- https://github.com/MystenLabs/walrus-memory/blob/dev/packages/sdk/src/manual.ts
+
+Next release gates remain authenticated wallet sessions and payer-recipient relationship binding, supported exact-ID payload verification, persistent deployment/budget review, and genuine wallet/publication/browser acceptance. Public writes remain disabled.
