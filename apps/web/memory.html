@@ -188,6 +188,8 @@ p,li,.note,.empty,.hint,.muted,.heading p,.section-caption,.stat .label,.stat .s
  .veyra-bottom-nav a{color:var(--veyra-chrome-muted)}
  .veyra-bottom-nav a[aria-current="page"],.sidebar .nav-item.active,html[data-theme="dark"] .veyra-bottom-nav a[aria-current="page"],html[data-theme="dark"] .sidebar .nav-item.active{background:var(--veyra-jade);color:var(--veyra-ink)}
 }
+/* Badges keep ink text even inside evidence key/value rows. */
+.kv span:last-child.pill,html[data-theme="dark"] .kv span:last-child.pill{color:var(--veyra-ink)}
 </style>
 <script>
 (function(){
