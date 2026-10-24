@@ -11,6 +11,22 @@ export type PublicationConsentInput = {
   nonce: string;
 };
 
+
+/** Runtime checks apply to untrusted HTTP input, regardless of TypeScript types. */
+export function validatePublicationConsent(input: PublicationConsentInput): void {
+  if (!input || typeof input !== "object" ||
+      input.network !== "sui-mainnet" || input.scope !== "public_walrus_recipient_confirmation" ||
+      typeof input.address !== "string" ||
+      typeof input.counterpartyId !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(input.counterpartyId) ||
+      typeof input.recordHash !== "string" || !/^[a-f0-9]{64}$/.test(input.recordHash) ||
+      typeof input.nonce !== "string" || !/^[a-f0-9]{32}$/.test(input.nonce) ||
+      typeof input.expiresAt !== "string" || !Number.isFinite(Date.parse(input.expiresAt)) ||
+      new Date(input.expiresAt).toISOString() !== input.expiresAt) {
+    throw new Error("Invalid publication consent fields");
+  }
+  normalizeSuiAddress(input.address);
+}
+
 export type SignedPublicationConsent = {
   consent: PublicationConsentInput;
   signature: string;
@@ -23,6 +39,7 @@ export type SignedPublicationConsent = {
  * public storage on Walrus Mainnet.
  */
 export function buildPublicationConsentMessage(input: PublicationConsentInput): string {
+  validatePublicationConsent(input);
   const normalized = normalizeSuiAddress(input.address);
   return [
     "Veyra public recipient-confirmation publication consent",
@@ -52,9 +69,8 @@ export type RecipientConfirmationCandidate = {
     reference: string;
     observedAt: string;
   };
-  trust: "direct_owner_confirmed_with_signed_consent";
-  publicationConsentHash: string;
-  independentlyVerified: true;
+  trust: "informational_unverified";
+  independentlyVerified: false;
   paymentAuthorized: false;
 };
 
@@ -70,13 +86,17 @@ export function prepareConsentedRecipientConfirmation(params: {
 }): { candidate: RecipientConfirmationCandidate; recordHash: string; candidateJson: string } {
   const address = normalizeSuiAddress(params.address);
   const counterpartyId = params.counterpartyId.trim();
-  if (!counterpartyId || counterpartyId.length > 128) {
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(counterpartyId)) {
     throw new Error("Valid counterparty ID required");
   }
   const observedAt = params.observedAt || new Date().toISOString();
-  const reference = params.reference || `Direct recipient confirmation signed and published via Veyra self-service`;
+  const reference = params.reference || "Recipient self-reports this intended receiving destination; not an independently verified relationship.";
+  if (!Number.isFinite(Date.parse(observedAt)) || new Date(observedAt).toISOString() !== observedAt ||
+      Date.parse(observedAt) > Date.now()) throw new Error("Invalid confirmation timestamp");
+  if (typeof reference !== "string" || !reference.trim() || reference.length > 512)
+    throw new Error("Valid confirmation reference required");
 
-  // Base payload without publicationConsentHash to calculate deterministic record hash
+  // Hash the exact bytes that will be stored. The hash lives in consent/receipt, not inside itself.
   const basePayload = {
     type: "veyra.recipient_evidence.v1" as const,
     chain: "sui" as const,
@@ -92,23 +112,20 @@ export function prepareConsentedRecipientConfirmation(params: {
       reference,
       observedAt,
     },
-    trust: "direct_owner_confirmed_with_signed_consent" as const,
-    independentlyVerified: true as const,
+    trust: "informational_unverified" as const,
+    independentlyVerified: false as const,
     paymentAuthorized: false as const,
   };
 
   const candidateJson = JSON.stringify(basePayload);
   const recordHash = createHash("sha256").update(candidateJson, "utf8").digest("hex");
 
-  const candidate: RecipientConfirmationCandidate = {
-    ...basePayload,
-    publicationConsentHash: recordHash,
-  };
+  const candidate: RecipientConfirmationCandidate = basePayload;
 
   return {
     candidate,
     recordHash,
-    candidateJson: JSON.stringify(candidate),
+    candidateJson,
   };
 }
 
@@ -120,8 +137,12 @@ export async function verifyPublicationConsent(
   signature: string,
   now = Date.now()
 ): Promise<{ status: "valid" | "expired" | "invalid_signature" | "mismatch"; verifiedConsent?: SignedPublicationConsent; error?: string }> {
+  try { validatePublicationConsent(consent); }
+  catch { return { status: "mismatch", error: "Invalid publication consent fields" }; }
+  if (typeof signature !== "string" || !signature.length || signature.length > 2048)
+    return { status: "invalid_signature", error: "Invalid publication signature" };
   const exp = Date.parse(consent.expiresAt);
-  if (!Number.isFinite(exp) || exp <= now) {
+  if (!Number.isFinite(exp) || exp <= now || exp > now + 10 * 60_000) {
     return { status: "expired", error: "Publication consent has expired" };
   }
 

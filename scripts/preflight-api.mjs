@@ -12,9 +12,12 @@ import { createPreflightLimiter } from "./preflight-limiter.mjs";
 import { RecipientEvidenceIndex } from "../src/core/recipient-evidence-index.ts";
 import { StorageSafeguardsLedger } from "../src/core/storage-safeguards.ts";
 import {
-  prepareConsentedRecipientConfirmation,
   verifyPublicationConsent,
 } from "../src/core/self-service-confirmation.ts";
+
+import { PreparedPublications } from "../src/core/prepared-publication.ts";
+import { acceptedMemoryJob, completedMemoryJob } from "../src/core/memory-write-state.ts";
+const preparedPublications = new PreparedPublications();
 
 const port = Number(process.env.PORT || process.env.VEYRA_PORT || 8787);
 const publicMode = process.env.VEYRA_PUBLIC_MODE === "true";
@@ -244,6 +247,12 @@ async function handler(req, res) {
     }
   }
   if (req.method === "POST" && req.url === "/v1/self-service/prepare-consent") {
+    if (publicMode) return send(403, { error: "Public publication remains disabled until security gates are complete", paymentAuthorized: false });
+    if (req.headers["sec-fetch-site"] === "cross-site" ||
+        (req.headers.origin && req.headers.origin !== `http://127.0.0.1:${port}`))
+      return send(403, { error: "Cross-origin publication forbidden", paymentAuthorized: false });
+    if (!walletRequestAllowed(req.socket.remoteAddress))
+      return send(429, { error: "Publication request limit reached", paymentAuthorized: false });
     if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
       return send(415, { error: "JSON required", paymentAuthorized: false });
     try {
@@ -256,25 +265,8 @@ async function handler(req, res) {
       if (typeof input.address !== "string" || typeof input.counterpartyId !== "string" || !input.counterpartyId.trim())
         return send(400, { error: "Address and counterpartyId required", paymentAuthorized: false });
 
-      const prepared = prepareConsentedRecipientConfirmation({
-        address: input.address,
-        counterpartyId: input.counterpartyId,
-      });
-
-      const nonce = randomUUID().replace(/-/g, "");
-      const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString();
-      const consentPayload = {
-        address: prepared.candidate.address,
-        counterpartyId: prepared.candidate.counterpartyId,
-        recordHash: prepared.recordHash,
-        scope: "public_walrus_recipient_confirmation",
-        network: "sui-mainnet",
-        expiresAt,
-        nonce,
-      };
-
-      const { buildPublicationConsentMessage } = await import("../src/core/self-service-confirmation.ts");
-      const consentMessage = buildPublicationConsentMessage(consentPayload);
+      const prepared = preparedPublications.issue(input.address, input.counterpartyId);
+      const { consentPayload, consentMessage } = prepared;
 
       return send(200, {
         status: "consent_prepared",
@@ -289,9 +281,15 @@ async function handler(req, res) {
     }
   }
   if (req.method === "POST" && req.url === "/v1/self-service/confirm-and-store") {
-    if (publicMode && !process.env.VEYRA_ENABLE_SELF_SERVICE_WRITES) {
+    // M3 gates are not complete: environment flags cannot bypass this boundary.
+    if (publicMode) {
       return send(403, { error: "Public self-service writes are not enabled on this deployment", paymentAuthorized: false });
     }
+    if (req.headers["sec-fetch-site"] === "cross-site" ||
+        (req.headers.origin && req.headers.origin !== `http://127.0.0.1:${port}`))
+      return send(403, { error: "Cross-origin publication forbidden", paymentAuthorized: false });
+    if (!walletRequestAllowed(req.socket.remoteAddress))
+      return send(429, { error: "Publication request limit reached", paymentAuthorized: false });
     if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
       return send(415, { error: "JSON required", paymentAuthorized: false });
     if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID)
@@ -304,11 +302,14 @@ async function handler(req, res) {
         if (Buffer.byteLength(body) > maxBody) return send(413, { error: "Request too large", paymentAuthorized: false });
       }
       const input = JSON.parse(body);
-      const { consent, signature, idempotencyKey } = input;
+      const { consent, signature } = input;
       if (!consent || typeof signature !== "string" || !signature.trim()) {
         return send(400, { error: "Valid signed publication consent and signature required", paymentAuthorized: false });
       }
-      const idKey = typeof idempotencyKey === "string" && idempotencyKey.trim() ? idempotencyKey.trim() : randomUUID();
+      const prepared = preparedPublications.get(consent);
+      if (!prepared) return send(409, { error: "Preparation expired, consumed or changed; prepare and review again", paymentAuthorized: false });
+      // Bind retries to this server-issued preparation, never a caller-selected key.
+      const idKey = "veyra-publication-" + consent.nonce;
 
       // 1. Verify publication consent signature
       const verification = await verifyPublicationConsent(consent, signature);
@@ -329,14 +330,10 @@ async function handler(req, res) {
         });
       }
 
-      // 3. Prepare exact non-secret candidate matching verified consent hash
-      const prepared = prepareConsentedRecipientConfirmation({
-        address: consent.address,
-        counterpartyId: consent.counterpartyId,
-      });
-      if (prepared.recordHash !== consent.recordHash) {
-        return send(400, { error: "Record hash mismatch against signed publication consent", paymentAuthorized: false });
-      }
+      // Consume synchronously before any provider call; concurrent replay cannot
+      // pass. Outstanding local preparations fail closed across a restart.
+      if (!preparedPublications.consume(consent))
+        return send(409, { error: "Publication consent already consumed", paymentAuthorized: false });
 
       // 4. Submit to genuine MemWal with accepted -> completed pipeline
       const { MemWal } = await import("@mysten-incubation/memwal");
@@ -348,14 +345,15 @@ async function handler(req, res) {
       });
 
       const accepted = await memory.remember(prepared.candidateJson, { idempotencyKey: idKey });
-      if (!accepted || !accepted.job_id) {
+      const pending = acceptedMemoryJob(accepted ?? {});
+      if (pending.status !== "pending") {
         return send(503, { error: "Walrus relayer did not accept memory job", paymentAuthorized: false });
       }
 
-      const completed = await memory.waitForRememberJob(accepted.job_id);
-      if (completed.status !== "done" || !completed.blob_id) {
+      const completed = completedMemoryJob(pending, await memory.waitForRememberJob(pending.jobId));
+      if (completed.status !== "stored") {
         return send(503, {
-          error: completed.error || "Walrus memory job did not complete successfully",
+          error: "Walrus completion did not return a durable blob ID",
           jobId: accepted.job_id,
           paymentAuthorized: false,
         });
@@ -366,7 +364,7 @@ async function handler(req, res) {
         schema: "veyra.storage_receipt.v1",
         receiptId: randomUUID(),
         jobId: accepted.job_id,
-        blobId: completed.blob_id,
+        blobId: completed.blobId,
         address: prepared.candidate.address,
         counterpartyId: prepared.candidate.counterpartyId,
         recordHash: prepared.recordHash,
@@ -378,7 +376,7 @@ async function handler(req, res) {
       safeguardsLedger.recordSuccess(idKey, receipt);
       await safeguardsLedger.persist();
 
-      localIndex.addRecord(completed.blob_id, prepared.candidateJson, receipt.storedAt);
+      localIndex.addRecord(completed.blobId, prepared.candidateJson, receipt.storedAt);
 
       return send(200, {
         status: "stored",
@@ -391,6 +389,7 @@ async function handler(req, res) {
     }
   }
   if (req.method === "GET" && req.url?.startsWith("/v1/self-service/receipts?")) {
+    if (publicMode) return send(403, { error: "Public receipt discovery disabled", paymentAuthorized: false });
     const url = new URL(req.url, "http://localhost");
     const address = url.searchParams.get("address");
     if (!address) return send(400, { error: "Address required" });
@@ -426,7 +425,7 @@ async function handler(req, res) {
     }
   }
   if (req.method === "GET" && req.url === "/health")
-    return send(200, { status: "running", paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode });
+    return send(200, { status: "running", paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode, selfServiceWritesEnabled: !publicMode, publicationSecurityGatesComplete: false });
   if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
     const url = new URL(req.url, "http://localhost");
     const counterpartyId = url.searchParams.get("counterpartyId");
@@ -454,7 +453,7 @@ async function handler(req, res) {
           const event = JSON.parse(item.text);
           if (event.type !== "veyra.recipient_evidence.v1" || event.counterpartyId !== counterpartyId ||
               event.chain !== "sui" || event.network !== "mainnet" || event.paymentAuthorized !== false ||
-              event.trust !== "informational_unverified" ||
+              !["informational_unverified", "direct_owner_confirmed_with_signed_consent"].includes(event.trust) ||
               !["wallet", "package", "shared_object"].includes(event.addressKind) ||
               !["source_observed", "recipient_reconfirmed", "mismatch_reviewed"].includes(event.eventType) ||
               typeof event.address !== "string" || typeof event.source?.reference !== "string" ||

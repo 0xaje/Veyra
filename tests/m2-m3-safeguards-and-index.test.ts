@@ -70,9 +70,10 @@ test("M3 Consent: prepares cryptographically bound candidate record and message"
   });
 
   assert.equal(candidate.addressKind, "wallet");
-  assert.equal(candidate.trust, "direct_owner_confirmed_with_signed_consent");
+  assert.equal(candidate.trust, "informational_unverified");
+  assert.equal(candidate.independentlyVerified, false);
   assert.equal(candidate.paymentAuthorized, false);
-  assert.equal(candidate.publicationConsentHash, recordHash);
+  assert.equal(computePayloadSha256(candidateJson), recordHash);
 
   const consentMsg = buildPublicationConsentMessage({
     address: candidate.address,
@@ -81,7 +82,7 @@ test("M3 Consent: prepares cryptographically bound candidate record and message"
     scope: "public_walrus_recipient_confirmation",
     network: "sui-mainnet",
     expiresAt: "2026-10-24T10:15:00.000Z",
-    nonce: "abcdef123456",
+    nonce: "a".repeat(32),
   });
 
   assert.ok(consentMsg.includes("Veyra public recipient-confirmation publication consent"));

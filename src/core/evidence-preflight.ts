@@ -53,7 +53,7 @@ export function preflightWithEvidence(input: {
     independentlyVerified: false,
     paymentAuthorized: false,
   };
-  const memoryTimeline = buildRecipientMemoryTimeline(input.counterpartyId, applicableClaims);
+  const memoryTimeline = buildRecipientMemoryTimeline(input.counterpartyId, applicableClaims, unifiedEvidence.entries);
   const observation = input.tatumObservation;
   const validTatum = !!observation &&
     observation.status === "observed" &&

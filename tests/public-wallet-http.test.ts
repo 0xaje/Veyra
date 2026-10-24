@@ -50,3 +50,20 @@ test("public wallet proof rejects requests beyond per-client allowance", {timeou
   assert.equal(res.status,429);assert.equal((await res.json()).paymentAuthorized,false);
  }finally{await stop(child)}
 });
+
+test("M3: public publication cannot be enabled by an environment flag", {timeout:15000},async()=>{
+ const p=await port();
+ const {child,base}=await launch({VEYRA_PUBLIC_MODE:"true",VEYRA_PUBLIC_WALLET_PROOF:"false",VEYRA_ENABLE_SELF_SERVICE_WRITES:"true"},p);
+ try{
+  const health=await (await fetch(base+"/health")).json();
+  assert.equal(health.memoryWritesEnabled,false);
+  assert.equal(health.selfServiceWritesEnabled,false);
+  assert.equal(health.publicationSecurityGatesComplete,false);
+  for(const path of ["/v1/self-service/prepare-consent","/v1/self-service/confirm-and-store"]){
+   const response=await post(base,path,"https://veyra.example");
+   assert.equal(response.status,403);
+   assert.equal((await response.json()).paymentAuthorized,false);
+  }
+  assert.equal((await fetch(base+"/v1/self-service/receipts?address="+ADDRESS)).status,403);
+ }finally{await stop(child)}
+});

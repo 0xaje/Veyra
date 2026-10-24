@@ -1,4 +1,5 @@
 import { normalizeSuiAddress, type RecipientRecord } from "./recipient-check.ts";
+import type { UnifiedEvidenceEntry } from "./unified-recipient-evidence.ts";
 
 export type RecipientMemoryEvent = {
   blobId: string;
@@ -6,7 +7,7 @@ export type RecipientMemoryEvent = {
 };
 export type RecipientMemoryTimeline = {
   status: "no_memories" | "single_claim" | "multiple_claims_same_address" | "address_change_requires_review";
-  entries: Array<{ blobId: string; address: string; confirmedAt: string; confirmationMethod: string }>;
+  entries: Array<{ blobId: string; address: string; confirmedAt: string; confirmationMethod: string; sourceReference?: string; provenance?: string }>;
   distinctAddresses: string[];
   latestClaim: { blobId: string; address: string; confirmedAt: string } | null;
   independentlyVerified: false;
@@ -21,6 +22,7 @@ export type RecipientMemoryTimeline = {
 export function buildRecipientMemoryTimeline(
   counterpartyId: string,
   recalled: RecipientMemoryEvent[],
+  unifiedEntries: UnifiedEvidenceEntry[] = [],
 ): RecipientMemoryTimeline {
   const unique = new Map<string, RecipientMemoryTimeline["entries"][number]>();
   for (const item of recalled) {
@@ -33,10 +35,22 @@ export function buildRecipientMemoryTimeline(
       const confirmationMethod = item.record.confirmation?.method;
       if (typeof confirmedAt !== "string" || !Number.isFinite(Date.parse(confirmedAt)) ||
           Date.parse(confirmedAt) > Date.now() || typeof confirmationMethod !== "string") continue;
-      if (!unique.has(item.blobId)) unique.set(item.blobId, {
+      const key = JSON.stringify([item.blobId, address]);
+      if (!unique.has(key)) unique.set(key, {
         blobId: item.blobId, address, confirmedAt, confirmationMethod,
       });
     } catch { /* Invalid claims are not usable evidence. */ }
+  }
+  // Use the SAME validated recipient baselines as the main comparison. Wallet
+  // control and package context never become recipient-history entries.
+  for (const entry of unifiedEntries) {
+    if (!entry.recipientBaseline || entry.counterpartyId !== counterpartyId) continue;
+    const key = JSON.stringify([entry.blobId, entry.address]);
+    if (!unique.has(key)) unique.set(key, {
+      blobId: entry.blobId, address: entry.address, confirmedAt: entry.observedAt,
+      confirmationMethod: entry.provenance, provenance: entry.provenance,
+      sourceReference: entry.sourceReference,
+    });
   }
   const entries = [...unique.values()].sort((a, b) =>
     Date.parse(a.confirmedAt) - Date.parse(b.confirmedAt) || a.blobId.localeCompare(b.blobId));

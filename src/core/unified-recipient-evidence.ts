@@ -60,14 +60,16 @@ export function unifyRecipientEvidence(input: {
     const r = item?.record as Record<string, any> | null;
     if (r?.type !== "veyra.recipient_evidence.v1" || r.chain !== "sui" || r.network !== "mainnet" ||
         r.counterpartyId !== input.counterpartyId ||
-        r.trust !== "informational_unverified" || r.paymentAuthorized !== false ||
+        !["informational_unverified", "direct_owner_confirmed_with_signed_consent"].includes(r.trust) || r.paymentAuthorized !== false ||
         !["wallet", "package", "shared_object"].includes(r.addressKind) ||
         !["source_observed", "recipient_reconfirmed", "mismatch_reviewed"].includes(r.eventType) ||
         !["direct_owner_confirmation", "public_official_document", "local_assessment"].includes(r.source?.kind) ||
         !nonempty(r.source?.reference) || !past(r.source?.observedAt)) continue;
     const baseline = r.addressKind === "wallet" && r.eventType === "recipient_reconfirmed" && r.source.kind === "direct_owner_confirmation";
     try { add(item, { kind: baseline ? "recipient_observation" : "informational_observation", address: normalizeSuiAddress(r.address),
-      counterpartyId: r.counterpartyId, provenance: baseline ? "direct_owner_confirmation_claim" : `${r.addressKind}:${r.eventType}:${r.source.kind}`,
+      counterpartyId: r.counterpartyId, provenance: r.trust === "direct_owner_confirmed_with_signed_consent"
+        ? "stored_publication_signature_claim_not_reverified"
+        : baseline ? "direct_owner_confirmation_claim" : `${r.addressKind}:${r.eventType}:${r.source.kind}`,
       recipientBaseline: baseline, observedAt: r.source.observedAt, sourceReference: r.source.reference,
       freshness: "historical_claim", signedChallengeExpiresAt: null }); } catch {}
   }

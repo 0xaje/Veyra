@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       <div>
         <div class="overline">Recipient Onboarding · Walrus Storage</div>
         <h1>Confirm your receiving address</h1>
-        <p>Are you expecting to receive funds? Connect your Sui wallet and store your confirmed receiving address on Walrus Mainnet.</p>
+        <p>Are you expecting to receive funds? Connect your Sui wallet to inspect available verification options. Public publication remains disabled until security requirements are complete.</p>
       </div>
       <span class="read-only">◉ &nbsp; Wallet Standard</span>
     </div>
@@ -414,9 +414,11 @@ $("connect").addEventListener("click",()=>{
   ?"Choose one of your detected Sui wallets to connect."
   :"No compatible Sui wallet detected. Install or unlock a Sui wallet extension, then click Connect Wallet again.");
 });
-function resetReceipt(){$("recipient-intent-consent").checked=false;$("recipient-intent-download").disabled=true;$("recipient-intent-feedback").textContent="";portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";$("publication-box").hidden=true;$("pub-receipt-box").hidden=true;$("pub-status").textContent="";$("pub-consent-check").checked=false;$("pub-sign-submit").disabled=true;}
+function resetReceipt(){preparedConsentPayload=null;$("recipient-intent-consent").checked=false;$("recipient-intent-download").disabled=true;$("recipient-intent-feedback").textContent="";portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";$("publication-box").hidden=true;$("pub-receipt-box").hidden=true;$("pub-status").textContent="";$("pub-consent-check").checked=false;$("pub-sign-submit").disabled=true;}
 let preparedConsentPayload=null;
+let publicationAvailable=false;
 $("prepare-publication").addEventListener("click",async()=>{
+  if(!publicationAvailable){$("pub-status").textContent="Publication is disabled while security requirements are completed.";return;}
   const cId=$("selfCounterparty").value.trim();
   if(!cId){alert("Please enter a recipient identifier (e.g. your username or business handle)");return;}
   if(!expected){alert("Please connect your Sui wallet first in Step 1.");return;}
@@ -436,10 +438,11 @@ $("prepare-publication").addEventListener("click",async()=>{
   }
 });
 $("pub-consent-check").addEventListener("change",()=>{
-  $("pub-sign-submit").disabled=!preparedConsentPayload||!$("pub-consent-check").checked;
+  $("pub-sign-submit").disabled=!publicationAvailable||!preparedConsentPayload||!$("pub-consent-check").checked;
 });
 $("pub-sign-submit").addEventListener("click",async()=>{
-  if(!preparedConsentPayload||!connected||!account)return;
+  if(!publicationAvailable||!preparedConsentPayload||!connected||!account||!$("pub-consent-check").checked)return;
+  if(account.address!==expected||preparedConsentPayload.address!==expected){resetReceipt();return;}
   const msg=$("pub-consent-message").value;
   try{
     $("pub-sign-submit").disabled=true;
@@ -552,6 +555,9 @@ async function checkAvailability(){
   if(!response.ok)throw Error("Health unavailable");
   const health=await response.json();
   verificationAvailable=health.walletProofEnabled===true;
+  publicationAvailable=health.selfServiceWritesEnabled===true;
+  $("prepare-publication").disabled=!publicationAvailable;
+  if(!publicationAvailable)$("pub-status").textContent="Public publication is disabled while security requirements are completed. Read-only address checks remain available.";
   $("connect").disabled=false;
   if(!verificationAvailable){
    status("Wallet connection is available. Signature verification is not enabled in this deployment configuration.");
@@ -561,6 +567,7 @@ async function checkAvailability(){
   status("Wallet connection is available; server health unreachable.");
  }
 }
+$("prepare-publication").disabled=true;
 checkAvailability();
 })();
 </script>

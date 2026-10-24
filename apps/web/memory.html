@@ -278,8 +278,8 @@ document.addEventListener("DOMContentLoaded",()=>{
       </div>
       <div class="stat">
         <div class="label">VERIFICATION POLICY</div>
-        <div class="value">Cryptographic Hash</div>
-        <div class="sub">SHA-256 bound payload</div>
+        <div class="value">Verification status</div>
+        <div class="sub">Exact-ID verification pending</div>
       </div>
     </div>
 
@@ -291,7 +291,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       </div>
       <div class="panel-body">
         <p style="margin:0 0 16px;color:var(--veyra-muted);font-size:13px">
-          These records are live blobs stored in the Walrus decentralized storage network under the <code>veyra-dev</code> namespace. Each record contains timestamped recipient claims or cryptographic wallet control proofs.
+          These records are live blobs stored in the Walrus decentralized storage network under the <code>veyra-dev</code> namespace. Inventory metadata alone does not establish record content, signature validity or current blob availability.
         </p>
         <div id="inventory-list" class="empty">Querying Walrus decentralized storage...</div>
       </div>
@@ -347,6 +347,7 @@ function truncate(str, len = 22) {
   return str.slice(0, 10) + "…" + str.slice(-8);
 }
 
+function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
 // 1. Fetch Live Walrus Memories Inventory
 async function loadInventory() {
   const host = document.getElementById("inventory-list");
@@ -358,7 +359,7 @@ async function loadInventory() {
     if (!res.ok) throw new Error(data.error || "Failed to load inventory");
     const count = data.count || 0;
     countEl.textContent = count + " Memories";
-    statusEl.textContent = count + " active records";
+    statusEl.textContent = count + " listed records";
     host.replaceChildren();
 
     if (!data.memories || data.memories.length === 0) {
@@ -376,20 +377,20 @@ async function loadInventory() {
 
       card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-          <strong style="font-size:14px;color:var(--veyra-text)">Record #${index + 1}</strong>
-          <span style="font-size:11px;color:var(--veyra-muted)">${date} · ${size} · ${epoch}</span>
+          <strong style="font-size:14px;color:var(--veyra-text)">Record #${escapeHtml(index + 1)}</strong>
+          <span style="font-size:11px;color:var(--veyra-muted)">${escapeHtml(date)} · ${escapeHtml(size)} · ${escapeHtml(epoch)}</span>
         </div>
         <div class="kv">
           <span>Walrus Blob ID</span>
-          <span><code>${blob}</code> <button type="button" class="copy-btn" onclick="copy('${blob}', this)">Copy</button></span>
+          <span><code>${escapeHtml(blob)}</code> <button type="button" class="copy-btn" data-copy="${escapeHtml(blob)}">Copy</button></span>
         </div>
         <div class="kv">
           <span>Memory ID</span>
-          <span><code>${mem.memory_id || '—'}</code></span>
+          <span><code>${escapeHtml(mem.memory_id || '—')}</code></span>
         </div>
         <div class="kv">
           <span>Status</span>
-          <span class="pill" style="font-size:10px;padding:2px 6px">Active on Walrus</span>
+          <span class="pill" style="font-size:10px;padding:2px 6px">Listed by MemWal</span>
         </div>
       `;
       host.appendChild(card);
@@ -400,6 +401,10 @@ async function loadInventory() {
   }
 }
 loadInventory();
+document.addEventListener("click",event=>{
+  const button=event.target.closest?.("button[data-copy]");
+  if(button)copy(button.dataset.copy,button);
+});
 
 // 2. Evidence Form Search
 const evidenceForm = document.getElementById("evidence-form");
@@ -431,24 +436,24 @@ evidenceForm.addEventListener("submit", async e => {
       card.className = "evidence-card";
       card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <strong style="font-size:13px;color:var(--veyra-text)">${evt.eventType.replaceAll("_", " ")}</strong>
-          <span class="pill">${evt.addressKind}</span>
+          <strong style="font-size:13px;color:var(--veyra-text)">${escapeHtml(evt.eventType.replaceAll("_", " "))}</strong>
+          <span class="pill">${escapeHtml(evt.addressKind)}</span>
         </div>
         <div class="kv">
           <span>Observed Address</span>
-          <span><code>${evt.address}</code> <button type="button" class="copy-btn" onclick="copy('${evt.address}', this)">Copy</button></span>
+          <span><code>${escapeHtml(evt.address)}</code> <button type="button" class="copy-btn" data-copy="${escapeHtml(evt.address)}">Copy</button></span>
         </div>
         <div class="kv">
           <span>Walrus Blob</span>
-          <span><code>${evt.blobId}</code> <button type="button" class="copy-btn" onclick="copy('${evt.blobId}', this)">Copy</button></span>
+          <span><code>${escapeHtml(evt.blobId)}</code> <button type="button" class="copy-btn" data-copy="${escapeHtml(evt.blobId)}">Copy</button></span>
         </div>
         <div class="kv">
           <span>Observed Time</span>
-          <span>${evt.source?.observedAt || 'Not recorded'}</span>
+          <span>${escapeHtml(evt.source?.observedAt || 'Not recorded')}</span>
         </div>
         <div class="kv">
           <span>Source Reference</span>
-          <span>${evt.source?.reference || 'Not recorded'}</span>
+          <span>${escapeHtml(evt.source?.reference || 'Not recorded')}</span>
         </div>
       `;
       evidenceHost.appendChild(card);
@@ -466,12 +471,12 @@ try {
     const sessionHost = document.getElementById("session-records");
     sessionHost.className = "";
     sessionHost.innerHTML = `
-      <div class="kv"><span>Checked At</span><span>${new Date(r.capturedAt||r.checkedAt).toLocaleString()}</span></div>
-      <div class="kv"><span>Counterparty</span><span>${r.counterpartyId}</span></div>
-      <div class="kv"><span>Proposed Address</span><span><code>${r.proposedAddress}</code></span></div>
-      <div class="kv"><span>Recipient Verdict</span><span>${r.recipient?.verdict?.replaceAll("_", " ") || "Review required"}</span></div>
-      <div class="kv"><span>Walrus Provider</span><span>${r.providers?.walrus || "Unavailable"}</span></div>
-      <div class="kv"><span>Memory Blob</span><span><code>${r.recipient?.memoryBlobId || "None"}</code></span></div>
+      <div class="kv"><span>Checked At</span><span>${escapeHtml(new Date(r.capturedAt||r.checkedAt).toLocaleString())}</span></div>
+      <div class="kv"><span>Counterparty</span><span>${escapeHtml(r.counterpartyId)}</span></div>
+      <div class="kv"><span>Proposed Address</span><span><code>${escapeHtml(r.proposedAddress)}</code></span></div>
+      <div class="kv"><span>Recipient Verdict</span><span>${escapeHtml(r.recipient?.verdict?.replaceAll("_", " ") || "Review required")}</span></div>
+      <div class="kv"><span>Walrus Provider</span><span>${escapeHtml(r.providers?.walrus || "Unavailable")}</span></div>
+      <div class="kv"><span>Memory Blob</span><span><code>${escapeHtml((r.memoryComparison?.evidenceBlobIds||[]).join(", ") || r.recipient?.memoryBlobId || "None")}</code></span></div>
     `;
   }
 } catch {}
