@@ -400,6 +400,31 @@ async function handler(req, res) {
       receipts: safeguardsLedger.getReceiptsForWallet(address),
     });
   }
+  if (req.method === "GET" && req.url === "/v1/walrus-inventory") {
+    if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID) {
+      return send(503, { error: "Walrus credentials unavailable", memories: [] });
+    }
+    try {
+      const { MemWal } = await import("@mysten-incubation/memwal");
+      const memory = MemWal.create({
+        key: process.env.MEMWAL_PRIVATE_KEY,
+        accountId: process.env.MEMWAL_ACCOUNT_ID,
+        serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
+        namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+      });
+      const list = await memory.listMemories({ namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev" });
+      const memories = Array.isArray(list?.memories) ? list.memories : [];
+      return send(200, {
+        schema: "veyra.walrus_inventory.v1",
+        namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+        count: memories.length,
+        memories,
+        paymentAuthorized: false,
+      });
+    } catch (err) {
+      return send(500, { error: err instanceof Error ? err.message : "Inventory query failed", memories: [] });
+    }
+  }
   if (req.method === "GET" && req.url === "/health")
     return send(200, { status: "running", paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode });
   if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
