@@ -116,7 +116,7 @@ export class PublicationLedger {
       const where = "(reserved_at>=? OR phase!='stored')";
       const global = this.db.prepare("SELECT count(*) AS n FROM publication_jobs WHERE " + where).get(dayStart) as { n: number };
       const wallet = this.db.prepare("SELECT count(*) AS n FROM publication_jobs WHERE address=? AND " + where)
-        .get(consent.address, dayStart) as { n: number };
+        .get(prepared.candidate.address, dayStart) as { n: number };
       if (global.n >= this.config.maxGlobalDailyWrites) throw new Error("Global publication write ceiling reached");
       if (wallet.n >= this.config.maxDailyWritesPerWallet) throw new Error("Wallet publication write ceiling reached");
       const idempotencyKey = "veyra-publication-" + consent.nonce;

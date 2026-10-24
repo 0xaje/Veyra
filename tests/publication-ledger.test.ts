@@ -120,3 +120,13 @@ test("M3: zero budget rejects publication before provider submission", async t =
   try { const first = db.issue("0x1", "local-a"); assert.throws(() => db.reserve(first.consentPayload), /ceiling/); }
   finally { db.close(); }
 });
+
+test("M3: alternate normalized address spelling cannot bypass a wallet ceiling", async t => {
+  const path = await folder(t);
+  const db = new PublicationLedger(path, limits);
+  try{
+    const first=db.issue("0x1","local-a"),second=db.issue("0x1","local-b");
+    db.reserve(first.consentPayload);
+    assert.throws(()=>db.reserve({...second.consentPayload,address:"0x1"}),/Wallet.*ceiling/);
+  }finally{db.close();}
+});
