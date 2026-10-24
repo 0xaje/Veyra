@@ -32,7 +32,7 @@ test("M3: delayed real signature verifies against the exact prepared storage byt
 });
 
 test("M3: altered consent, foreign preparation, expiry and caller mutation fail closed", () => {
-  const now = Date.now();
+  const now = Date.now() - 600_001;
   const stage = new PreparedPublications(1);
   const first = stage.issue("0x1", "local-test-recipient", now);
   for (const change of [
