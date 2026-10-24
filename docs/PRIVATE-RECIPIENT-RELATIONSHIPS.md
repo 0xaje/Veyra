@@ -71,7 +71,7 @@ Interactive extension-wallet and mobile acceptance must be checked on a browser 
 
 - `/`: Check recipient remains the primary form. No private sign-in/management panel is mounted above it. An optional link opens Saved recipients. An already authenticated person with active contacts can choose one in the form.
 - `/contacts`: dedicated payer-owned Saved recipients page with sign-in, invitations, acceptance, refresh, revocation and recent confirmation history.
-- `/verify-wallet`: existing wallet-control verification flow, with a separate link to private receiving. Verification alone does not save a public recipient record.
+- `/verify-wallet`: existing wallet-control verification flow shown first, with a separate link to private receiving. Disabled public publication stays in a collapsed, explicitly unavailable section. Verification alone does not save a public recipient record.
 - `/receive-private`: invitation-based private receiving and previous confirmations. New invitation links use this path; old `/verify-wallet#invite=...` links remain supported.
 
 All entry points share the current light/dark theme and mobile navigation. No user needs to contact the builder to operate an enabled private flow. The hosted flow is still unavailable until its deployment gate is actually completed; adding navigation does not satisfy that gate.

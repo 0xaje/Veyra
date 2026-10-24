@@ -232,7 +232,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   </nav>
   <div class="side-note">
     <strong>Self-Service Confirmation</strong>
-    <p>Publish your intended receiving address to Walrus with your cryptographic signature. Never authorizes payments or transfers SUI.</p>
+    <p>Verify wallet control or follow a private invitation. Public Walrus publication remains disabled. Veyra never authorizes payments or transfers SUI.</p>
   </div>
 </aside>
 
@@ -245,9 +245,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   <main class="main">
     <div class="heading">
       <div>
-        <div class="overline">Recipient Onboarding · Walrus Storage</div>
+        <div class="overline">Receiving · Wallet verification</div>
         <h1>Confirm your receiving address</h1>
-        <p>Are you expecting to receive funds? Connect your Sui wallet to inspect available verification options. Public publication remains disabled until security requirements are complete.</p>
+        <p>Connect your Sui wallet and verify control yourself. For a private receiving confirmation, open the invitation your payer sent you.</p>
       </div>
       <span class="read-only">◉ &nbsp; Wallet Standard</span>
     </div>
@@ -276,60 +276,14 @@ document.addEventListener("DOMContentLoaded",()=>{
       </div>
     </section>
 
-    <!-- Step 2: Confirm & Store in Walrus (Primary Self-Service Flow) -->
-    <section class="panel">
-      <div class="panel-head">
-        <h2>2. Publish receiving confirmation</h2>
-        <small>Decentralized Memory</small>
-      </div>
-      <div class="panel-body">
-        <p style="margin:0 0 14px;color:var(--veyra-muted);font-size:13px">
-          Enter your recipient ID (username or business handle). Your confirmation is signed and stored on Walrus.
-        </p>
-
-        <div style="margin-bottom:16px">
-          <label for="selfCounterparty">Recipient identifier</label>
-          <input id="selfCounterparty" placeholder="e.g. alice-sui-recipient" maxlength="128" pattern="[A-Za-z0-9_-]+">
-        </div>
-
-        <button id="prepare-publication" type="button" class="primary">Prepare confirmation →</button>
-
-        <div id="publication-box" hidden style="margin-top:18px;padding:18px;border:1px solid var(--veyra-border);border-radius:10px;background:var(--veyra-surface)">
-          <p style="margin:0 0 10px;font-weight:600;font-size:13px;color:var(--veyra-text)">Review record to be stored on Walrus:</p>
-          <pre id="pub-record-json" style="max-height:180px;overflow:auto;background:var(--veyra-surface);padding:12px;border-radius:8px;font-size:12px;border:1px solid var(--veyra-border);margin:0 0 10px;color:var(--veyra-text)"></pre>
-          <p style="font-size:12px;color:var(--veyra-muted);margin:0 0 12px">Record SHA-256 fingerprint: <code id="pub-record-hash" style="display:inline;padding:3px 6px"></code></p>
-
-          <details style="margin:10px 0">
-            <summary style="font-size:13px;cursor:pointer;color:var(--veyra-text);font-weight:600">View exact consent text to sign</summary>
-            <textarea id="pub-consent-message" readonly style="min-height:95px;margin-top:8px"></textarea>
-          </details>
-
-          <label style="margin:14px 0 12px;font-weight:500;display:flex;gap:10px;align-items:flex-start">
-            <input id="pub-consent-check" type="checkbox" style="width:auto;margin-top:3px">
-            <span>I confirm this connected address is where I intend to receive Sui funds, and I authorize publishing this non-secret confirmation record to Walrus Mainnet.</span>
-          </label>
-
-          <button id="pub-sign-submit" type="button" class="primary" disabled>Sign consent in wallet & publish to Walrus →</button>
-          <p id="pub-status" role="status" style="margin:12px 0 0;font-weight:600;font-size:13px"></p>
-
-          <div id="pub-receipt-box" hidden style="margin-top:14px;padding:14px;background:var(--veyra-surface);border-radius:8px;border:1px solid var(--veyra-border)">
-            <p style="margin:0 0 8px;font-weight:700;color:var(--veyra-text)">✓ Walrus Storage Confirmed:</p>
-            <p style="margin:4px 0;font-size:13px">Blob ID: <code id="receipt-blob-id" style="display:inline;padding:2px 6px"></code></p>
-            <p style="margin:4px 0;font-size:13px">Job ID: <span id="receipt-job-id" style="font-family:monospace"></span></p>
-            <p style="margin:4px 0;font-size:13px">Receipt ID: <span id="receipt-receipt-id" style="font-family:monospace"></span></p>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Optional / Advanced: Ephemeral Challenge Verification & Offline Package -->
-    <details class="panel" style="margin-top:20px;border-color:var(--veyra-border)">
+    <details open class="panel" style="margin-top:20px;border-color:var(--veyra-border)">
       <summary style="padding:18px 24px;cursor:pointer;font-weight:700;color:var(--veyra-text);font-size:14px">
-        Advanced options: Ephemeral challenge & offline package
+        2. Verify wallet control
       </summary>
       <div class="panel-body" style="border-top:1px solid var(--veyra-border)">
         <p style="margin:0 0 12px;color:var(--veyra-muted);font-size:13px">
-          These optional tools allow you to test signing without storing to Walrus, or download a local offline JSON proof package for manual operator review.
+          Prove control of your connected wallet with a short-lived personal message. No payment or public record is created. You can download the verification result yourself.
         </p>
 
         <div style="margin-bottom:14px">
@@ -338,8 +292,8 @@ document.addEventListener("DOMContentLoaded",()=>{
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-          <button id="challenge" type="button" class="secondary-btn" disabled>1. Request 5-min challenge</button>
-          <button id="sign" type="button" class="secondary-btn" disabled>2. Sign challenge message</button>
+          <button id="challenge" type="button" class="secondary-btn" disabled>Request verification message</button>
+          <button id="sign" type="button" class="secondary-btn" disabled>Sign and verify wallet control</button>
         </div>
 
         <details style="margin:10px 0">
@@ -369,6 +323,50 @@ document.addEventListener("DOMContentLoaded",()=>{
         </details>
       </div>
     </details>
+
+    <!-- Step 2: Confirm & Store in Walrus (Primary Self-Service Flow) -->
+    <details class="panel">
+      <summary class="panel-head">Public Walrus publication · currently unavailable</summary>
+      <div class="panel-body">
+        <p style="margin:0 0 14px;color:var(--veyra-muted);font-size:13px">
+          Public publication is disabled while retrieval verification and security requirements are completed. This form cannot currently register a new public recipient record.
+        </p>
+
+        <div style="margin-bottom:16px">
+          <label for="selfCounterparty">Recipient identifier</label>
+          <input id="selfCounterparty" placeholder="e.g. alice-sui-recipient" maxlength="128" pattern="[A-Za-z0-9_-]+">
+        </div>
+
+        <button id="prepare-publication" type="button" disabled class="primary">Prepare confirmation →</button>
+
+        <div id="publication-box" hidden style="margin-top:18px;padding:18px;border:1px solid var(--veyra-border);border-radius:10px;background:var(--veyra-surface)">
+          <p style="margin:0 0 10px;font-weight:600;font-size:13px;color:var(--veyra-text)">Review record to be stored on Walrus:</p>
+          <pre id="pub-record-json" style="max-height:180px;overflow:auto;background:var(--veyra-surface);padding:12px;border-radius:8px;font-size:12px;border:1px solid var(--veyra-border);margin:0 0 10px;color:var(--veyra-text)"></pre>
+          <p style="font-size:12px;color:var(--veyra-muted);margin:0 0 12px">Record SHA-256 fingerprint: <code id="pub-record-hash" style="display:inline;padding:3px 6px"></code></p>
+
+          <details style="margin:10px 0">
+            <summary style="font-size:13px;cursor:pointer;color:var(--veyra-text);font-weight:600">View exact consent text to sign</summary>
+            <textarea id="pub-consent-message" readonly style="min-height:95px;margin-top:8px"></textarea>
+          </details>
+
+          <label style="margin:14px 0 12px;font-weight:500;display:flex;gap:10px;align-items:flex-start">
+            <input id="pub-consent-check" type="checkbox" style="width:auto;margin-top:3px">
+            <span>I confirm this connected address is where I intend to receive Sui funds, and I authorize publishing this non-secret confirmation record to Walrus Mainnet.</span>
+          </label>
+
+          <button id="pub-sign-submit" type="button" class="primary" disabled>Sign consent in wallet & publish to Walrus →</button>
+          <p id="pub-status" role="status" style="margin:12px 0 0;font-weight:600;font-size:13px"></p>
+
+          <div id="pub-receipt-box" hidden style="margin-top:14px;padding:14px;background:var(--veyra-surface);border-radius:8px;border:1px solid var(--veyra-border)">
+            <p style="margin:0 0 8px;font-weight:700;color:var(--veyra-text)">✓ Walrus Storage Confirmed:</p>
+            <p style="margin:4px 0;font-size:13px">Blob ID: <code id="receipt-blob-id" style="display:inline;padding:2px 6px"></code></p>
+            <p style="margin:4px 0;font-size:13px">Job ID: <span id="receipt-job-id" style="font-family:monospace"></span></p>
+            <p style="margin:4px 0;font-size:13px">Receipt ID: <span id="receipt-receipt-id" style="font-family:monospace"></span></p>
+          </div>
+        </div>
+      </div>
+    </details>
+
 
     <p style="font-size:12px;color:var(--veyra-muted);line-height:1.6;margin-top:20px">
       Publishing to Walrus creates a transparent, public recipient confirmation. A confirmation indicates your intended destination at the time of publication, but does not guarantee payment safety or replace the sender's own preflight check.

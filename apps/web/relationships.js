@@ -17,7 +17,7 @@ const panel=node('section',undefined,'panel private-contacts');panel.id='private
 const heading=node('h2',receiving?'Confirm a private receiving invitation':'Your private recipient contacts');
 const intro=node('p','A wallet signature proves key control. Confirm the person, full address and code through a trusted conversation before accepting a contact. Nothing here publishes to Walrus or authorizes payment.');
 const status=node('p','Checking private-contact availability…');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-const controls=node('div',undefined,'private-controls'),content=node('div');
+const controls=node('div',undefined,'private-controls'),content=node('div');controls.hidden=true;
 panel.append(heading,intro,status,controls,content);
 // The payer landing page only restores a saved session/selector. Management has its own space.
 if(!checking){const workspace=document.getElementById('private-workspace');if(workspace)workspace.append(panel);else main.append(panel);}else panel.hidden=true;
@@ -155,6 +155,7 @@ async function received(host){try{const data=await request('/v1/private/recipien
 (async()=>{try{
  const health=await fetch('/health',{cache:'no-store'}).then(r=>r.json());available=health.privateRelationshipsEnabled===true;signIn.disabled=!available;
  if(!available){controls.hidden=true;contactSelect.disabled=true;setStatus('Private contacts are disabled until persistent storage and deployment security are configured. Public read-only address checks remain available.');return;}
+ controls.hidden=false;
  try{session=await request('/v1/private/session');await refresh();}catch{setStatus('Sign in with the wallet you want to use for this private relationship. No wallet transaction is requested.');}
  }catch{controls.hidden=true;setStatus('Private-contact availability could not be checked.');}})();
 })();

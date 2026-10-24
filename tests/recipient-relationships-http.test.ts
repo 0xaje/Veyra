@@ -119,6 +119,8 @@ test('M5: optional saved recipients and private receiving have distinct accessib
  const home=await fetch(api.base+'/').then(r=>r.text());assert.match(home,/id="preflight"/);
  assert.match(home,/Manage saved recipients \(optional\)/);
  const receiving=await fetch(api.base+'/verify-wallet').then(r=>r.text());assert.match(receiving,/href="\/receive-private"/);
+ assert.ok(receiving.indexOf('id="challenge"')<receiving.indexOf('id="prepare-publication"'));
+ assert.match(receiving,/2\. Verify wallet control/);
  const source=await fetch(api.base+'/relationships.js').then(r=>r.text());
  assert.ok(source.includes('else panel.hidden=true')); // Never mount management above the main form.
 });
