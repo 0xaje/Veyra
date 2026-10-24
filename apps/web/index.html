@@ -276,52 +276,32 @@ document.addEventListener("DOMContentLoaded",()=>{
 <section class="panel"><div class="panel-head"><h2>Assessment result</h2><small>Step 2 of 2</small></div>
 <div id="empty" class="preflight-empty"><div class="glyph" aria-hidden="true">◇</div><h3>Your findings will appear here.</h3><p>Enter a recipient and wallet address to see the available evidence and next steps.</p></div>
 <div id="results" hidden aria-live="polite"><div class="result-intro"><div class="shield">!</div><div><strong>Assessment completed</strong><p>Provider observations are not proof of recipient ownership.</p></div></div><div class="result-content"><section class="consumer-summary" id="consumerSummary" aria-labelledby="consumerHeadline"><h3 id="consumerHeadline">Review this destination before paying</h3><p id="consumerMessage">Veyra checks available historical records, but cannot verify who owns this address.</p><strong>What to do next</strong><ol id="consumerSteps"></ol></section><div class="assessment-status"><span class="assessment-status-dot" aria-hidden="true"></span><span>Manual verification required before any payment</span></div><details class="assessment-details" id="assessmentDetails"><summary>View evidence and technical assessment <span aria-hidden="true">⌄</span></summary><div class="assessment-details-body"><div class="verdict" id="verdict" hidden>Manual review required</div><div class="kv"><span>Recipient record</span><span id="recipientVerdict"></span></div><div class="kv"><span>Tatum evidence</span><span id="tatum"></span></div><div class="kv"><span>Walrus Memory</span><span id="walrus"></span></div><div class="kv"><span>Remembered address comparison</span><span id="memoryComparison"></span></div><div id="memoryExplanation" class="reason" hidden></div><div class="kv"><span>Historical address participation</span><span id="historical"></span></div><div class="kv"><span>Payment authorization</span><span>Not authorized</span></div><div class="reason-title">Assessment rationale</div><div id="reasons"></div><div class="evidence-box"><h3>Evidence trace</h3><div class="kv"><span>Transaction reference</span><span id="evidenceDigest">Not provided</span></div><div class="kv"><span>Provider verification</span><span id="verificationLevel">Not independently verified</span></div><div class="kv"><span>Memory record</span><span id="memoryReference">Not available</span></div><p>Evidence is provider-observed historical context, not proof of recipient ownership or a payment authorization.</p></div><div class="evidence-box" id="investigation" hidden><h3>Live transaction investigation</h3><div class="kv"><span>Transaction digest</span><span id="txDigest"></span></div><div class="kv"><span>Observed sender</span><span id="txSender"></span></div><div class="kv"><span>Execution status</span><span id="txExecution"></span></div><div class="kv"><span>Evidence captured</span><span id="txChecked"></span></div><div class="kv"><span>Transport</span><span id="txTransport"></span></div><div class="reason-title">Reported balance changes</div><div id="txChanges"></div><p>Amounts are raw onchain units, not formatted token balances. Provider observation is not independent cryptographic verification and cannot establish who controls an address.</p></div></div></details></div></div></section></div>
-<section class="panel memory-write-panel" style="margin-top:20px"><div class="panel-head"><h2>Save a recipient confirmation</h2><small>Optional · Local write only</small></div><div class="panel-body">
-<p class="section-caption">For local, authorized use only. Confirm the full address independently before recording it on Walrus. A stored claim is not proof of identity or payment safety.</p>
-<form id="memoryForm">
-<div class="field"><label for="memoryIntent">What are you recording?</label><select id="memoryIntent" required style="width:100%;padding:12px;border-radius:7px"><option value="new">New recipient confirmation</option><option value="update">A genuinely changed recipient address</option></select></div>
-<div id="previousMemoryFields" hidden>
-<p class="section-caption">Only use this after independently confirming the new full address. Enter the previous address and Walrus blob ID from Memory Status. Veyra checks that prior record is recalled before writing; a new record does not erase or supersede it automatically.</p>
-<div class="field"><label for="previousAddress">Previous complete Sui address</label><input id="previousAddress" autocomplete="off" placeholder="0x…"></div>
-<div class="field"><label for="previousBlobId">Previous Walrus blob ID</label><input id="previousBlobId" autocomplete="off" placeholder="Prior recalled blob ID"></div>
-<div class="field"><label><input id="confirmedAddressChange" type="checkbox" style="width:auto"> I independently verified that the recipient's full address genuinely changed, and understand the earlier claim remains visible.</label></div>
+<div class="quick-examples" style="margin-top:16px;padding:14px 18px;border:1px solid #b1cbbd;border-radius:10px;background:#f5faf6;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <div style="font-size:13px;font-weight:600;color:#1e4430">⚡ Try a live scenario:</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button type="button" id="example-friend" style="background:#e0ede3;border:1px solid #a4c9b2;color:#19402e;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600">✓ Recipient Match</button>
+    <button type="button" id="example-lookalike" style="background:#faeae8;border:1px solid #e8b0a9;color:#7e221b;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600">⚠ Lookalike Address</button>
+  </div>
 </div>
-<div class="field"><label for="confirmationMethod">How did you independently confirm this destination?</label><select id="confirmationMethod" required style="width:100%;padding:12px;border-radius:7px"><option value="independent_contact">Trusted independent contact</option><option value="self_wallet_check">My own wallet — address displayed in wallet app</option><option value="in_person">In person</option><option value="signed_message">Signed message</option></select></div>
-<div class="field"><label for="confirmationReference">Confirmation reference (do not enter secrets)</label><input id="confirmationReference" required maxlength="256" placeholder="Describe your genuine verification evidence" autocomplete="off"></div>
-<div class="field"><label><input type="checkbox" id="storageConsent" required style="width:auto"> I approve storing this recipient confirmation on Walrus Mainnet.</label></div>
-<div class="field"><label for="storeConfirmation">Type STORE to confirm this real write</label><input id="storeConfirmation" required autocomplete="off" placeholder="STORE"></div>
-<button class="action" id="storeButton" type="submit">Store confirmed recipient in Walrus</button>
-<div id="memoryResult" class="form-note" role="status" aria-live="polite"></div>
-</form></div></section>
-<div class="bottom"><section class="mini"><h3>Verify independently</h3><p>Onchain activity and recalled records cannot establish recipient identity. Confirm the complete address directly before paying. <a class="docs-link" href="/docs">Verification guide →</a></p></section></div>
+<section class="panel" style="margin-top:20px;border-left:4px solid #286e50"><div class="panel-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px">
+  <div>
+    <h2 style="margin:0 0 4px;font-size:16px;color:#17372b">Are you expecting to receive funds?</h2>
+    <p style="margin:0;font-size:13px;color:#50685f">Connect your Sui wallet to publish a self-service recipient confirmation to Walrus with your cryptographic signature.</p>
+  </div>
+  <a href="/verify-wallet" class="action" style="width:auto;padding:10px 18px;text-decoration:none;display:inline-block;white-space:nowrap">Confirm your receiving address →</a>
+</div></section>
+<div class="bottom"><section class="mini" style="grid-column:1 / -1"><h3>Independent verification policy</h3><p>Veyra checks Walrus decentralized memories and Tatum Sui Mainnet observations. It flags address changes and uncertainties. Veyra never authorizes or executes payments, guarantees recipient identity, or replaces your own independent confirmation. <a class="docs-link" href="/docs">Read documentation & security guide →</a></p></section></div>
 </main></div></div>
 <script>
-const memoryIntent=document.getElementById("memoryIntent");
-const previousMemoryFields=document.getElementById("previousMemoryFields");
-memoryIntent.addEventListener("change",()=>{const updating=memoryIntent.value==="update";previousMemoryFields.hidden=!updating;for(const id of ["previousAddress","previousBlobId"]){document.getElementById(id).required=updating}document.getElementById("confirmedAddressChange").required=updating});
-document.getElementById("memoryForm").addEventListener("submit",async event=>{
-event.preventDefault();
-const status=document.getElementById("memoryResult"),btn=document.getElementById("storeButton");
-if(document.getElementById("storeConfirmation").value!=="STORE"){status.textContent="Type STORE exactly to approve the write.";return}
-if(!document.getElementById("storageConsent").checked){status.textContent="Storage approval is required.";return}
-const reference=document.getElementById("confirmationReference").value.trim();
-if(!reference){status.textContent="A real confirmation reference is required.";return}
-btn.disabled=true;status.textContent="Submitting genuine Walrus Mainnet memory write…";
-try{
-const response=await fetch("/v1/recipient-memory",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-chain:"sui",network:"mainnet",counterpartyId:document.getElementById("counterparty").value.trim(),
-address:document.getElementById("address").value.trim(),
-confirmation:{method:document.getElementById("confirmationMethod").value,reference,confirmedAt:new Date().toISOString()},
-memoryIntent:memoryIntent.value,previousAddress:memoryIntent.value==="update"?document.getElementById("previousAddress").value.trim():undefined,previousBlobId:memoryIntent.value==="update"?document.getElementById("previousBlobId").value.trim():undefined,confirmedAddressChange:memoryIntent.value==="update"?document.getElementById("confirmedAddressChange").checked:undefined,
-userApprovedStorage:true,confirmWrite:"STORE"
-})});
-const result=await response.json();
-if(!response.ok||result.state?.status!=="stored")throw new Error(result.error||result.state?.reason||"Walrus did not confirm durable storage");
-status.textContent="Stored on Walrus. Blob ID: "+result.state.blobId+". This is a user-confirmed claim, not independent ownership proof.";
-document.getElementById("storeConfirmation").value="";
-document.getElementById("storageConsent").checked=false;
-}catch(error){status.textContent="Write not verified: "+error.message}
-finally{btn.disabled=false}
+document.getElementById("example-friend").addEventListener("click",()=>{
+  document.getElementById("counterparty").value="friend-1-sui-recipient";
+  document.getElementById("address").value="0x53059ac6228be6b4a5a67c3f72aa174b6f20363ee11d1bd301c6b3f7ef6bfe7f";
+  document.getElementById("submit").click();
+});
+document.getElementById("example-lookalike").addEventListener("click",()=>{
+  document.getElementById("counterparty").value="friend-1-sui-recipient";
+  document.getElementById("address").value="0x53059ac6228be6b4a5a67c3f72aa174b6f20363ee11d1bd301c6b3f7ef6bfe7e";
+  document.getElementById("submit").click();
 });
 const form=document.getElementById("preflight"),error=document.getElementById("error"),button=document.getElementById("submit");
 let sessionReports=[];try{const stored=JSON.parse(sessionStorage.getItem("veyra.session.v1")||"[]");if(Array.isArray(stored))sessionReports=stored.slice(0,25)}catch{}
@@ -377,6 +357,20 @@ const guidance={
 };
 const guide=guidance[comparison]||guidance.not_found;
 setText("consumerHeadline",guide.title);setText("consumerMessage",guide.message);
+const summaryBox=document.getElementById("consumerSummary");
+if(comparison==="matches_remembered_claim"){
+  summaryBox.style.borderColor="#2e7d32";
+  summaryBox.style.borderLeftColor="#2e7d32";
+  summaryBox.style.background="#f0fdf4";
+}else if(comparison==="differs_from_remembered_claim"){
+  summaryBox.style.borderColor="#c62828";
+  summaryBox.style.borderLeftColor="#c62828";
+  summaryBox.style.background="#fef2f2";
+}else{
+  summaryBox.style.borderColor="#d8b778";
+  summaryBox.style.borderLeftColor="#b6813b";
+  summaryBox.style.background="#fff8eb";
+}
 const stepList=document.getElementById("consumerSteps");stepList.replaceChildren();
 for(const step of guide.steps){const li=document.createElement("li");li.textContent=step;stepList.append(li)}
 
