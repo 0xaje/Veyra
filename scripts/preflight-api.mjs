@@ -9,15 +9,13 @@ import { spawn } from "node:child_process";
 import { normalizeSuiAddress } from "../src/core/recipient-check.ts";
 import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
 import { createPreflightLimiter } from "./preflight-limiter.mjs";
-import { RecipientEvidenceIndex } from "../src/core/recipient-evidence-index.ts";
-import { StorageSafeguardsLedger } from "../src/core/storage-safeguards.ts";
+import { PublicationLedger } from "../src/core/publication-ledger.ts";
+import { existsSync } from "node:fs";
 import {
   verifyPublicationConsent,
 } from "../src/core/self-service-confirmation.ts";
 
-import { PreparedPublications } from "../src/core/prepared-publication.ts";
 import { acceptedMemoryJob, completedMemoryJob } from "../src/core/memory-write-state.ts";
-const preparedPublications = new PreparedPublications();
 
 const port = Number(process.env.PORT || process.env.VEYRA_PORT || 8787);
 const publicMode = process.env.VEYRA_PUBLIC_MODE === "true";
@@ -44,12 +42,41 @@ const limiter = createPreflightLimiter({
   perClient: Number(process.env.VEYRA_PREFLIGHT_PER_MINUTE ?? 8),
   maxConcurrent: Number(process.env.VEYRA_PREFLIGHT_CONCURRENCY ?? 2),
 });
-const safeguardsLedgerPath = resolve(process.env.VEYRA_SAFEGUARDS_FILE || "data/safeguards-ledger.json");
-const safeguardsLedger = await StorageSafeguardsLedger.loadOrCreate(safeguardsLedgerPath, {
-  maxDailyWritesPerWallet: Number(process.env.VEYRA_MAX_DAILY_CONFIRMATIONS_PER_WALLET || 3),
-  maxGlobalDailyWrites: Number(process.env.VEYRA_MAX_GLOBAL_DAILY_WRITES || 50),
-});
-const localIndex = new RecipientEvidenceIndex();
+const publicationDbPath = process.env.VEYRA_PUBLICATION_DB || "";
+if (!publicMode && publicationDbPath &&
+    existsSync(resolve(process.env.VEYRA_SAFEGUARDS_FILE || "data/safeguards-ledger.json")))
+  throw new Error("Reconcile the existing legacy safeguards ledger before configuring a new publication database");
+const publicationLedger = !publicMode && publicationDbPath ? new PublicationLedger(publicationDbPath, {
+  maxDailyWritesPerWallet: Number(process.env.VEYRA_MAX_DAILY_CONFIRMATIONS_PER_WALLET ?? 3),
+  maxGlobalDailyWrites: Number(process.env.VEYRA_MAX_GLOBAL_DAILY_WRITES ?? 50),
+}) : null;
+const publicationPolls = new Map();
+async function pollPublication(nonce) {
+  if (!publicationLedger) return null;
+  const job = publicationLedger.getJob(nonce);
+  if (!job || job.phase === "stored" || !job.providerJobId) return job;
+  if (publicationPolls.has(nonce)) return publicationPolls.get(nonce);
+  const task = (async () => {
+    try {
+      const { MemWal } = await import("@mysten-incubation/memwal");
+      const memory = MemWal.create({
+        key: process.env.MEMWAL_PRIVATE_KEY, accountId: process.env.MEMWAL_ACCOUNT_ID,
+        serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
+        namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+      });
+      const completed = completedMemoryJob({ status: "pending", jobId: job.providerJobId },
+        await memory.waitForRememberJob(job.providerJobId, { timeoutMs: 1500, pollIntervalMs: 300 }));
+      if (completed.status !== "stored") throw new Error("No durable completion blob");
+      publicationLedger.complete(nonce, job.providerJobId, completed.blobId);
+    } catch {
+      // Unknown is not failure. Retain accepted job and reserved capacity.
+      publicationLedger.markUncertain(nonce);
+    }
+    return publicationLedger.getJob(nonce);
+  })();
+  publicationPolls.set(nonce, task);
+  try { return await task; } finally { publicationPolls.delete(nonce); }
+}
 const historyPath = !publicMode && process.env.VEYRA_HISTORY_FILE ? resolve(process.env.VEYRA_HISTORY_FILE) : null;
 let historyWrite = Promise.resolve();
 function persistAssessment(entry) {
@@ -265,7 +292,8 @@ async function handler(req, res) {
       if (typeof input.address !== "string" || typeof input.counterpartyId !== "string" || !input.counterpartyId.trim())
         return send(400, { error: "Address and counterpartyId required", paymentAuthorized: false });
 
-      const prepared = preparedPublications.issue(input.address, input.counterpartyId);
+      if (!publicationLedger) return send(503, { error: "Durable publication database not configured", paymentAuthorized: false });
+      const prepared = publicationLedger.issue(input.address, input.counterpartyId);
       const { consentPayload, consentMessage } = prepared;
 
       return send(200, {
@@ -306,7 +334,8 @@ async function handler(req, res) {
       if (!consent || typeof signature !== "string" || !signature.trim()) {
         return send(400, { error: "Valid signed publication consent and signature required", paymentAuthorized: false });
       }
-      const prepared = preparedPublications.get(consent);
+      if (!publicationLedger) return send(503, { error: "Durable publication database not configured", paymentAuthorized: false });
+      const prepared = publicationLedger.get(consent);
       if (!prepared) return send(409, { error: "Preparation expired, consumed or changed; prepare and review again", paymentAuthorized: false });
       // Bind retries to this server-issued preparation, never a caller-selected key.
       const idKey = "veyra-publication-" + consent.nonce;
@@ -317,76 +346,81 @@ async function handler(req, res) {
         return send(400, { error: verification.error || "Publication consent signature verification failed", paymentAuthorized: false });
       }
 
-      // 2. Safeguards admission check (quotas, idempotency, rate-limits)
-      const admission = safeguardsLedger.checkAdmission(consent.address, idKey, consent.recordHash);
-      if (!admission.allowed) {
-        return send(429, { error: admission.reason, paymentAuthorized: false });
-      }
-      if (admission.existingReceipt) {
-        return send(200, {
-          status: "already_stored_idempotent",
-          receipt: admission.existingReceipt,
-          paymentAuthorized: false,
+      // Nonce consumption and capacity reservation commit atomically.
+      let reservation;
+      try { reservation = publicationLedger.reserve(consent); }
+      catch { return send(429, { error: "Publication admission refused; review preparation, quota or ledger", paymentAuthorized: false }); }
+      if (!reservation.created) {
+        const job = reservation.job;
+        return send(job.receipt ? 200 : 202, {
+          status: job.receipt ? "already_stored_idempotent" : "pending",
+          receipt: job.receipt, publicationNonce: job.nonce, jobId: job.providerJobId,
+          phase: job.phase, paymentAuthorized: false,
         });
       }
-
-      // Consume synchronously before any provider call; concurrent replay cannot
-      // pass. Outstanding local preparations fail closed across a restart.
-      if (!preparedPublications.consume(consent))
-        return send(409, { error: "Publication consent already consumed", paymentAuthorized: false });
-
-      // 4. Submit to genuine MemWal with accepted -> completed pipeline
-      const { MemWal } = await import("@mysten-incubation/memwal");
-      const memory = MemWal.create({
-        key: process.env.MEMWAL_PRIVATE_KEY,
-        accountId: process.env.MEMWAL_ACCOUNT_ID,
-        serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
-        namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
-      });
-
-      const accepted = await memory.remember(prepared.candidateJson, { idempotencyKey: idKey });
-      const pending = acceptedMemoryJob(accepted ?? {});
-      if (pending.status !== "pending") {
-        return send(503, { error: "Walrus relayer did not accept memory job", paymentAuthorized: false });
-      }
-
-      const completed = completedMemoryJob(pending, await memory.waitForRememberJob(pending.jobId));
-      if (completed.status !== "stored") {
-        return send(503, {
-          error: "Walrus completion did not return a durable blob ID",
-          jobId: accepted.job_id,
-          paymentAuthorized: false,
+      if (!publicationLedger.markSubmitting(consent.nonce))
+        return send(409, { error: "Publication already submitted", paymentAuthorized: false });
+      try {
+        const { MemWal } = await import("@mysten-incubation/memwal");
+        const memory = MemWal.create({
+          key: process.env.MEMWAL_PRIVATE_KEY, accountId: process.env.MEMWAL_ACCOUNT_ID,
+          serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
+          namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+        });
+        const pending = acceptedMemoryJob(await memory.remember(prepared.candidateJson, { idempotencyKey: idKey }));
+        if (pending.status !== "pending") throw new Error("Provider acceptance unavailable");
+        publicationLedger.markAccepted(consent.nonce, pending.jobId);
+        // Accepted job is durable BEFORE returning progress; this is not stored.
+        void pollPublication(consent.nonce).catch(() => {});
+        return send(202, {
+          status: "pending", publicationNonce: consent.nonce, jobId: pending.jobId,
+          phase: "pending", paymentAuthorized: false,
+          limitation: "Accepted for processing; completion is not yet established.",
+        });
+      } catch {
+        publicationLedger.markUncertain(consent.nonce);
+        return send(202, {
+          status: "pending", publicationNonce: consent.nonce, phase: "uncertain", paymentAuthorized: false,
+          limitation: "Submission outcome is uncertain. Capacity remains reserved; reconcile the existing job before any new write.",
         });
       }
-
-      // 5. Generate durable receipt and record in safeguards ledger and index
-      const receipt = {
-        schema: "veyra.storage_receipt.v1",
-        receiptId: randomUUID(),
-        jobId: accepted.job_id,
-        blobId: completed.blobId,
-        address: prepared.candidate.address,
-        counterpartyId: prepared.candidate.counterpartyId,
-        recordHash: prepared.recordHash,
-        storedAt: new Date().toISOString(),
-        status: "completed",
-        paymentAuthorized: false,
-      };
-
-      safeguardsLedger.recordSuccess(idKey, receipt);
-      await safeguardsLedger.persist();
-
-      localIndex.addRecord(completed.blobId, prepared.candidateJson, receipt.storedAt);
-
-      return send(200, {
-        status: "stored",
-        receipt,
-        candidateRecord: prepared.candidate,
-        paymentAuthorized: false,
-      });
     } catch (error) {
-      return send(500, { error: error instanceof Error ? error.message : "Storage failed", paymentAuthorized: false });
+      return send(500, { error: "Publication could not be completed; inspect durable local status", paymentAuthorized: false });
     }
+  }
+  if ((req.method === "GET" && req.url?.startsWith("/v1/self-service/jobs?")) ||
+      (req.method === "POST" && req.url === "/v1/self-service/recover")) {
+    if (publicMode) return send(403, { error: "Public publication status access disabled", paymentAuthorized: false });
+    if (!publicationLedger) return send(503, { error: "Durable publication database not configured", paymentAuthorized: false });
+    if (req.headers["sec-fetch-site"] === "cross-site" ||
+        (req.headers.origin && req.headers.origin !== `http://127.0.0.1:${port}`))
+      return send(403, { error: "Cross-origin publication forbidden", paymentAuthorized: false });
+    if (!walletRequestAllowed(req.socket.remoteAddress))
+      return send(429, { error: "Publication status request limit reached", paymentAuthorized: false });
+    try {
+      let nonce;
+      if (req.method === "GET") nonce = new URL(req.url, "http://localhost").searchParams.get("nonce");
+      else {
+        if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+          return send(415, { error: "JSON required", paymentAuthorized: false });
+        let body = "";
+        for await (const chunk of req) {
+          body += chunk.toString();
+          if (Buffer.byteLength(body) > maxBody) return send(413, { error: "Request too large", paymentAuthorized: false });
+        }
+        nonce = JSON.parse(body).nonce;
+      }
+      if (typeof nonce !== "string" || !/^[a-f0-9]{32}$/.test(nonce))
+        return send(400, { error: "Valid publication nonce required", paymentAuthorized: false });
+      const job = req.method === "POST" ? await pollPublication(nonce) : publicationLedger.getJob(nonce);
+      if (!job) return send(404, { error: "Publication job not found", paymentAuthorized: false });
+      return send(job.receipt ? 200 : 202, {
+        status: job.receipt ? "stored" : "pending", receipt: job.receipt,
+        publicationNonce: nonce, phase: job.phase, jobId: job.providerJobId, paymentAuthorized: false,
+        limitation: job.providerJobId ? "Recovery polls the existing job only." :
+          "Provider acceptance is unknown; automatic resubmission is forbidden. Operator reconciliation required.",
+      });
+    } catch { return send(503, { error: "Durable publication status unavailable", paymentAuthorized: false }); }
   }
   if (req.method === "GET" && req.url?.startsWith("/v1/self-service/receipts?")) {
     if (publicMode) return send(403, { error: "Public receipt discovery disabled", paymentAuthorized: false });
@@ -396,7 +430,7 @@ async function handler(req, res) {
     return send(200, {
       schema: "veyra.receipt_list.v1",
       address,
-      receipts: safeguardsLedger.getReceiptsForWallet(address),
+      receipts: publicationLedger?.getReceiptsForWallet(normalizeSuiAddress(address)) || [],
     });
   }
   if (req.method === "GET" && req.url === "/v1/walrus-inventory") {
@@ -425,7 +459,7 @@ async function handler(req, res) {
     }
   }
   if (req.method === "GET" && req.url === "/health")
-    return send(200, { status: "running", paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode, selfServiceWritesEnabled: !publicMode, publicationSecurityGatesComplete: false });
+    return send(200, { status: "running", paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode, selfServiceWritesEnabled: Boolean(publicationLedger), publicationSecurityGatesComplete: false });
   if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
     const url = new URL(req.url, "http://localhost");
     const counterpartyId = url.searchParams.get("counterpartyId");

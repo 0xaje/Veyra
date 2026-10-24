@@ -414,9 +414,35 @@ $("connect").addEventListener("click",()=>{
   ?"Choose one of your detected Sui wallets to connect."
   :"No compatible Sui wallet detected. Install or unlock a Sui wallet extension, then click Connect Wallet again.");
 });
-function resetReceipt(){preparedConsentPayload=null;$("recipient-intent-consent").checked=false;$("recipient-intent-download").disabled=true;$("recipient-intent-feedback").textContent="";portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";$("publication-box").hidden=true;$("pub-receipt-box").hidden=true;$("pub-status").textContent="";$("pub-consent-check").checked=false;$("pub-sign-submit").disabled=true;}
+function resetReceipt(){preparedConsentPayload=null;publicationJobNonce=null;if(typeof recoveryButton!=="undefined")recoveryButton.hidden=true;$("recipient-intent-consent").checked=false;$("recipient-intent-download").disabled=true;$("recipient-intent-feedback").textContent="";portableProof=null;proposedReceipt=null;$("receipt-review").hidden=true;$("receipt-json").textContent="";$("receipt-consent").checked=false;$("receipt-download").disabled=true;$("proof-consent").checked=false;$("proof-download").disabled=true;$("receipt-feedback").textContent="";$("publication-box").hidden=true;$("pub-receipt-box").hidden=true;$("pub-status").textContent="";$("pub-consent-check").checked=false;$("pub-sign-submit").disabled=true;}
 let preparedConsentPayload=null;
 let publicationAvailable=false;
+let publicationJobNonce=null;
+try{const saved=sessionStorage.getItem("veyra.pending-publication.v1");if(/^[a-f0-9]{32}$/.test(saved||""))publicationJobNonce=saved;}catch{}
+const recoveryButton=document.createElement("button");
+recoveryButton.type="button";recoveryButton.className="secondary-btn";
+recoveryButton.textContent="Check existing storage job";recoveryButton.hidden=true;
+$("pub-status").after(recoveryButton);
+function showPublicationReceipt(data){
+ const receipt=data.receipt;
+ $("pub-status").textContent="Storage completed. This recipient claim does not establish identity or payment safety.";
+ $("receipt-blob-id").textContent=receipt.blobId;
+ $("receipt-job-id").textContent=receipt.jobId;
+ $("receipt-receipt-id").textContent=receipt.receiptId;
+ $("pub-receipt-box").hidden=false;recoveryButton.hidden=true;
+ try{sessionStorage.removeItem("veyra.pending-publication.v1");}catch{}
+}
+recoveryButton.addEventListener("click",async()=>{
+ if(!publicationJobNonce)return;
+ recoveryButton.disabled=true;
+ try{
+  const res=await fetch("/v1/self-service/recover",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({nonce:publicationJobNonce})});
+  const data=await res.json();if(!res.ok)throw new Error(data.error||"Status unavailable");
+  if(data.status==="stored"&&data.receipt)showPublicationReceipt(data);
+  else $("pub-status").textContent="Storage is not yet confirmed. "+(data.limitation||"Check this existing job again; do not submit another write.");
+ }catch(err){$("pub-status").textContent="Storage status unavailable: "+err.message;}
+ finally{recoveryButton.disabled=false;}
+});
 $("prepare-publication").addEventListener("click",async()=>{
   if(!publicationAvailable){$("pub-status").textContent="Publication is disabled while security requirements are completed.";return;}
   const cId=$("selfCounterparty").value.trim();
@@ -453,15 +479,16 @@ $("pub-sign-submit").addEventListener("click",async()=>{
     $("pub-status").textContent="Submitting signed confirmation to Walrus Mainnet via secured backend...";
     const res=await fetch("/v1/self-service/confirm-and-store",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({consent:preparedConsentPayload,signature:signed.signature})});
     const data=await res.json();
+    if(res.ok&&data.status==="pending"&&data.publicationNonce){
+      publicationJobNonce=data.publicationNonce;recoveryButton.hidden=false;
+      try{sessionStorage.setItem("veyra.pending-publication.v1",publicationJobNonce);}catch{}
+      $("pub-status").textContent="Storage is pending, not confirmed. "+(data.limitation||"Check the existing job for completion.");
+      return;
+    }
     if(!res.ok||(data.status!=="stored"&&data.status!=="already_stored_idempotent")){
       throw new Error(data.error||"Walrus storage failed");
     }
-    const receipt=data.receipt;
-    $("pub-status").textContent="CONFIRMED: Recipient confirmation stored permanently on Walrus Mainnet.";
-    $("receipt-blob-id").textContent=receipt.blobId;
-    $("receipt-job-id").textContent=receipt.jobId;
-    $("receipt-receipt-id").textContent=receipt.receiptId;
-    $("pub-receipt-box").hidden=false;
+    showPublicationReceipt(data);
   }catch(err){
     $("pub-status").textContent="Publication failed: "+err.message;
     $("pub-sign-submit").disabled=false;
@@ -557,6 +584,7 @@ async function checkAvailability(){
   verificationAvailable=health.walletProofEnabled===true;
   publicationAvailable=health.selfServiceWritesEnabled===true;
   $("prepare-publication").disabled=!publicationAvailable;
+  recoveryButton.hidden=!publicationAvailable||!publicationJobNonce;
   if(!publicationAvailable)$("pub-status").textContent="Public publication is disabled while security requirements are completed. Read-only address checks remain available.";
   $("connect").disabled=false;
   if(!verificationAvailable){

@@ -59,7 +59,7 @@ test("M3: public publication cannot be enabled by an environment flag", {timeout
   assert.equal(health.memoryWritesEnabled,false);
   assert.equal(health.selfServiceWritesEnabled,false);
   assert.equal(health.publicationSecurityGatesComplete,false);
-  for(const path of ["/v1/self-service/prepare-consent","/v1/self-service/confirm-and-store"]){
+  for(const path of ["/v1/self-service/prepare-consent","/v1/self-service/confirm-and-store","/v1/self-service/recover"]){
    const response=await post(base,path,"https://veyra.example");
    assert.equal(response.status,403);
    assert.equal((await response.json()).paymentAuthorized,false);
