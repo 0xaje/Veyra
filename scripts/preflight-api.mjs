@@ -132,6 +132,51 @@ async function recall(counterpartyId) {
   }
 }
 
+// Additional read-only MemWal search for recipient evidence. Semantic results are
+// non-exhaustive; these observations cannot establish complete history or safety.
+async function recallRecipientEvidence(counterpartyId) {
+  if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID)
+    return { events: [], status: "unavailable" };
+  try {
+    const { MemWal } = await import("@mysten-incubation/memwal");
+    const memory = MemWal.create({
+      key: process.env.MEMWAL_PRIVATE_KEY,
+      accountId: process.env.MEMWAL_ACCOUNT_ID,
+      serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
+      namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
+    });
+    const response = await Promise.race([
+      memory.recall({ query: `veyra recipient evidence reconfirmed sui mainnet counterparty ${counterpartyId}`, limit: 30 }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000)),
+    ]);
+    const events = [];
+    const seen = new Set();
+    for (const item of response.results ?? []) {
+      if (typeof item?.text !== "string" || typeof item?.blob_id !== "string" ||
+          !item.blob_id || seen.has(item.blob_id)) continue;
+      try {
+        const record = JSON.parse(item.text);
+        if (record?.type !== "veyra.recipient_evidence.v1" ||
+            record.counterpartyId !== counterpartyId ||
+            record.chain !== "sui" || record.network !== "mainnet" ||
+            record.addressKind !== "wallet" || record.eventType !== "recipient_reconfirmed" ||
+            record.source?.kind !== "direct_owner_confirmation" ||
+            record.paymentAuthorized !== false || record.trust !== "informational_unverified" ||
+            typeof record.source.reference !== "string" || !record.source.reference.trim() ||
+            typeof record.source.observedAt !== "string" ||
+            !Number.isFinite(Date.parse(record.source.observedAt)) ||
+            Date.parse(record.source.observedAt) > Date.now()) continue;
+        normalizeSuiAddress(record.address);
+        seen.add(item.blob_id);
+        events.push({ blobId: item.blob_id, record });
+      } catch { /* Untrusted search result. */ }
+    }
+    return { events, status: "observed" };
+  } catch {
+    return { events: [], status: "unavailable" };
+  }
+}
+
 async function handler(req, res) {
   const send = (status, data) => {
     res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" });
@@ -367,17 +412,18 @@ async function handler(req, res) {
       if (!Array.isArray(parsed)) throw new Error("Invalid authorization store");
       authorizations = parsed;
     }
-    const [chain, memory] = await Promise.all([
-      tatum(data.transactionDigest), recall(data.counterpartyId),
+    const [chain, memory, recipientEvidence] = await Promise.all([
+      tatum(data.transactionDigest), recall(data.counterpartyId), recallRecipientEvidence(data.counterpartyId),
     ]);
     const result = preflightWithEvidence({
       counterpartyId: data.counterpartyId, proposedAddress,
       recalled: memory.records, authorizations,
+      evidenceEvents: recipientEvidence.events,
       tatumObservation: chain.observation,
     });
     const assessmentId = randomUUID();
     const checkedAt = new Date().toISOString();
-    const providers = { tatum: chain.status, walrus: memory.status };
+    const providers = { tatum: chain.status, walrus: memory.status, walrusRecipientEvidence: recipientEvidence.status };
     if (historyPath) {
       try {
         await persistAssessment({
@@ -394,7 +440,7 @@ async function handler(req, res) {
       }
     }
     return send(200, {
-      ...result, assessmentId, checkedAt, historyPersisted: Boolean(historyPath), providers: { tatum: chain.status, walrus: memory.status },
+      ...result, assessmentId, checkedAt, historyPersisted: Boolean(historyPath), providers,
       diagnostics: memory.diagnostic ? { walrus: memory.diagnostic } : undefined,
       paymentAuthorized: false,
       limitation: "Historical transactions and local records do not establish current recipient ownership.",
