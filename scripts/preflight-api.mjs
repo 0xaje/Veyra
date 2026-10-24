@@ -134,9 +134,9 @@ async function recall(counterpartyId) {
 
 // Additional read-only MemWal search for recipient evidence. Semantic results are
 // non-exhaustive; these observations cannot establish complete history or safety.
-async function recallRecipientEvidence(counterpartyId) {
-  if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID)
-    return { events: [], status: "unavailable" };
+async function recallRecipientEvidence(counterpartyId, proposedAddress) {
+  const unavailable = { events: [], walletControlEvents: [], status: "unavailable", walletControlStatus: "unavailable" };
+  if (!process.env.MEMWAL_PRIVATE_KEY || !process.env.MEMWAL_ACCOUNT_ID) return unavailable;
   try {
     const { MemWal } = await import("@mysten-incubation/memwal");
     const memory = MemWal.create({
@@ -145,36 +145,35 @@ async function recallRecipientEvidence(counterpartyId) {
       serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
       namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
     });
-    const response = await Promise.race([
-      memory.recall({ query: `veyra recipient evidence reconfirmed sui mainnet counterparty ${counterpartyId}`, limit: 30 }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000)),
-    ]);
-    const events = [];
-    const seen = new Set();
-    for (const item of response.results ?? []) {
-      if (typeof item?.text !== "string" || typeof item?.blob_id !== "string" ||
-          !item.blob_id || seen.has(item.blob_id)) continue;
+    const search = async (query, type) => {
+      let timer;
       try {
-        const record = JSON.parse(item.text);
-        if (record?.type !== "veyra.recipient_evidence.v1" ||
-            record.counterpartyId !== counterpartyId ||
-            record.chain !== "sui" || record.network !== "mainnet" ||
-            record.addressKind !== "wallet" || record.eventType !== "recipient_reconfirmed" ||
-            record.source?.kind !== "direct_owner_confirmation" ||
-            record.paymentAuthorized !== false || record.trust !== "informational_unverified" ||
-            typeof record.source.reference !== "string" || !record.source.reference.trim() ||
-            typeof record.source.observedAt !== "string" ||
-            !Number.isFinite(Date.parse(record.source.observedAt)) ||
-            Date.parse(record.source.observedAt) > Date.now()) continue;
-        normalizeSuiAddress(record.address);
-        seen.add(item.blob_id);
-        events.push({ blobId: item.blob_id, record });
-      } catch { /* Untrusted search result. */ }
-    }
-    return { events, status: "observed" };
-  } catch {
-    return { events: [], status: "unavailable" };
-  }
+        const response = await Promise.race([
+          memory.recall({ query, limit: 30 }),
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("timeout")), 15000); }),
+        ]);
+        if (!Array.isArray(response?.results)) throw new Error("Malformed recall response");
+        const records = [];
+        for (const item of response.results) {
+          if (typeof item?.text !== "string" || typeof item?.blob_id !== "string" || !item.blob_id) continue;
+          try {
+            const record = JSON.parse(item.text);
+            if (record?.type !== type || record.chain !== "sui" || record.network !== "mainnet") continue;
+            if (type === "veyra.recipient_evidence.v1" && record.counterpartyId !== counterpartyId) continue;
+            if (type === "veyra.wallet_control_memory.v1" && normalizeSuiAddress(record.address) !== proposedAddress) continue;
+            records.push({ blobId: item.blob_id, record });
+          } catch { /* Untrusted search result; unified interpretation validates applicable fields. */ }
+        }
+        return { records, status: response.dropped_count > 0 || response.meta?.truncated ? "degraded" : "observed" };
+      } catch { return { records: [], status: "unavailable" }; }
+      finally { clearTimeout(timer); }
+    };
+    const [recipient, control] = await Promise.all([
+      search(`veyra recipient evidence sui mainnet counterparty ${counterpartyId}`, "veyra.recipient_evidence.v1"),
+      search(`veyra wallet control memory sui mainnet address ${proposedAddress}`, "veyra.wallet_control_memory.v1"),
+    ]);
+    return { events: recipient.records, walletControlEvents: control.records, status: recipient.status, walletControlStatus: control.status };
+  } catch { return unavailable; }
 }
 
 async function handler(req, res) {
@@ -413,17 +412,18 @@ async function handler(req, res) {
       authorizations = parsed;
     }
     const [chain, memory, recipientEvidence] = await Promise.all([
-      tatum(data.transactionDigest), recall(data.counterpartyId), recallRecipientEvidence(data.counterpartyId),
+      tatum(data.transactionDigest), recall(data.counterpartyId), recallRecipientEvidence(data.counterpartyId, proposedAddress),
     ]);
     const result = preflightWithEvidence({
       counterpartyId: data.counterpartyId, proposedAddress,
       recalled: memory.records, authorizations,
       evidenceEvents: recipientEvidence.events,
+      walletControlEvents: recipientEvidence.walletControlEvents,
       tatumObservation: chain.observation,
     });
     const assessmentId = randomUUID();
     const checkedAt = new Date().toISOString();
-    const providers = { tatum: chain.status, walrus: memory.status, walrusRecipientEvidence: recipientEvidence.status };
+    const providers = { tatum: chain.status, walrus: memory.status, walrusRecipientEvidence: recipientEvidence.status, walrusWalletControl: recipientEvidence.walletControlStatus };
     if (historyPath) {
       try {
         await persistAssessment({
@@ -431,6 +431,9 @@ async function handler(req, res) {
           counterpartyId: data.counterpartyId, proposedAddress,
           transactionDigest: data.transactionDigest ?? null,
           action: result.action, recipientVerdict: result.recipient.verdict,
+          conclusionStatus: result.conclusion.status,
+          evidenceBlobIds: result.unifiedEvidence.entries.map(entry => entry.blobId),
+          retrievalCompleteness: result.unifiedEvidence.retrievalCompleteness,
           providers, historicalAddressObserved: result.historicalAddressObserved,
           transactionInvestigation: result.transactionInvestigation,
           paymentAuthorized: false,
@@ -441,6 +444,12 @@ async function handler(req, res) {
     }
     return send(200, {
       ...result, assessmentId, checkedAt, historyPersisted: Boolean(historyPath), providers,
+      retrieval: {
+        mode: "semantic_recall", completeness: "unknown", exactIdVerification: "not_performed",
+        status: [memory.status, recipientEvidence.status, recipientEvidence.walletControlStatus].every(status => status === "observed") ? "observed" :
+          [memory.status, recipientEvidence.status, recipientEvidence.walletControlStatus].every(status => status === "unavailable") ? "unavailable" : "degraded",
+        limitation: "Semantic recall is non-exhaustive. Returned plaintext has not been checked against an exact-ID decrypted Walrus payload or a durable receipt hash.",
+      },
       diagnostics: memory.diagnostic ? { walrus: memory.diagnostic } : undefined,
       paymentAuthorized: false,
       limitation: "Historical transactions and local records do not establish current recipient ownership.",

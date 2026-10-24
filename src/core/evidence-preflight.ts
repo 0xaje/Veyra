@@ -30,29 +30,30 @@ export function preflightWithEvidence(input: {
 }) {
   const proposedAddress = normalizeSuiAddress(input.proposedAddress);
   const unifiedEvidence = unifyRecipientEvidence({ counterpartyId: input.counterpartyId, proposedAddress, recipientClaims: input.recalled, evidenceEvents: input.evidenceEvents, walletControlEvents: input.walletControlEvents });
+  const applicableClaims = input.recalled.filter(item => unifyRecipientEvidence({
+    counterpartyId: input.counterpartyId, proposedAddress, recipientClaims: [item],
+  }).entries.length === 1);
   const recipient = preflightRememberedRecipient({
     counterpartyId: input.counterpartyId,
     proposedAddress,
-    recalled: input.recalled,
+    recalled: applicableClaims,
     authorizations: input.authorizations,
   });
-  // Informational comparison of recalled claims; never authorizes payment.
-  const addresses = new Set();
-  for (const item of input.recalled) {
-    if (item.record.counterpartyId !== input.counterpartyId ||
-        item.record.chain !== "sui" || item.record.network !== "mainnet") continue;
-    try { addresses.add(normalizeSuiAddress(item.record.address)); } catch {}
-  }
-  const rememberedAddresses = [...addresses];
+  // M1: compatibility projection of the SAME interpretation used by the conclusion.
+  // Observations remain claims; never convert them into locally authorized records.
+  const rememberedAddresses = unifiedEvidence.observedAddresses;
   const memoryComparison = {
-    status: rememberedAddresses.length === 0 ? "not_found" :
-      rememberedAddresses.length > 1 ? "conflicting_memories" :
-      rememberedAddresses[0] === proposedAddress ? "matches_remembered_claim" : "differs_from_remembered_claim",
+    status: unifiedEvidence.status === "no_evidence" ? "not_found" :
+      unifiedEvidence.status === "conflicting_observations" ? "conflicting_memories" :
+      unifiedEvidence.status === "matches_observed_address" ? "matches_remembered_claim" : "differs_from_remembered_claim",
     rememberedAddresses,
+    evidenceBlobIds: unifiedEvidence.entries.filter(e => e.recipientBaseline).map(e => e.blobId),
+    basis: "unified_recipient_evidence" as const,
+    retrievalCompleteness: unifiedEvidence.retrievalCompleteness,
     independentlyVerified: false,
     paymentAuthorized: false,
   };
-  const memoryTimeline = buildRecipientMemoryTimeline(input.counterpartyId, input.recalled);
+  const memoryTimeline = buildRecipientMemoryTimeline(input.counterpartyId, applicableClaims);
   const observation = input.tatumObservation;
   const validTatum = !!observation &&
     observation.status === "observed" &&
@@ -89,7 +90,7 @@ export function preflightWithEvidence(input: {
       : unifiedEvidence.status === "conflicting_observations"
       ? "Recalled recipient evidence contains different addresses. Resolve the conflict independently."
       : "No applicable recipient evidence was recalled. Search may be incomplete; independently confirm the address.",
-    evidenceCount: unifiedEvidence.entries.filter(entry => entry.kind !== "wallet_control").length,
+    evidenceCount: unifiedEvidence.entries.filter(entry => entry.recipientBaseline).length,
     retrievalCompleteness: "unknown" as const,
     action: "manual_review_required" as const,
     paymentAuthorized: false as const,
@@ -97,7 +98,15 @@ export function preflightWithEvidence(input: {
   return {
     status: "read_only_preflight" as const,
     conclusion: unifiedConclusion,
-    recipient,
+    recipient: {
+      ...recipient,
+      ...(unifiedEvidence.status === "conflicting_observations" ? {
+        verdict: "review_required" as const,
+        reasons: ["Unified recipient evidence conflicts; a legacy exact-record authorization cannot resolve that conflict."],
+      } : {}),
+      scope: "legacy_exact_record_authorization_only" as const,
+      limitation: "This legacy authorization check excludes informational observations; use conclusion and unifiedEvidence for recipient comparison.",
+    },
     unifiedEvidence,
     memoryComparison,
     memoryTimeline,

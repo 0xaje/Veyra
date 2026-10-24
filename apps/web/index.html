@@ -337,7 +337,7 @@ const response=await fetch("/v1/preflight",{method:"POST",headers:{"Content-Type
 const data=await response.json();if(!response.ok||data.status!=="read_only_preflight")throw new Error(data.reason||data.error||"Preflight unavailable");
 document.getElementById("empty").hidden=true;document.getElementById("results").hidden=false;
 setText("verdict","Manual review required");setText("recipientVerdict",data.recipient?.verdict||"Unknown");
-setText("tatum",data.providers?.tatum||"Unknown");setText("walrus",data.providers?.walrus||"Unknown");
+setText("tatum",data.providers?.tatum||"Unknown");setText("walrus", "Legacy: "+(data.providers?.walrus||"Unknown")+" · Observations: "+(data.providers?.walrusRecipientEvidence||"Unknown")+" · Wallet control: "+(data.providers?.walrusWalletControl||"Unknown")+" · Search completeness unknown; exact-ID verification not performed");
 const comparison=data.memoryComparison?.status||"not_found";
 const comparisonLabels={
 not_found:"No remembered address",
@@ -384,7 +384,8 @@ setText("historical",data.historicalAddressObserved?"Observed · participation o
 const evidence=data.chainEvidence?.evidence?.find(item=>item.source==="tatum");
 setText("evidenceDigest",evidence?.reference||"Not provided");
 setText("verificationLevel",evidence?.verified===true?"Independently verified":"Not independently verified");
-setText("memoryReference",data.recipient?.memoryBlobId||"Not available");
+const trace=(data.unifiedEvidence?.entries||[]).map(entry=>entry.blobId+" · "+entry.kind+" · "+entry.provenance+" · "+entry.observedAt+" · "+entry.sourceReference+" · "+entry.freshness);
+setText("memoryReference",trace.join("; ")||"Not available; retrieval may be incomplete");
 const investigation=data.transactionInvestigation;
 const investigationPanel=document.getElementById("investigation");
 investigationPanel.hidden=!investigation;

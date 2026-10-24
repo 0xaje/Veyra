@@ -78,6 +78,19 @@ test("real local HTTP routes fail closed without Walrus credentials or persisten
     });
     assert.equal(unavailable.status,503);
     assert.match((await unavailable.json()).error,/credentials unavailable/);
+    const assessment=await fetch(base+"/v1/preflight",{
+      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({counterpartyId:"recipient",proposedAddress:"0x2"}),
+    });
+    assert.equal(assessment.status,200);
+    const assessmentBody=await assessment.json();
+    assert.equal(assessmentBody.conclusion.status,"no_evidence");
+    assert.equal(assessmentBody.memoryComparison.status,"not_found");
+    assert.equal(assessmentBody.memoryComparison.basis,"unified_recipient_evidence");
+    assert.equal(assessmentBody.providers.walrusWalletControl,"unavailable");
+    assert.equal(assessmentBody.retrieval.status,"unavailable");
+    assert.equal(assessmentBody.retrieval.completeness,"unknown");
+    assert.equal(assessmentBody.retrieval.exactIdVerification,"not_performed");
+    assert.equal(assessmentBody.paymentAuthorized,false);
     const malformed=await fetch(base+"/v1/preflight",{
       method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({counterpartyId:"recipient",proposedAddress:"not-an-address"}),
     });

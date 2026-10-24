@@ -96,7 +96,7 @@ test("unrelated counterparty memory does not imply an address match", () => {
 test("two different recalled addresses are conflicting, not trusted", () => {
   const result = preflightWithEvidence({
     counterpartyId: "vendor", proposedAddress,
-    recalled: [memory(proposedAddress), memory(rememberedAddress)], authorizations: [],
+    recalled: [memory(proposedAddress), {...memory(rememberedAddress), blobId: "other-blob"}], authorizations: [],
   });
   assert.equal(result.memoryComparison.status, "conflicting_memories");
   assert.equal(result.memoryComparison.rememberedAddresses.length, 2);
