@@ -11,10 +11,15 @@ Veyra is a **read-only Sui Mainnet recipient preflight application** for the Tat
 - Optional historical Sui Mainnet transaction investigation through Tatum gRPC.
 - Exact-address comparison, conflicting-memory detection, and fail-closed manual-review outcomes.
 - Session history, documentation, memory-claim timeline, and compact automatic day/night appearance.
-- A consented recipient-update form that checks the previous Walrus claim before attempting storage; a newer claim never automatically supersedes an older address.
+- Conservative recipient-update validation; a newer claim never automatically supersedes an older address.
+- Local durable publication with separate pending/completed states; public publication is disabled.
 - Expandable technical evidence alongside the consumer-facing assessment.
 
-**Verification:** On October 23, 2026 (Nigeria time), the developer ran `npm run check` successfully and reported **58 passing tests, 0 failures** after the merge into `main` (`a7cc04c`). These are local automated checks, not fresh hosted or live-provider verification. Live Tatum Sui Mainnet gRPC observations and genuine Walrus write/recall are recorded in [integration evidence](docs/INTEGRATION-EVIDENCE.md). One genuine recipient claim has been identified; the SDK smoke-test memory is not a recipient claim. No real recipient address-update write has been verified. Event memory-count qualification and final submission remain pending.
+**Verification:** On 24 October 2026, clean GitHub CI passed **125/125 tests** plus TypeScript and API syntax checks for the durable-publication batch. See [the verified run](https://github.com/0xaje/Veyra/actions/runs/40133118459). Automated tests use labelled local fixtures and real local signatures/HTTP/SQLite; they are not Mainnet evidence.
+
+Fresh hosted read-only checks on 24 October recalled the friend's observation, showed an address-match result and a one-character-difference warning, and returned Tatum Sui Mainnet transaction data. Public writes remain disabled. The observed inventory listed nine records; qualifying Mainnet memory count, exact-ID payload verification, full browser/wallet publication acceptance and submission assets remain open.
+
+The local self-service path now retains exact signed candidate bytes, reserves capacity transactionally, persists accepted jobs and receipts, and supports poll-only recovery. It requires an explicitly configured private SQLite path and genuine provider credentials. This does not enable public self-service. See [hardening status and acceptance gates](docs/PRODUCT-HARDENING.md).
 
 ## Quick start
 

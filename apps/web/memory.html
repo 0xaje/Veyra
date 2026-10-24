@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   </nav>
   <div class="side-note">
     <strong>Walrus Decentralized Memory</strong>
-    <p>Live recipient memories stored permanently on Sui Mainnet Walrus storage. Immutable, transparent, and verifiable.</p>
+    <p>Inspect Walrus metadata and recalled recipient claims. Storage availability and record content require separate verification.</p>
   </div>
 </aside>
 
@@ -359,7 +359,7 @@ async function loadInventory() {
     if (!res.ok) throw new Error(data.error || "Failed to load inventory");
     const count = data.count || 0;
     countEl.textContent = count + " Memories";
-    statusEl.textContent = count + " listed records";
+    statusEl.textContent = count + " listed records · " + (data.completeness === "complete_snapshot" ? "metadata snapshot complete" : "inventory may be incomplete");
     host.replaceChildren();
 
     if (!data.memories || data.memories.length === 0) {

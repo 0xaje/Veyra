@@ -11,6 +11,7 @@ import { preflightWithEvidence } from "../src/core/evidence-preflight.ts";
 import { createPreflightLimiter } from "./preflight-limiter.mjs";
 import { PublicationLedger } from "../src/core/publication-ledger.ts";
 import { existsSync } from "node:fs";
+import { collectMemoryInventory } from "../src/core/memory-inventory.ts";
 import {
   verifyPublicationConsent,
 } from "../src/core/self-service-confirmation.ts";
@@ -445,17 +446,15 @@ async function handler(req, res) {
         serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
         namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
       });
-      const list = await memory.listMemories({ namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev" });
-      const memories = Array.isArray(list?.memories) ? list.memories : [];
+      const inventory = await collectMemoryInventory(memory, process.env.MEMWAL_NAMESPACE || "veyra-dev");
       return send(200, {
         schema: "veyra.walrus_inventory.v1",
         namespace: process.env.MEMWAL_NAMESPACE || "veyra-dev",
-        count: memories.length,
-        memories,
+        ...inventory,
         paymentAuthorized: false,
       });
     } catch (err) {
-      return send(500, { error: err instanceof Error ? err.message : "Inventory query failed", memories: [] });
+      return send(503, { error: "Walrus metadata inventory unavailable", memories: [], completeness: "unknown", contentVerified: false });
     }
   }
   if (req.method === "GET" && req.url === "/health")
@@ -691,8 +690,9 @@ async function handler(req, res) {
 createServer((req, res) => {
   // Admission is checked before parsing or contacting either provider.
   // Local development remains unrestricted; the deployed public service is bounded.
-  const admission = publicMode && req.method === "POST" && req.url === "/v1/preflight"
-    ? limiter.acquire(req.socket.remoteAddress) : null;
+  const providerRead = (req.method === "POST" && req.url === "/v1/preflight") ||
+    (req.method === "GET" && (req.url === "/v1/walrus-inventory" || req.url?.startsWith("/v1/evidence-timeline?")));
+  const admission = publicMode && providerRead ? limiter.acquire(req.socket.remoteAddress) : null;
   if (admission && !admission.allowed) {
     res.writeHead(429, {
       "content-type": "application/json; charset=utf-8",
