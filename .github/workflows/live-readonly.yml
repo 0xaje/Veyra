@@ -1,0 +1,33 @@
+name: Genuine hosted read-only acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/live-readonly-preflight.mjs"
+      - ".github/workflows/live-readonly.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: veyra-live-readonly
+  cancel-in-progress: false
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.13.0"
+      - run: node scripts/live-readonly-preflight.mjs
+        env:
+          EXPECTED_DEPLOY_COMMIT: ${{ github.sha }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: genuine-readonly-acceptance
+          path: live-readonly-report.json
+          if-no-files-found: error

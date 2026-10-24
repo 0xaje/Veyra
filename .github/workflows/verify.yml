@@ -20,4 +20,5 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: node --check scripts/preflight-api.mjs
+      - run: node --check scripts/live-readonly-preflight.mjs
       - run: npm test
