@@ -8,6 +8,7 @@ Public writes remain locked. Private contacts continue to use the tested Render 
 - Hosted publication budgets initialize to **zero per wallet/day, zero globally/day, and zero for the lifetime of the service**. Quotas are checked atomically, including across processes. Unknown/pending jobs continue to consume capacity. The persisted budget must match each instance's configured policy; divergent instances fail closed. No environment variable or UI button opens public writes.
 - Hosted preparation is authenticated, CSRF-protected and derived from an active payer-accepted receiving confirmation for the signed-in recipient wallet. A caller cannot choose an unrelated alias/address. The random nonce, exact record hash, canonical origin and private session binding prevent cross-session/origin replay. Raw signatures, session tokens, contact names and private verification codes are excluded from the proposed public record.
 - The recipient may review this optional disclosure from their previous accepted receiving confirmations on `/receive-private`. Review does not sign, submit or store a Walrus record. The disabled publication action states that the release is locked.
+- Preparation and review recheck the active accepted receiving relationship inside the shared database transaction. Review does not consume preparation quotas. Revoking a contact atomically removes its unsubmitted preparations, and revoked preparations stay unavailable after restart.
 - Deleting a private contact atomically removes its unsubmitted publication preparations. This does not erase existing public receipts, external exports, immutable content or provider recovery history.
 - A durable per-counterparty receipt index supplies only exact-verified public records to the existing preflight interpretation. At most three indexed records are refreshed per assessment; the index is a bounded service window, not complete Walrus history. Semantic recall stays separately labelled and non-exhaustive. Record-hash verification is not identity proof or current wallet control.
 
@@ -44,7 +45,11 @@ Sui's official SEAL provider documentation says this Mainnet committee requires 
 
 The startup read-only probe checks this existing public blob only. `/health` reports `exactBlobReadiness`, with no secret or plaintext content. Missing `MEMWAL_SEAL_API_KEY` produces an explicit configuration-required result after inspecting the envelope. The authenticated private readiness action uses the same bounded/cached probe. Successful historical decryption would remain `read_unanchored`, because no trusted historical receipt was supplied.
 
-### Account-owner action (zero-cost requirement)
+### Zero-cost operating decision
+
+The operator reports that the available Enoki Mainnet plan requires payment. Do not purchase it. Keep the existing genuine Mainnet Walrus relayer recall and Neon-backed private recipient service operating, with independent exact decryption marked unavailable/configuration-required. Testnet cannot decrypt existing Mainnet ciphertext. Request organizer-sponsored committee access or a supported exact-ID relayer read path; neither is assumed granted. Continue security work without substituting similarity recall for exact verification or opening public writes.
+
+### Optional sponsored access (zero-cost requirement)
 
 1. Open `https://portal.enoki.mystenlabs.com` and request **SEAL Mainnet key-server access** through the dashboard's access form. This is different from Neon, Tatum and the MemWal delegate key.
 2. State that this is Veyra for Tatum × Walrus Total Recall and that the budget is zero. Ask for non-billable hackathon/free access or credits. Do not upgrade, subscribe, deposit funds or accept a paid plan. Pricing/access approval must be confirmed by the provider; this code does not establish that access is free.

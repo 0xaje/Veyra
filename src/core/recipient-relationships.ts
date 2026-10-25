@@ -404,7 +404,7 @@ export class RecipientRelationships {
     }
     // Server-only storage reference, never included in an HTTP response.
     storageDriver() { return this.db; }
-    async publicationContext(session: RelationshipSession, relationshipId: string, now = Date.now()) {
+    async publicationContext(session: RelationshipSession, relationshipId: string, now = Date.now(), options: { consumePreparationQuota?: boolean } = {}) {
       return this.transaction(async () => {
         await this.liveSession(session, now);
         requireValue(id(relationshipId),404,'Accepted receiving confirmation not found');
@@ -412,7 +412,7 @@ export class RecipientRelationships {
           FROM rel_contacts r JOIN rel_claims c ON c.id=r.accepted_claim
           WHERE r.id=? AND r.origin=? AND c.recipient=?`).get(relationshipId,this.origin,session.address);
         requireValue(row && row.state === 'active',404,'Accepted receiving confirmation not found');
-        await this.limit('publication-prepare:'+session.address,3,now);
+        if(options.consumePreparationQuota !== false)await this.limit('publication-prepare:'+session.address,3,now);
         return {relationshipId:row.id,address:row.recipient,claimId:row.claim_id,origin:this.origin,sessionHash:session.sessionHash};
       });
     }

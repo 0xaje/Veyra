@@ -94,6 +94,14 @@ test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acce
  assert.ok(!JSON.stringify(exported.body).includes(claim.body.verificationCode));
  assert.ok(!JSON.stringify(exported.body).includes(signed.signature));
  assert.equal((await stranger.call('/v1/private/export')).body.contacts.length,0);
+ // Repeated review neither consumes preparation quotas nor creates provider work.
+ for(let i=0;i<4;i++)assert.equal((await recipient.call('/v1/private/publication-review',{consent:publication.body.consentPayload})).response.status,200);
+ assert.equal((await payer.call('/v1/private/revoke',{relationshipId:rel})).response.status,200);
+ assert.equal((await recipient.call('/v1/private/publication-review',{consent:publication.body.consentPayload})).response.status,404);
+ assert.equal((await recipient.call('/v1/private/publication-prepare',{relationshipId:rel})).response.status,404);
+ await api.restart();
+ assert.equal((await recipient.call('/v1/private/publication-review',{consent:publication.body.consentPayload})).response.status,404);
+ assert.equal((await payer.call('/v1/preflight',payload)).body.relationshipComparison.status,'relationship_revoked');
  const deletion={relationshipId:rel,confirmLabel:'Private name never sent to providers'};
  assert.equal((await stranger.call('/v1/private/delete-contact',deletion)).response.status,404);
  assert.equal((await payer.call('/v1/private/delete-contact',deletion,{'x-veyra-csrf':'wrong'})).response.status,403);

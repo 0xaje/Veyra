@@ -66,15 +66,24 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
       if(req.method==='POST')store.checkCsrf(current,req.headers['x-veyra-csrf']);
       if(req.method==='GET'&&url.pathname==='/v1/private/publication-readiness')return send(200,{readiness:await readPublicationReadiness(),publicationEnabled:false});
       if(req.method==='POST'&&url.pathname==='/v1/private/publication-prepare'){
-        const input=await body(req);const context=await store.publicationContext(current,input.relationshipId);
-        const prepared=await publicationLedger.issue(context.address,context.relationshipId,Date.now(),{origin:context.origin,sessionHash:context.sessionHash});
+        const input=await body(req);
+        const prepared=await store.storageDriver().transaction(async()=>{
+          const context=await store.publicationContext(current,input.relationshipId);
+          return publicationLedger.issue(context.address,context.relationshipId,Date.now(),{origin:context.origin,sessionHash:context.sessionHash});
+        });
         return send(200,{status:'consent_prepared_publication_locked',consentPayload:prepared.consentPayload,
           consentMessage:prepared.consentMessage,candidateRecord:prepared.candidate,recordHash:prepared.recordHash,
           publicationEnabled:false,limitation:'Review only. Public writes remain disabled; no signature or storage submission was requested.'});
       }
       if(req.method==='POST'&&url.pathname==='/v1/private/publication-review'){
-        const input=await body(req);const prepared=await publicationLedger.get(input.consent,Date.now(),{origin,sessionHash:current.sessionHash});
-        if(!prepared)throw new RelationshipError(404,'Publication preparation unavailable for this browser session');
+        const input=await body(req);
+        const prepared=await store.storageDriver().transaction(async()=>{
+          const record=await publicationLedger.get(input.consent,Date.now(),{origin,sessionHash:current.sessionHash});
+          if(!record)throw new RelationshipError(404,'Publication preparation unavailable for this browser session');
+          const context=await store.publicationContext(current,record.candidate.counterpartyId,Date.now(),{consumePreparationQuota:false});
+          if(context.address!==record.candidate.address)throw new RelationshipError(404,'Receiving confirmation is no longer current');
+          return record;
+        });
         return send(200,{candidateRecord:prepared.candidate,consentPayload:prepared.consentPayload,consentMessage:prepared.consentMessage,recordHash:prepared.recordHash,publicationEnabled:false});
       }
       if(req.method==='GET'&&url.pathname==='/v1/private/publication-receipts')
@@ -112,7 +121,13 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
       }
       if(req.method==='POST'&&url.pathname==='/v1/private/accept')return send(200,await store.accept(current,await body(req)));
       if(req.method==='POST'&&url.pathname==='/v1/private/revoke'){
-        const input=await body(req);return send(200,await store.revoke(current,input.relationshipId));
+        const input=await body(req);
+        const revoked=await store.storageDriver().transaction(async()=>{
+          const result=await store.revoke(current,input.relationshipId);
+          await publicationLedger.deleteUnsubmittedForRelationship(input.relationshipId);
+          return result;
+        });
+        return send(200,revoked);
       }
       return send(404,{error:'Private route not found'});
     }catch(error){
