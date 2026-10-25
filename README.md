@@ -12,7 +12,7 @@ Veyra is a **read-only Sui Mainnet recipient preflight application** for the Tat
 - Exact-address comparison, conflicting-memory detection, and fail-closed manual-review outcomes.
 - Session history, documentation, memory-claim timeline, and compact automatic day/night appearance.
 - Conservative recipient-update validation; a newer claim never automatically supersedes an older address.
-- Local durable publication with separate pending/completed states; public publication is disabled.
+- Self-service assessment saving with durable pending/completed receipts and returning-browser history; signed recipient-confirmation publication remains separately disabled.
 - Expandable technical evidence alongside the consumer-facing assessment.
 
 **Verification (25 October 2026):** Self-service assessment saving at `9a6fc0c` passed **191/191 tests** in GitHub CI, including real disposable PostgreSQL 17 and SQLite journeys, plus TypeScript and syntax checks. Hosted read-only acceptance passed all six checks. A fresh local check passed 161/161 tests (without PostgreSQL). Automated fixtures are not Mainnet write evidence.

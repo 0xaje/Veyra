@@ -232,7 +232,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   </nav>
   <div class="side-note">
     <strong>Self-Service Confirmation</strong>
-    <p>Verify wallet control or follow a private invitation. Public Walrus publication remains disabled. Veyra never authorizes payments or transfers SUI.</p>
+    <p>Verify wallet control or follow a private invitation. Public recipient-confirmation publication remains disabled. Assessment checks can be saved from the main checker. Veyra never authorizes payments or transfers SUI.</p>
   </div>
 </aside>
 
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       <summary class="panel-head">Public Walrus publication · currently unavailable</summary>
       <div class="panel-body">
         <p style="margin:0 0 14px;color:var(--veyra-muted);font-size:13px">
-          Public publication is disabled while retrieval verification and security requirements are completed. This form cannot currently register a new public recipient record.
+          Recipient-confirmation publication is disabled while retrieval verification and security requirements are completed. This form cannot currently register a new public recipient record.
         </p>
 
         <div style="margin-bottom:16px">
@@ -448,7 +448,7 @@ recoveryButton.addEventListener("click",async()=>{
  finally{recoveryButton.disabled=false;}
 });
 $("prepare-publication").addEventListener("click",async()=>{
-  if(!publicationAvailable){$("pub-status").textContent="Publication is disabled while security requirements are completed.";return;}
+  if(!publicationAvailable){$("pub-status").textContent="Recipient-confirmation publication is disabled while security requirements are completed.";return;}
   const cId=$("selfCounterparty").value.trim();
   if(!cId){alert("Please enter a recipient identifier (e.g. your username or business handle)");return;}
   if(!expected){alert("Please connect your Sui wallet first in Step 1.");return;}
@@ -589,7 +589,7 @@ async function checkAvailability(){
   publicationAvailable=health.recipientPublicationEnabled===true;
   $("prepare-publication").disabled=!publicationAvailable;
   recoveryButton.hidden=!publicationAvailable||!publicationJobNonce;
-  if(!publicationAvailable)$("pub-status").textContent="Public publication is disabled while security requirements are completed. Read-only address checks remain available.";
+  if(!publicationAvailable)$("pub-status").textContent="Recipient-confirmation publication is disabled while security requirements are completed. Read-only address checks remain available.";
   $("connect").disabled=false;
   if(!verificationAvailable){
    status("Wallet connection is available. Signature verification is not enabled in this deployment configuration.");
