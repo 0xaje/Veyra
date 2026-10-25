@@ -15,15 +15,15 @@ Veyra is a **read-only Sui Mainnet recipient preflight application** for the Tat
 - Local durable publication with separate pending/completed states; public publication is disabled.
 - Expandable technical evidence alongside the consumer-facing assessment.
 
-**Verification:** On 24 October 2026, clean GitHub CI passed **130/130 tests** plus TypeScript and API syntax checks for the inventory-hardening batch. See [the verified run](https://github.com/0xaje/Veyra/actions/runs/40133309906). Automated tests use labelled local fixtures and real local signatures/HTTP/SQLite; they are not Mainnet evidence.
+**Verification (25 October 2026):** Current product code at `ca51769` passed **179/179 tests** in GitHub CI, including real disposable PostgreSQL 17 and SQLite journeys, plus TypeScript and syntax checks. Hosted read-only acceptance passed all six checks. A fresh local audit passed 155/155 tests (without PostgreSQL). Automated fixtures are not Mainnet write evidence.
 
-Fresh hosted read-only checks on 24 October recalled the friend's observation, showed an address-match result and a one-character-difference warning, and returned Tatum Sui Mainnet transaction data. Public writes remain disabled. The observed inventory listed nine records; qualifying Mainnet memory count, exact-ID payload verification, full browser/wallet publication acceptance and submission assets remain open.
+Hosted Render + Neon private contacts are enabled. A payer creates a private invitation, the recipient signs a relationship-bound receiving statement, and the payer independently checks the full address and code before accepting. Accepted contacts feed the address-check form. Labels stay private; this journey does not publish to Walrus. Revocation invalidates unsubmitted publication preparations and remains effective after restart.
 
-The local self-service path now retains exact signed candidate bytes, reserves capacity transactionally, persists accepted jobs and receipts, and supports poll-only recovery. It requires an explicitly configured private SQLite path and genuine provider credentials. This does not enable public self-service. See [hardening status and acceptance gates](docs/PRODUCT-HARDENING.md).
+Fresh inventory lists **nine unique active Mainnet memory blobs** in the configured namespace. The audit freshly recovered seven product records through hosted relayer reads; two SDK integration-check memories have historical write/recall evidence and fresh inventory metadata. This does not establish ten qualifying memories or independent ciphertext decryption. See [the closeout audit](docs/CLOSEOUT-AUDIT-2026-10-25.md).
 
-## Private recipient relationships
+Public Walrus publication remains disabled. Local signed-consent, quota and job-lifecycle components exist, and hosted authenticated disclosure preparation/review is implemented, but the hosted signed submission route is not connected. Independent exact decryption also lacks approved Mainnet committee access. Existing Mainnet relayer recall and private contacts continue working. No paid service or new Mainnet write was used for this audit.
 
-The payer can create a private invitation, the recipient signs a relationship-bound receiving statement, and the payer independently checks the full address and code before accepting. Accepted contacts feed the existing address-check form. Labels stay private; no Walrus publication occurs. This path requires reviewed persistent storage and remains disabled on the current hosted configuration. See [workflow, setup and security boundaries](docs/PRIVATE-RECIPIENT-RELATIONSHIPS.md).
+See [private workflow and security boundaries](docs/PRIVATE-RECIPIENT-RELATIONSHIPS.md) and [publication gates](docs/WALRUS-PUBLICATION-GATES.md).
 
 ## Quick start
 

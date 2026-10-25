@@ -1,6 +1,6 @@
 # Veyra — Total Recall submission readiness
 
-Snapshot: October 22, 2026. Official rules: https://thewalrussessions.wal.app/tatum-total-recall
+Updated audit: October 25, 2026. Official rules: https://thewalrussessions.wal.app/tatum-total-recall
 
 Deadline: November 10, 2026, 17:00 UTC / 18:00 WAT. Submission form: https://recall-tatum-walrus.vercel.app
 
@@ -10,14 +10,14 @@ Deadline: November 10, 2026, 17:00 UTC / 18:00 WAT. Submission form: https://rec
 |---|---|
 | Genuine Walrus SDK write and recall | Verified in development |
 | Walrus Mainnet provenance of each qualifying blob | Verify individually |
-| At least 10 Mainnet memories | NOT YET DEMONSTRATED |
+| At least 10 Mainnet memories | Nine unique active blobs listed; seven product records freshly recalled, two historically documented SDK checks. Ten and organizer eligibility not yet established. |
 | Genuine Tatum Sui Mainnet RPC | Verified; see INTEGRATION-EVIDENCE.md |
-| Public GitHub and working demo | Repository exists; confirm public accessibility |
+| Public GitHub and working demo | Public main and Render verified; current code CI and six hosted checks pass |
 | Published technical blog | Pending |
 | 2–3 minute demo video | Pending |
 | Submission form and identifiers | Pending |
 
-Scoped recall found one genuine recipient claim and one separate integration smoke-test blob. This is not an exhaustive inventory, nor proof of ten qualifying memories.
+See [the closeout audit](CLOSEOUT-AUDIT-2026-10-25.md) and [captured read-only results](evidence/2026-10-25-readonly-memory-audit.json). Private wallet signing, acceptance, match/mismatch and operator-reported restart have evidence; do not list them as entirely untested. Public signed Walrus submission is a separate unfinished path. No memory was created during this audit.
 
 ## Genuine memory plan
 

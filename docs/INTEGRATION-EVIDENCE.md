@@ -1,3 +1,7 @@
+# Current audit — 25 October 2026
+
+See [closeout audit](CLOSEOUT-AUDIT-2026-10-25.md): nine unique active blobs are listed, seven product records freshly recovered through hosted reads, and two SDK checks historically documented. Current product code passed 179/179 CI tests and six genuine hosted checks. The older checkpoints below are historical, not the current count or completion status. No write was performed by this audit.
+
 # Veyra — integration evidence and verification ledger
 
 This ledger distinguishes **recorded integration observations**, **automated local tests**, and **submission checks still pending**. It is not a claim that a new Mainnet transaction was sent or that a recipient is safe.

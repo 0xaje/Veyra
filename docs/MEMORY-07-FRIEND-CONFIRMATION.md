@@ -1,4 +1,12 @@
-# Memory #7 — friend-confirmed Sui receiving address (preparation only)
+# Memory #7 — friend-confirmed Sui receiving address
+
+## Current audit status — 25 October 2026
+
+Stored record confirmed by fresh active inventory and hosted relayer recall: blob `fHD4G1o_hmpLohp1FasnNAZuCB27WpjGdfgsvU9SgQw`, job/index ID `ebac082b-8628-4bfb-802b-b824c591db9a`. The actual recalled source observation time is `2026-10-23T22:33:54.962Z`. This is the operator-relayed confirmation described below, not an independently authenticated recipient signature or public self-service submission. No new write was performed. Independent direct plaintext decryption remains unverified.
+
+## Historical preparation instructions (superseded status)
+
+The following text records the pre-write state, not current storage status.
 
 **Status: AWAITING LOCAL PREPARATION AND EXPLICIT RECORD REVIEW — NOT STORED.**
 

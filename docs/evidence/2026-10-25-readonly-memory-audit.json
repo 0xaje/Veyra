@@ -1,0 +1,305 @@
+{
+  "schema": "veyra.readonly_memory_audit.v1",
+  "checkedAt": "2026-10-25T15:23:11.618974+00:00",
+  "buildCommit": "ca51769dcdb024b0240118fad646dafac32ea7a0",
+  "publicMode": true,
+  "inventoryCompleteness": "complete_snapshot",
+  "uniqueActiveBlobCount": 9,
+  "freshRelayerContentRecoveredCount": 7,
+  "records": [
+    {
+      "memory_id": "a180f790-1ceb-4e35-b4c9-95f95da87fb9",
+      "blob_id": "nGtay72mgnd7iBPFblBMFtF2o1fBfFEfm47Ccc0M7qM",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-21T20:10:32.319048Z",
+      "size": 445,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "SDK integration check (21 Oct)",
+      "freshRelayerContentRecovered": false,
+      "historicalEvidence": "docs/evidence/2026-10-21-walrus-mainnet.md"
+    },
+    {
+      "memory_id": "5fc0b643-ae75-485d-9922-f75c84832f78",
+      "blob_id": "lN6o9uxHc9IXfT3i5bQ31fg2R9HT5Sz6nrqKtguR-Bw",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-22T16:33:13.174113Z",
+      "size": 445,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "SDK integration check (22 Oct)",
+      "freshRelayerContentRecovered": false,
+      "historicalEvidence": "docs/INTEGRATION-EVIDENCE.md"
+    },
+    {
+      "memory_id": "ab46a155-0872-413a-bb06-f73d10e94bb7",
+      "blob_id": "MK8-ROPW1q5nusbhp16QennziZibSL8ZREDTPipd6EQ",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-22T17:32:27.596860Z",
+      "size": 665,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "Original self-wallet recipient claim",
+      "freshRelayerContentRecovered": true,
+      "historicalEvidence": "docs/GENUINE-MEMORY-PLAN.md"
+    },
+    {
+      "memory_id": "7090634b-cd42-4ea3-8f55-f69c8d35c470",
+      "blob_id": "r5lQKXv5DYWMV9oN-TuB0EA5v6GPGjyKyIdG9b8VSKk",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T12:32:51.553180Z",
+      "size": 924,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "DeepBook V3 contract-information observation",
+      "freshRelayerContentRecovered": true,
+      "historicalEvidence": "docs/GENUINE-MEMORY-PLAN.md"
+    },
+    {
+      "memory_id": "5b84254b-8887-4bc0-a2c7-2a9c33e9d5f0",
+      "blob_id": "5nMwajzs04OUkI3VApxH1WmVLxZhtmmLKnkv7t0_Wgw",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T13:21:10.939365Z",
+      "size": 936,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "DeepBook Margin package observation",
+      "freshRelayerContentRecovered": true,
+      "historicalEvidence": "docs/GENUINE-MEMORY-PLAN.md"
+    },
+    {
+      "memory_id": "dc2c1e52-4226-4c87-84b8-e4fe13a0f93e",
+      "blob_id": "f6iWcaX8qv71FSQgEVxm7nUSAYi3jcwGEeRZx-uLVrw",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T13:42:14.285321Z",
+      "size": 911,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "Bybit deposit-page observation",
+      "freshRelayerContentRecovered": true,
+      "historicalEvidence": "docs/GENUINE-MEMORY-PLAN.md"
+    },
+    {
+      "memory_id": "edac5ba6-fbe3-437e-a5a2-d3fe6f7798e1",
+      "blob_id": "na7TmQoeeC9QdxAziPyxJnSZP62-x3FQ5_JkzZI8f7c",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T14:34:25.006485Z",
+      "size": 908,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "DeepBook V3 SDK package observation",
+      "freshRelayerContentRecovered": true,
+      "historicalEvidence": "docs/GENUINE-MEMORY-PLAN.md"
+    },
+    {
+      "memory_id": "e21db9b3-2cac-4f36-8d00-05f814bbcdf2",
+      "blob_id": "BqFH2yf-6Z8rUwDPJBDJZC1OHUEMZql2duVopUY8ReE",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T20:21:48.448399Z",
+      "size": 1261,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "Wallet-control verification claim",
+      "freshRelayerContentRecovered": true,
+      "historicalEvidence": "docs/GENUINE-MEMORY-PLAN.md"
+    },
+    {
+      "memory_id": "ebac082b-8628-4bfb-802b-b824c591db9a",
+      "blob_id": "fHD4G1o_hmpLohp1FasnNAZuCB27WpjGdfgsvU9SgQw",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T22:36:20.107038Z",
+      "size": 968,
+      "end_epoch": 57,
+      "status": "active",
+      "purpose": "Friend receiving-address confirmation",
+      "freshRelayerContentRecovered": true,
+      "historicalEvidence": "genuine hosted acceptance and this audit"
+    }
+  ],
+  "recalledEvidence": [
+    {
+      "blobId": "na7TmQoeeC9QdxAziPyxJnSZP62-x3FQ5_JkzZI8f7c",
+      "counterpartyId": "deepbook-v3-package-reference",
+      "address": "0x0e735f8c93a95722efd73521aca7a7652c0bb71ed1daf41b26dfd7d1ff71f748",
+      "addressKind": "package",
+      "eventType": "source_observed",
+      "source": {
+        "kind": "public_official_document",
+        "reference": "https://www.docs.sui.io/onchain-finance/deepbook/deepbookv3-sdk/",
+        "observedAt": "2026-10-23T14:28:48.517Z"
+      },
+      "trust": "informational_unverified",
+      "paymentAuthorized": false
+    },
+    {
+      "blobId": "r5lQKXv5DYWMV9oN-TuB0EA5v6GPGjyKyIdG9b8VSKk",
+      "counterpartyId": "deepbook-v3-package-reference",
+      "address": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497",
+      "addressKind": "package",
+      "eventType": "source_observed",
+      "source": {
+        "kind": "public_official_document",
+        "reference": "https://www.docs.sui.io/onchain-finance/deepbook/deepbookv3/contract-information",
+        "observedAt": "2026-10-23T12:32:25.459Z"
+      },
+      "trust": "informational_unverified",
+      "paymentAuthorized": false
+    },
+    {
+      "blobId": "5nMwajzs04OUkI3VApxH1WmVLxZhtmmLKnkv7t0_Wgw",
+      "counterpartyId": "deepbook-margin-v3-package-reference",
+      "address": "0xfbd322126f1452fd4c89aedbaeb9fd0c44df9b5cedbe70d76bf80dc086031377",
+      "addressKind": "package",
+      "eventType": "source_observed",
+      "source": {
+        "kind": "public_official_document",
+        "reference": "https://www.docs.sui.io/onchain-finance/deepbook/deepbook-margin/contract-information",
+        "observedAt": "2026-10-23T13:13:58.921Z"
+      },
+      "trust": "informational_unverified",
+      "paymentAuthorized": false
+    },
+    {
+      "blobId": "f6iWcaX8qv71FSQgEVxm7nUSAYi3jcwGEeRZx-uLVrw",
+      "counterpartyId": "my-bybit-sui-deposit",
+      "address": "0xacb4bc177ab1a34482a587240afa12a393b306a040abb5930fa9b1217ffcc25c",
+      "addressKind": "wallet",
+      "eventType": "recipient_reconfirmed",
+      "source": {
+        "kind": "direct_owner_confirmation",
+        "reference": "User confirmed address displayed in their own Bybit account under Deposit > SUI > Sui network",
+        "observedAt": "2026-10-23T13:38:58.396Z"
+      },
+      "trust": "informational_unverified",
+      "paymentAuthorized": false
+    },
+    {
+      "blobId": "fHD4G1o_hmpLohp1FasnNAZuCB27WpjGdfgsvU9SgQw",
+      "counterpartyId": "friend-1-sui-recipient",
+      "address": "0x53059ac6228be6b4a5a67c3f72aa174b6f20363ee11d1bd301c6b3f7ef6bfe7f",
+      "addressKind": "wallet",
+      "eventType": "recipient_reconfirmed",
+      "source": {
+        "kind": "direct_owner_confirmation",
+        "reference": "Operator reports friend confirmed intended Sui receiving address and consented to public Walrus storage; original message not independently reviewed",
+        "observedAt": "2026-10-23T22:33:54.962Z"
+      },
+      "trust": "informational_unverified",
+      "paymentAuthorized": false
+    },
+    {
+      "blobId": "MK8-ROPW1q5nusbhp16QennziZibSL8ZREDTPipd6EQ",
+      "kind": "recipient_claim",
+      "address": "0x83874235f1db9761bcce93a11466a613a4516085da5ccfe121dddc3d63a0b5e8",
+      "counterpartyId": "my-sui-wallet",
+      "provenance": "self_wallet_check",
+      "recipientBaseline": true,
+      "observedAt": "2026-10-22T17:32:07.429Z",
+      "sourceReference": "Personally compared the full Sui Mainnet receiving address displayed in my wallet on 2026-10-22.",
+      "freshness": "historical_claim",
+      "signedChallengeExpiresAt": null,
+      "controlProven": false,
+      "recipientRelationshipProven": false
+    },
+    {
+      "blobId": "BqFH2yf-6Z8rUwDPJBDJZC1OHUEMZql2duVopUY8ReE",
+      "kind": "wallet_control",
+      "address": "0x83874235f1db9761bcce93a11466a613a4516085da5ccfe121dddc3d63a0b5e8",
+      "counterpartyId": null,
+      "provenance": "record_claims_locally_reverified_signature",
+      "recipientBaseline": false,
+      "observedAt": "2026-10-23T20:07:27.050Z",
+      "sourceReference": "Stored signature-verification claim; raw signature not retrieved or reverified",
+      "freshness": "expired_claim",
+      "signedChallengeExpiresAt": "2026-10-23T20:12:27.050Z",
+      "controlProven": false,
+      "recipientRelationshipProven": false
+    }
+  ],
+  "directDownloadAttempts": [
+    {
+      "blobId": "nGtay72mgnd7iBPFblBMFtF2o1fBfFEfm47Ccc0M7qM",
+      "inventoryStatus": "active",
+      "inventoryBytes": 445,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    },
+    {
+      "blobId": "lN6o9uxHc9IXfT3i5bQ31fg2R9HT5Sz6nrqKtguR-Bw",
+      "inventoryStatus": "active",
+      "inventoryBytes": 445,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    },
+    {
+      "blobId": "MK8-ROPW1q5nusbhp16QennziZibSL8ZREDTPipd6EQ",
+      "inventoryStatus": "active",
+      "inventoryBytes": 665,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    },
+    {
+      "blobId": "r5lQKXv5DYWMV9oN-TuB0EA5v6GPGjyKyIdG9b8VSKk",
+      "inventoryStatus": "active",
+      "inventoryBytes": 924,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    },
+    {
+      "blobId": "5nMwajzs04OUkI3VApxH1WmVLxZhtmmLKnkv7t0_Wgw",
+      "inventoryStatus": "active",
+      "inventoryBytes": 936,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    },
+    {
+      "blobId": "f6iWcaX8qv71FSQgEVxm7nUSAYi3jcwGEeRZx-uLVrw",
+      "inventoryStatus": "active",
+      "inventoryBytes": 911,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    },
+    {
+      "blobId": "na7TmQoeeC9QdxAziPyxJnSZP62-x3FQ5_JkzZI8f7c",
+      "inventoryStatus": "active",
+      "inventoryBytes": 908,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    },
+    {
+      "blobId": "BqFH2yf-6Z8rUwDPJBDJZC1OHUEMZql2duVopUY8ReE",
+      "inventoryStatus": "active",
+      "inventoryBytes": 1261,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    },
+    {
+      "blobId": "fHD4G1o_hmpLohp1FasnNAZuCB27WpjGdfgsvU9SgQw",
+      "inventoryStatus": "active",
+      "inventoryBytes": 968,
+      "download": "unavailable",
+      "errorCategory": "HTTPError"
+    }
+  ],
+  "hostedExactReadiness": {
+    "blobId": "fHD4G1o_hmpLohp1FasnNAZuCB27WpjGdfgsvU9SgQw",
+    "status": "configuration_required",
+    "retrievedAt": "2026-10-25T15:21:10.203Z",
+    "ciphertextHash": "b3fe0ff670effb596f731e50680276f9194b37ac415546f3e1a3458593bea0b0",
+    "reason": "Mainnet SEAL committee requires an Enoki API key (MEMWAL_SEAL_API_KEY)",
+    "payloadHashVerified": false,
+    "identityVerified": false,
+    "paymentAuthorized": false,
+    "memoryWritten": false
+  },
+  "paymentAuthorized": false,
+  "memoryWritten": false,
+  "qualifyingMemoryCountVerified": false,
+  "limits": [
+    "Nine active metadata entries are confirmed; seven product records were freshly recovered through the hosted relayer integration.",
+    "Two SDK integration memories have historical documented success and fresh metadata; their plaintext was not recovered in this audit.",
+    "Direct aggregator downloads from this audit environment returned HTTP errors; this is not proof of missing blobs. The hosted fixed-blob reader inspected the friend ciphertext and reports a missing SEAL credential.",
+    "Relayer-returned content was not independently decrypted or rehashed against historical trusted receipts.",
+    "Organizer eligibility and storage beyond the current lease are not guaranteed. No new memory was created."
+  ]
+}
