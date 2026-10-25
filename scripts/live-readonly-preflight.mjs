@@ -38,10 +38,11 @@ try {
     } while (Date.now() < deadline);
     assert.ok(health, "Expected deployed revision did not become healthy");
     assert.equal(health.publicMode, true);
-    assert.equal(health.memoryWritesEnabled, false);
-    assert.equal(health.selfServiceWritesEnabled, false);
+    assert.equal(health.memoryWritesEnabled, health.assessmentMemorySavingEnabled === true);
+    assert.equal(health.recipientPublicationEnabled, false);
+    assert.equal(health.selfServiceWritesEnabled, health.assessmentMemorySavingEnabled === true);
     assert.equal(health.paymentAuthorized, false);
-    return { buildCommit: health.buildCommit, publicWrites: false };
+    return { buildCommit: health.buildCommit, publicRecipientWrites: false, assessmentSaving: health.assessmentMemorySavingEnabled === true };
   });
   await check("public_pages_available", async () => {
     for (const path of ["/", "/verify-wallet", "/memory", "/history", "/docs", "/contacts", "/receive-private"]) {

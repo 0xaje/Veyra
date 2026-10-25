@@ -49,6 +49,10 @@ test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acce
  const api=await launch(t),payer=client(api.base,api.origin),recipient=client(api.base,api.origin),stranger=client(api.base,api.origin);
  const p=await payer.login(),r=await recipient.login();await stranger.login();
  const storageHealth=await fetch(api.base+'/health').then(r=>r.json());assert.equal(storageHealth.privateRelationshipStorage,backend);assert.equal(storageHealth.publicationStateStorage,backend);assert.equal(storageHealth.selfServiceWritesEnabled,false);
+ const memoryAccess=await fetch(api.base+'/v1/saved-checks/session').then(r=>r.json());assert.equal(memoryAccess.exists,false);assert.equal(memoryAccess.available,false);
+ const noMemorySession=await fetch(api.base+'/v1/saved-checks');assert.equal(noMemorySession.status,401);
+ const foreignMemory=await fetch(api.base+'/v1/saved-checks/session',{method:'POST',headers:{'content-type':'application/json',origin:'https://foreign.example'},body:'{}'});assert.equal(foreignMemory.status,403);
+ const unconfiguredMemory=await fetch(api.base+'/v1/saved-checks/session',{method:'POST',headers:{'content-type':'application/json',origin:api.origin},body:'{}'});assert.equal(unconfiguredMemory.status,503);
  const invitation=await payer.call('/v1/private/invitations',{label:'Private name never sent to providers'});assert.equal(invitation.response.status,201);
  assert.equal(new URL(invitation.body.invitationUrl).search,'');
  assert.equal(new URL(invitation.body.invitationUrl).pathname,'/receive-private');

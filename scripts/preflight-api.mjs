@@ -1,3 +1,4 @@
+import { createSavedAssessmentsApi } from './saved-assessments-api.mjs';
 // Veyra preflight HTTP API: local write-capable mode, public read-only mode. Never signs or submits payments.
 import { createServer } from "node:http";
 import { readFile, appendFile, mkdir } from "node:fs/promises";
@@ -57,6 +58,7 @@ const exactReader = new ExactWalrusReader({delegateKey:process.env.MEMWAL_PRIVAT
 let exactReadiness = {status:"not_checked",payloadHashVerified:false,paymentAuthorized:false,memoryWritten:false};
 async function checkExactReadiness() { exactReadiness=await exactReader.read(EXISTING_PUBLIC_BLOB);return exactReadiness; }
 const privateRelationships = await createPrivateRelationshipsApi({publicMode,port,requestAllowed:privateRequestAllowed,readPublicationReadiness:checkExactReadiness,readPublicationReceipt:(receipt)=>exactReader.read(receipt.blobId,receipt)});
+const savedAssessments = await createSavedAssessmentsApi({db:privateRelationships.memoryStorage,origin:publicMode?walletOrigin:`http://127.0.0.1:${port}`,publicMode,requestAllowed:privateRequestAllowed});
 const publicationDbPath = process.env.VEYRA_PUBLICATION_DB || "";
 if (!publicMode && publicationDbPath &&
     existsSync(resolve(process.env.VEYRA_SAFEGUARDS_FILE || "data/safeguards-ledger.json")))
@@ -239,10 +241,11 @@ async function recallRecipientEvidence(counterpartyId, proposedAddress) {
 }
 
 async function handler(req, res) {
+  if(await savedAssessments.handle(req,res))return;
   if(await privateRelationships.handle(req,res))return;
-  if(req.method==="GET"&&req.url==="/relationships.js"){
+  if(req.method==="GET"&&["/relationships.js","/saved-checks.js"].includes(req.url)){
     try{
-      const source=await readFile(resolve(webRoot,"relationships.js"),"utf8");
+      const source=await readFile(resolve(webRoot,req.url.slice(1)),"utf8");
       res.writeHead(200,{"content-type":"text/javascript; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"});res.end(source);return;
     }catch{res.writeHead(503);res.end();return;}
   }
@@ -485,7 +488,7 @@ async function handler(req, res) {
     }
   }
   if (req.method === "GET" && req.url === "/health")
-    return send(200, { status: "running", buildCommit: process.env.RENDER_GIT_COMMIT || null, paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode, selfServiceWritesEnabled: !publicMode && Boolean(publicationLedger && process.env.MEMWAL_PRIVATE_KEY && process.env.MEMWAL_ACCOUNT_ID), publicationSecurityGatesComplete: false, privateRelationshipsEnabled: privateRelationships.enabled, privateRelationshipStorage: privateRelationships.storage, publicationPreparationEnabled: Boolean(privateRelationships.publicationLedger), publicationStateStorage: privateRelationships.publicationLedger ? privateRelationships.storage : publicationDbPath ? "sqlite" : null, exactBlobReadiness: exactReadiness });
+    return send(200, { status: "running", buildCommit: process.env.RENDER_GIT_COMMIT || null, paymentAuthorized: false, publicMode, walletProofEnabled: !publicMode || publicWalletProof, memoryWritesEnabled: !publicMode || savedAssessments.enabled, selfServiceWritesEnabled: savedAssessments.enabled || (!publicMode && Boolean(publicationLedger && process.env.MEMWAL_PRIVATE_KEY && process.env.MEMWAL_ACCOUNT_ID)), recipientPublicationEnabled: !publicMode && Boolean(publicationLedger && process.env.MEMWAL_PRIVATE_KEY && process.env.MEMWAL_ACCOUNT_ID), publicationSecurityGatesComplete: false, assessmentMemorySavingEnabled:savedAssessments.enabled, privateRelationshipsEnabled: privateRelationships.enabled, privateRelationshipStorage: privateRelationships.storage, publicationPreparationEnabled: Boolean(privateRelationships.publicationLedger), publicationStateStorage: privateRelationships.publicationLedger ? privateRelationships.storage : publicationDbPath ? "sqlite" : null, exactBlobReadiness: exactReadiness });
   if (req.method === "GET" && req.url?.startsWith("/v1/evidence-timeline?")) {
     const url = new URL(req.url, "http://localhost");
     const counterpartyId = url.searchParams.get("counterpartyId");
@@ -721,6 +724,7 @@ async function handler(req, res) {
       } : result.conclusion,
       walrusEvidenceConclusion: result.conclusion,
       reasons: relationshipComparison ? [relationshipComparison.message,...result.reasons] : result.reasons,
+      assessmentSaveTicket:!relationshipComparison&&savedAssessments.enabled?savedAssessments.store.ticket({assessmentId,checkedAt,counterpartyId:data.counterpartyId,proposedAddress,conclusion:result.conclusion.status,evidenceBlobIds:result.unifiedEvidence.entries.map(e=>e.blobId),tatumStatus:chain.status,transactionDigest:data.transactionDigest}):null,
       relationshipComparison, assessmentId, checkedAt, historyPersisted: Boolean(historyPath && !relationshipComparison), providers,
       retrieval: {
         mode: verifiedPublications.length ? "semantic_recall_with_receipt_index" : "semantic_recall", completeness: "unknown", exactIdVerification: verifiedPublications.length?"verified_receipt_records":"not_performed",

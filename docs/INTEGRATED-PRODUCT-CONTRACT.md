@@ -64,3 +64,7 @@ The bullets below record the starting checkpoint, not the current implementation
 
 ## Delivery discipline
 Every code change must cite the milestone and user workflow it advances, preserve existing security boundaries, add appropriate tests, and be reviewed through the integrated application. No independent feature additions or real memory writes without explicit approval.
+
+## Approved scope extension — unsigned assessment saving (25 October 2026)
+
+The user explicitly requested that unsigned visitors can save their own checks and return to them without builder involvement. `veyra.assessment_memory.v1` records only a server-performed assessment, never recipient intent, ownership or approval. Use a persistent anonymous browser capability, exact server-authenticated record ticket, explicit record-bound consent, CSRF/origin protection, durable idempotency/quotas and owner-isolated receipts/retrieval. Recovery may transfer access through a private rotating bearer code. Never publish the bearer, private contact labels or private relationship records. Keep assessment snapshots separate from recipient baselines. Existing recipient-publication wallet signature requirements remain unchanged. Relayer-returned exact-blob/hash checks must be labelled as relayer verification; independent ciphertext decryption remains a separate claim. See SAVED-ASSESSMENTS.md for implementation and acceptance boundaries.

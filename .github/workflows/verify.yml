@@ -37,5 +37,7 @@ jobs:
       - run: node --check scripts/preflight-api.mjs
       - run: node --check scripts/live-readonly-preflight.mjs
       - run: node --check scripts/private-relationships-api.mjs
+      - run: node --check scripts/saved-assessments-api.mjs
+      - run: node --check apps/web/saved-checks.js
       - run: node --check apps/web/relationships.js
       - run: npm test

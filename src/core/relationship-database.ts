@@ -18,6 +18,7 @@ export function postgresStatement(sql: string): string {
   let index = 0;
   let query = sql.replace(/\?/g, () => '$' + ++index).replace(/\browid\b/g, 'sort_seq')
     .replace(/\brel_([a-z_]+)\b/g, 'veyra_private.rel_$1')
+    .replace(/\basm_([a-z_]+)\b/g, 'veyra_assessments.asm_$1')
     .replace(/\b(preparations|publication_jobs|publication_meta|publication_verifications|publication_wallet)\b/g, 'veyra_publication.$1')
     .replace(/CREATE INDEX IF NOT EXISTS (?:veyra_private|veyra_publication)\.(\w+)/g, 'CREATE INDEX IF NOT EXISTS $1');
   if (/INSERT OR IGNORE/i.test(query)) query = query.replace(/INSERT OR IGNORE/i, 'INSERT') + ' ON CONFLICT DO NOTHING';

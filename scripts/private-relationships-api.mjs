@@ -134,5 +134,5 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
       return send(error instanceof RelationshipError?error.status:503,{error:error instanceof RelationshipError?error.message:'Private request could not be completed'});
     }
   }
-  return {enabled,publicationLedger,storage:enabled?(databaseUrl?'postgres':'sqlite'):null,handle,relationshipPreflight,close:async()=>{await store?.close();}};
+  return {enabled,publicationLedger,memoryStorage:store?.storageDriver(),storage:enabled?(databaseUrl?'postgres':'sqlite'):null,handle,relationshipPreflight,close:async()=>{await store?.close();}};
 }

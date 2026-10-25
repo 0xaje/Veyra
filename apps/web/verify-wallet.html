@@ -586,7 +586,7 @@ async function checkAvailability(){
   if(!response.ok)throw Error("Health unavailable");
   const health=await response.json();
   verificationAvailable=health.walletProofEnabled===true;
-  publicationAvailable=health.selfServiceWritesEnabled===true;
+  publicationAvailable=health.recipientPublicationEnabled===true;
   $("prepare-publication").disabled=!publicationAvailable;
   recoveryButton.hidden=!publicationAvailable||!publicationJobNonce;
   if(!publicationAvailable)$("pub-status").textContent="Public publication is disabled while security requirements are completed. Read-only address checks remain available.";
