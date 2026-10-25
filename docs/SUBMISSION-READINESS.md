@@ -13,7 +13,7 @@ Deadline: November 10, 2026, 17:00 UTC / 18:00 WAT. Submission form: https://rec
 | At least 10 Mainnet memories | Ten unique active Mainnet blobs listed after the genuine self-service assessment save. Purposes documented, including two historical SDK checks; no organizer eligibility ruling claimed. |
 | Genuine Tatum Sui Mainnet RPC | Verified; see INTEGRATION-EVIDENCE.md |
 | Public GitHub and working demo | Public main and Render verified; current code CI and six hosted checks pass |
-| Published technical blog | Source prepared in TECHNICAL-BLOG.md; included on /docs#build-story; verify deployed page before marking published |
+| Published technical blog | Published at https://veyra-rs1l.onrender.com/docs#build-story; deployed article visually verified in light and dark modes on 25 October 2026. Source: TECHNICAL-BLOG.md |
 | 2–3 minute demo video | Timed narration and shot list prepared in DEMO-RECORDING-SCRIPT.md; final recording/export and URL pending |
 | Submission form and identifiers | Copy prepared in SUBMISSION-COPY.md; account-owner identifiers and actual submission confirmation pending |
 
