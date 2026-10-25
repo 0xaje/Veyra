@@ -1,0 +1,46 @@
+{
+  "schema": "veyra.genuine_saved_assessment_acceptance.v1",
+  "productCommit": "9a6fc0ce9ac73797d233ece413795f7e242aa529",
+  "performedBy": "User-authorized agent acceptance check through the live hosted interface",
+  "assessmentId": "fe885b1d-acdd-4eb5-8ddf-de1d5432227c",
+  "checkedAt": "2026-10-25T16:38:48.179Z",
+  "savedCheckId": "e1e0b7ea-8286-4623-a848-a6339f51261b",
+  "providerJobId": "5457cce7-af65-4a83-a4e2-eb668a3e5177",
+  "blobId": "kHbA42YBtKJ7V4LtqbWuU6S5tTqsIZ4RxVtwTvO60QI",
+  "recordHash": "4794f208308e8661b980a475839c255d3cb1155da4ed1741cebdffb2f6ea6aa0",
+  "storedAt": "2026-10-25T16:39:57.571000+00:00",
+  "status": "stored",
+  "verification": "verified_via_memwal_recall",
+  "independentExactDecryption": false,
+  "walletSignInUsed": false,
+  "explicitExactRecordConsent": true,
+  "browserTabCloseAndReturnVerified": true,
+  "newWriteCount": 1,
+  "paymentAuthorized": false,
+  "record": {
+    "type": "veyra.assessment_memory.v1",
+    "chain": "sui",
+    "network": "mainnet",
+    "assessmentId": "fe885b1d-acdd-4eb5-8ddf-de1d5432227c",
+    "checkedAt": "2026-10-25T16:38:48.179Z",
+    "proposedAddress": "0x53059ac6228be6b4a5a67c3f72aa174b6f20363ee11d1bd301c6b3f7ef6bfe7f",
+    "conclusion": "matches_observed_address",
+    "action": "manual_review_required",
+    "evidenceBlobIds": [
+      "fHD4G1o_hmpLohp1FasnNAZuCB27WpjGdfgsvU9SgQw"
+    ],
+    "tatum": {
+      "status": "observed",
+      "transactionDigest": "5BfxtP2UZbDMJAwm4bNjGvJuiP3fZW9QKghuwoYa7Nst"
+    },
+    "recipientConfirmed": false,
+    "identityVerified": false,
+    "paymentAuthorized": false
+  },
+  "limits": [
+    "The historical Tatum transaction is context, not recipient ownership or current approval.",
+    "This is a genuine saved assessment acceptance test, not a new recipient confirmation or real transfer.",
+    "Recovery rotation was tested automatically against real databases; interactive cross-device recovery is not claimed.",
+    "No raw browser cookie, recovery code, private contact name or provider key is recorded."
+  ]
+}

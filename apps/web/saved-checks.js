@@ -13,13 +13,16 @@
  function receipt(parent,job){
   parent.replaceChildren(make('p',states[job.phase]||'Status unavailable'));
   if(job.blobId){parent.append(make('p','Walrus blob ID'),make('code',job.blobId),make('p','Record hash'),make('code',job.recordHash));}
+  if(job.phase==='stored'){
+   const recallStates={verified_via_memwal_recall:'Walrus Memory returned the expected blob ID and matching record hash. Verified through the relayer; independent exact decryption was not performed.',recall_hash_mismatch:'Warning: the recalled bytes did not match the saved hash. Do not rely on this recall.',not_found_in_recall:'This record was not found in the latest recall. Search can omit records; the completed storage receipt remains available.',not_performed:'Stored receipt available. Choose Recall from Walrus to verify the returned content.'};
+   parent.append(make('p',recallStates[job.verification]||'Recall verification unavailable.','note'));
+  }
   parent.append(make('p','This is a saved check, not recipient approval or permission to pay.','note'));
  }
  function jobActions(parent,job,onUpdate){
   if(job.phase==='pending')parent.append(button('Check storage status',async event=>{const b=event.currentTarget;b.disabled=true;try{const next=await request('/status',{id:job.id});onUpdate(next.job);}catch(e){parent.append(make('p',e.message));}finally{b.disabled=false;}}));
   if(job.phase==='stored')parent.append(button('Recall from Walrus',async event=>{const b=event.currentTarget;b.disabled=true;try{
    const data=await request('/recall',{id:job.id});onUpdate(data.job);
-   parent.append(make('p',data.verification.status==='verified_via_memwal_recall'?'Walrus Memory returned this exact blob ID and matching record hash. Verified through the relayer; independent exact decryption was not performed.':'This recall did not verify the saved bytes. The stored receipt remains available; absence from search does not prove deletion.'));
   }catch(e){parent.append(make('p',e.message));}finally{b.disabled=false;}}));
  }
  let generation=0,active=null;

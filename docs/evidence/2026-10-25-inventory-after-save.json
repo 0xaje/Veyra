@@ -1,0 +1,103 @@
+{
+  "schema": "veyra.walrus_inventory.v1",
+  "namespace": "veyra-dev",
+  "count": 10,
+  "uniqueBlobCount": 10,
+  "memories": [
+    {
+      "memory_id": "a180f790-1ceb-4e35-b4c9-95f95da87fb9",
+      "blob_id": "nGtay72mgnd7iBPFblBMFtF2o1fBfFEfm47Ccc0M7qM",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-21T20:10:32.319048Z",
+      "size": 445,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "5fc0b643-ae75-485d-9922-f75c84832f78",
+      "blob_id": "lN6o9uxHc9IXfT3i5bQ31fg2R9HT5Sz6nrqKtguR-Bw",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-22T16:33:13.174113Z",
+      "size": 445,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "ab46a155-0872-413a-bb06-f73d10e94bb7",
+      "blob_id": "MK8-ROPW1q5nusbhp16QennziZibSL8ZREDTPipd6EQ",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-22T17:32:27.596860Z",
+      "size": 665,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "7090634b-cd42-4ea3-8f55-f69c8d35c470",
+      "blob_id": "r5lQKXv5DYWMV9oN-TuB0EA5v6GPGjyKyIdG9b8VSKk",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T12:32:51.553180Z",
+      "size": 924,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "5b84254b-8887-4bc0-a2c7-2a9c33e9d5f0",
+      "blob_id": "5nMwajzs04OUkI3VApxH1WmVLxZhtmmLKnkv7t0_Wgw",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T13:21:10.939365Z",
+      "size": 936,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "dc2c1e52-4226-4c87-84b8-e4fe13a0f93e",
+      "blob_id": "f6iWcaX8qv71FSQgEVxm7nUSAYi3jcwGEeRZx-uLVrw",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T13:42:14.285321Z",
+      "size": 911,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "edac5ba6-fbe3-437e-a5a2-d3fe6f7798e1",
+      "blob_id": "na7TmQoeeC9QdxAziPyxJnSZP62-x3FQ5_JkzZI8f7c",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T14:34:25.006485Z",
+      "size": 908,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "e21db9b3-2cac-4f36-8d00-05f814bbcdf2",
+      "blob_id": "BqFH2yf-6Z8rUwDPJBDJZC1OHUEMZql2duVopUY8ReE",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T20:21:48.448399Z",
+      "size": 1261,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "ebac082b-8628-4bfb-802b-b824c591db9a",
+      "blob_id": "fHD4G1o_hmpLohp1FasnNAZuCB27WpjGdfgsvU9SgQw",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-23T22:36:20.107038Z",
+      "size": 968,
+      "end_epoch": 57,
+      "status": "active"
+    },
+    {
+      "memory_id": "5457cce7-af65-4a83-a4e2-eb668a3e5177",
+      "blob_id": "kHbA42YBtKJ7V4LtqbWuU6S5tTqsIZ4RxVtwTvO60QI",
+      "namespace_id": "veyra-dev",
+      "created_at": "2026-10-25T16:39:57.088059Z",
+      "size": 858,
+      "end_epoch": null,
+      "status": "active"
+    }
+  ],
+  "completeness": "complete_snapshot",
+  "droppedCount": 0,
+  "contentVerified": false,
+  "qualifyingMemoryCountVerified": false,
+  "paymentAuthorized": false
+}

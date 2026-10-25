@@ -1,3 +1,7 @@
+# Latest self-service acceptance — 25 October 2026
+
+Self-service assessment saving at `9a6fc0c` passed 191/191 CI tests and six genuine hosted read-only checks. A real browser save produced blob `kHbA42YBtKJ7V4LtqbWuU6S5tTqsIZ4RxVtwTvO60QI`, matching-hash relayer recall and persistent new-tab history without wallet sign-in. Inventory now lists ten unique active blobs. See [receipt/record evidence](evidence/2026-10-25-saved-assessment-acceptance.json), [inventory capture](evidence/2026-10-25-inventory-after-save.json), and [scope/security boundaries](SAVED-ASSESSMENTS.md). This is an assessment record, not recipient consent or a transfer. Earlier nine-record status below is the preceding checkpoint.
+
 # Current audit — 25 October 2026
 
 See [closeout audit](CLOSEOUT-AUDIT-2026-10-25.md): nine unique active blobs are listed, seven product records freshly recovered through hosted reads, and two SDK checks historically documented. Current product code passed 179/179 CI tests and six genuine hosted checks. The older checkpoints below are historical, not the current count or completion status. No write was performed by this audit.

@@ -39,3 +39,9 @@ The user explicitly approved unsigned self-service assessment saving in this con
 ## Acceptance
 
 Automated tests use real SQLite/PostgreSQL persistence, cryptographic HMACs and HTTP origin/session boundaries. Lifecycle fixture jobs are labelled local and are not live provider responses. Genuine deployed submission, receipt, recall, return/recovery and the existing read-only Tatum/Walrus checks must be recorded separately before claiming live acceptance. No test that only opens a page counts as a successful memory write.
+
+## Genuine hosted acceptance — 25 October 2026
+
+At product commit `9a6fc0c`, the authorized live browser check performed a genuine recipient assessment using existing public friend evidence and a genuine historical Tatum transaction reference. Without wallet sign-in, the exact displayed record was reviewed/consented, submitted once, completed with job `5457cce7-af65-4a83-a4e2-eb668a3e5177` and Walrus blob `kHbA42YBtKJ7V4LtqbWuU6S5tTqsIZ4RxVtwTvO60QI`. Hosted recall persisted `verified_via_memwal_recall` against SHA-256 `4794f208308e8661b980a475839c255d3cb1155da4ed1741cebdffb2f6ea6aa0`. Closing the original tab and reopening Activity History recovered the saved card while the new tab's temporary session history was empty.
+
+This is one genuine saved assessment, not a transfer, fabricated recipient or independent exact ciphertext decryption. It does not claim that the unrelated historical transaction proves recipient ownership. The first live test exposed a frontend verification-message redraw issue; receipt verification is now rendered from the persisted job state so it remains visible after refresh. Recovery has real database/crypto coverage; interactive cross-device recovery has not been claimed. See [the factual receipt and record](evidence/2026-10-25-saved-assessment-acceptance.json).

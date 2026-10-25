@@ -10,14 +10,14 @@ Deadline: November 10, 2026, 17:00 UTC / 18:00 WAT. Submission form: https://rec
 |---|---|
 | Genuine Walrus SDK write and recall | Verified in development |
 | Walrus Mainnet provenance of each qualifying blob | Verify individually |
-| At least 10 Mainnet memories | Nine unique active blobs listed; seven product records freshly recalled, two historically documented SDK checks. Ten and organizer eligibility not yet established. |
+| At least 10 Mainnet memories | Ten unique active Mainnet blobs listed after the genuine self-service assessment save. Purposes documented, including two historical SDK checks; no organizer eligibility ruling claimed. |
 | Genuine Tatum Sui Mainnet RPC | Verified; see INTEGRATION-EVIDENCE.md |
 | Public GitHub and working demo | Public main and Render verified; current code CI and six hosted checks pass |
 | Published technical blog | Pending |
 | 2–3 minute demo video | Pending |
 | Submission form and identifiers | Pending |
 
-See [the closeout audit](CLOSEOUT-AUDIT-2026-10-25.md) and [captured read-only results](evidence/2026-10-25-readonly-memory-audit.json). Private wallet signing, acceptance, match/mismatch and operator-reported restart have evidence; do not list them as entirely untested. Public signed Walrus submission is a separate unfinished path. No memory was created during this audit.
+See [the closeout audit](CLOSEOUT-AUDIT-2026-10-25.md) and [captured read-only results](evidence/2026-10-25-readonly-memory-audit.json). Private wallet signing, acceptance, match/mismatch and operator-reported restart have evidence; do not list them as entirely untested. Signed recipient-confirmation publication remains separately unfinished. Anonymous assessment saving is now live-tested: one new consented assessment was stored, recalled with matching bytes/hash through the relayer, and loaded after closing/reopening the browser tab. See SAVED-ASSESSMENTS.md and evidence/2026-10-25-saved-assessment-acceptance.json.
 
 ## Genuine memory plan
 
