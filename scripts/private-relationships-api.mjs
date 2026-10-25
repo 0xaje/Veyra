@@ -33,8 +33,7 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
   async function relationshipPreflight(req,relationshipId,proposedAddress){
     if(!store)throw new RelationshipError(503,'Private contacts are not configured on this deployment');
     if(req.headers.origin!==origin||req.headers['sec-fetch-site']==='cross-site')throw new RelationshipError(403,'Exact same-site origin required');
-    const current=await requireSession(req);store.checkCsrf(current,req.headers['x-veyra-csrf']);
-    try{return await store.assess(current,relationshipId,proposedAddress);}catch(error){if(error instanceof RelationshipError)throw error;throw new RelationshipError(503,'Private storage temporarily unavailable; try again');}
+    try{const current=await requireSession(req);store.checkCsrf(current,req.headers['x-veyra-csrf']);return await store.assess(current,relationshipId,proposedAddress);}catch(error){if(error instanceof RelationshipError)throw error;throw new RelationshipError(503,'Private storage temporarily unavailable; try again');}
   }
   async function handle(req,res){
     const url=new URL(req.url,'http://localhost');

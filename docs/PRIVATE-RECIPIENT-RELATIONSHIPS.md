@@ -20,7 +20,7 @@ Private contact labels are never sent to Tatum/MemWal queries or put in public b
 
 ## Local setup
 
-Requires Node 24 and an explicitly chosen private persistent database path. Starting the service creates private state but does not publish a memory or transfer funds.
+Requires Node 24 and either an explicitly chosen private persistent SQLite path or a server-only PostgreSQL connection. Starting the service creates private state but does not publish a memory or transfer funds.
 
 ```bash
 VEYRA_RELATIONSHIP_DB="$PWD/.veyra-data/relationships.sqlite" \
@@ -31,11 +31,11 @@ Open `http://127.0.0.1:8787`. A compatible installed Sui wallet is needed for in
 
 ## Hosted deployment gate
 
-The current free/ephemeral Render blueprint is NOT configured to hold private contacts. The new UI reports the feature unavailable until an operator supplies reviewed persistent storage. No public configuration or paid hosting change is made by this implementation.
+The current free/ephemeral Render service cannot persist local SQLite contacts. Neon Free PostgreSQL is now supported through the same private workflow; follow [NEON-SETUP.md](NEON-SETUP.md). The hosted feature stays disabled until an actual database is configured and reviewed. The new UI reports the feature unavailable until an operator supplies reviewed persistent storage. No public configuration or paid hosting change is made by this implementation.
 
 For an explicitly reviewed HTTPS deployment, all of these are required:
 
-- `VEYRA_RELATIONSHIP_DB`: absolute path on persistent private storage.
+- Either `DATABASE_URL`: private PostgreSQL connection URL (Neon Free supported), or `VEYRA_RELATIONSHIP_DB`: absolute SQLite path on persistent private storage. Never configure both.
 - `VEYRA_ENABLE_PRIVATE_RELATIONSHIPS=true`.
 - `VEYRA_RELATIONSHIP_STORAGE_REVIEWED=true`, only after actually reviewing persistence, backups, access and retention.
 - `VEYRA_PUBLIC_ORIGIN`: exact canonical HTTPS origin.
@@ -80,9 +80,9 @@ All entry points share the current light/dark theme and mobile navigation. No us
 
 Users must never supply hosting credentials, database configuration, API keys or contact the builder for each registration. Configure the service once, then users perform their own signed confirmations.
 
-1. Provision persistent private storage for the existing service and supply the four hosted settings above. Keep one process/host for this SQLite design. Do not change the review flag until persistence, access controls, backups and retention have actually been reviewed.
+1. Configure Neon Free PostgreSQL using the setup guide, or provision persistent private storage for the existing SQLite service, and supply the hosted settings above. Keep one process/host when using SQLite. Do not change the review flag until persistence, access controls, backups and retention have actually been reviewed.
 2. Test restart persistence and recovery against that mounted storage, inspect HTTPS cookie/origin behavior, and complete a genuine browser-wallet payer → recipient → acceptance → address-check journey. Local automated signatures are not a substitute for this hosted acceptance.
 3. Verify the implemented owner-controlled private data export/deletion and publish a concrete backup/retention policy before opening private storage broadly. Revocation is not deletion.
 4. Independently finish public Walrus publication gates from the integrated contract: verified exact-ID retrieval, durable discovery, signed exact-record consent, authenticated wallet authorization, durable quotas/idempotency and spending limits, then a genuine write/read receipt. Existing flags must not bypass these requirements.
 
-The repository connector can publish application changes but does not expose the Render service's storage or environment administration. Do not claim that deployment configuration has changed based on a Git commit alone. No paid storage has been ordered by this change.
+The repository connector can publish application changes but does not expose the Neon account or Render service's environment administration. Do not claim that deployment configuration has changed based on a Git commit alone. No paid storage has been ordered by this change.

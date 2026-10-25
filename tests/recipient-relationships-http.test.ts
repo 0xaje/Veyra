@@ -10,7 +10,10 @@ import { tmpdir } from 'node:os';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
 for(const backend of ['sqlite', ...(process.env.TEST_DATABASE_URL ? ['postgres'] : [])]) {
-const test=(name:string, options:{timeout:number}, fn:(t:TestContext)=>Promise<void>)=>nodeTest(backend+': '+name,options,fn);
+const test=(name:string, options:{timeout:number}, fn:(t:TestContext)=>Promise<void>)=>{
+ if(backend==='postgres'&&!name.startsWith('M3/M4: real HTTP'))return; // Other cases exercise SQLite HTTPS or disabled storage, not PostgreSQL.
+ return nodeTest(backend+': '+name,options,fn);
+};
 async function unusedPort(){const server=createServer();server.listen(0,'127.0.0.1');await once(server,'listening');const a=server.address();if(!a||typeof a==='string')throw Error('No port');server.close();await once(server,'close');return a.port;}
 async function launch(t:{after:(fn:()=>Promise<void>)=>void},publicMode=false,enabled=true){
  const dir=await mkdtemp(join(tmpdir(),'veyra-private-http-')),p=await unusedPort(),base='http://127.0.0.1:'+p;
@@ -45,6 +48,7 @@ function client(base:string,origin:string){
 test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acceptance and scoped preflight', {timeout:20000},async t=>{
  const api=await launch(t),payer=client(api.base,api.origin),recipient=client(api.base,api.origin),stranger=client(api.base,api.origin);
  const p=await payer.login(),r=await recipient.login();await stranger.login();
+ const storageHealth=await fetch(api.base+'/health').then(r=>r.json());assert.equal(storageHealth.privateRelationshipStorage,backend);
  const invitation=await payer.call('/v1/private/invitations',{label:'Private name never sent to providers'});assert.equal(invitation.response.status,201);
  assert.equal(new URL(invitation.body.invitationUrl).search,'');
  assert.equal(new URL(invitation.body.invitationUrl).pathname,'/receive-private');

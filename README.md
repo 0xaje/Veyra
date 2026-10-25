@@ -73,3 +73,7 @@ Walrus memory is not an identity oracle. Historical onchain participation does n
 ## Product integrity
 
 No invented onchain transactions, mocked provider success, fabricated stored memories, or private keys in public blobs. Evidence sources and limitations are shown explicitly. All payment decisions remain with the user after independent verification.
+
+### Free private-contact hosting with Neon
+
+Keep Render Free and use Neon Free PostgreSQL for the existing wallet-authenticated private recipient workflow. Follow [the Neon setup guide](docs/NEON-SETUP.md). Configure the server-only `DATABASE_URL`; do not configure a local SQLite path alongside it. Hosted activation remains explicit and requires the storage/origin review. The same relationship state machine runs on PostgreSQL and local SQLite. CI runs its private journey against real PostgreSQL 17 as well as SQLite; no fabricated Mainnet writes are used. This integration does not enable public Walrus publication or migrate the local-only publication ledger.
