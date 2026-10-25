@@ -405,20 +405,7 @@ if(relationship){
  privateTrace.hidden=false;privateTrace.textContent="Private confirmation: "+(relationship.acceptedAddress||"No accepted address")+" · "+(relationship.acceptedAt||"Not accepted")+" · "+(relationship.confirmationMethod||"No trusted-channel attestation")+" · Prior accepted addresses: "+relationship.priorAddresses.join(", ")+" · Not Walrus evidence or identity proof.";
 }else{const privateTrace=document.getElementById("private-confirmation-trace");if(privateTrace)privateTrace.hidden=true;}
 setText("consumerHeadline",guide.title);setText("consumerMessage",guide.message);
-const summaryBox=document.getElementById("consumerSummary");
-if(comparison==="matches_remembered_claim"){
-  summaryBox.style.borderColor="var(--veyra-border)";
-  summaryBox.style.borderLeftColor="var(--veyra-border)";
-  summaryBox.style.background="var(--veyra-text)";
-}else if(comparison==="differs_from_remembered_claim"){
-  summaryBox.style.borderColor="var(--veyra-border)";
-  summaryBox.style.borderLeftColor="var(--veyra-border)";
-  summaryBox.style.background="var(--veyra-text)";
-}else{
-  summaryBox.style.borderColor="var(--veyra-border)";
-  summaryBox.style.borderLeftColor="var(--veyra-border)";
-  summaryBox.style.background="var(--veyra-text)";
-}
+// Summary colors come from the shared light/dark theme tokens.
 const stepList=document.getElementById("consumerSteps");stepList.replaceChildren();
 for(const step of guide.steps){const li=document.createElement("li");li.textContent=step;stepList.append(li)}
 
