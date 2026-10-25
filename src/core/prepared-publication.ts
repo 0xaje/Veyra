@@ -4,9 +4,12 @@ import {
   type PublicationConsentInput,
 } from "./self-service-confirmation.ts";
 
+export type PublicationBinding = { origin: string; sessionHash: string };
+
 type Prepared = ReturnType<typeof prepareConsentedRecipientConfirmation> & {
   consentPayload: PublicationConsentInput;
   consentMessage: string;
+  binding?: PublicationBinding;
 };
 
 /**
@@ -17,7 +20,7 @@ export class PreparedPublications {
   private pending = new Map<string, Prepared>();
   private readonly capacity: number;
   constructor(capacity = 200) { this.capacity = capacity; }
-  issue(address: string, counterpartyId: string, now = Date.now()): Prepared {
+  issue(address: string, counterpartyId: string, now = Date.now(), binding?: PublicationBinding): Prepared {
     for (const [nonce, value] of this.pending)
       if (Date.parse(value.consentPayload.expiresAt) <= now) this.pending.delete(nonce);
     if (this.pending.size >= this.capacity) throw new Error("Too many outstanding preparations");
@@ -25,12 +28,14 @@ export class PreparedPublications {
       address, counterpartyId, observedAt: new Date(now).toISOString(),
     });
     const consentPayload: PublicationConsentInput = {
+      ...(binding ? {origin:binding.origin} : {}),
       address: prepared.candidate.address, counterpartyId: prepared.candidate.counterpartyId,
       recordHash: prepared.recordHash, network: "sui-mainnet",
       scope: "public_walrus_recipient_confirmation",
       nonce: randomUUID().replace(/-/g, ""), expiresAt: new Date(now + 10 * 60_000).toISOString(),
     };
-    const result = { ...prepared, consentPayload, consentMessage: buildPublicationConsentMessage(consentPayload) };
+    if(binding && !/^[a-f0-9]{64}$/.test(binding.sessionHash)) throw new Error("Invalid publication session binding");
+    const result = { ...prepared, ...(binding?{binding}:{}), consentPayload, consentMessage: buildPublicationConsentMessage(consentPayload) };
     this.pending.set(consentPayload.nonce, result);
     return structuredClone(result);
   }

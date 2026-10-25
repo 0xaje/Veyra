@@ -1,8 +1,9 @@
 // Private local relationship state only. No Walrus publication or payment.
 import { RecipientRelationships, RelationshipError } from '../src/core/recipient-relationships.ts';
+import { PublicationLedger } from '../src/core/publication-ledger.ts';
 import { isAbsolute } from 'node:path';
 
-export async function createPrivateRelationshipsApi({publicMode,port,requestAllowed}) {
+export async function createPrivateRelationshipsApi({publicMode,port,requestAllowed,readPublicationReadiness}) {
   const databaseUrl=process.env.DATABASE_URL;
   const configuredPath=process.env.VEYRA_RELATIONSHIP_DB;
   const origin=publicMode?process.env.VEYRA_PUBLIC_ORIGIN:`http://127.0.0.1:${port}`;
@@ -15,6 +16,8 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
   }
   const enabled=Boolean((configuredPath||databaseUrl)&&(!publicMode||process.env.VEYRA_ENABLE_PRIVATE_RELATIONSHIPS==='true'));
   const store=enabled?(databaseUrl?await RecipientRelationships.connect(databaseUrl,origin,!publicMode):await RecipientRelationships.open(configuredPath,origin)):null;
+  // Hosted publication staging is durable, but its spending policy starts at zero.
+  const publicationLedger=store?await PublicationLedger.attach(store.storageDriver(),{maxDailyWritesPerWallet:0,maxGlobalDailyWrites:0}):null;
   const sessionName=publicMode?'__Host-veyra-session':'veyra-session';
   const bindingName=publicMode?'__Host-veyra-binding':'veyra-binding';
   const cookie=(name,value,seconds)=>`${name}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${seconds}${publicMode?'; Secure':''}`;
@@ -61,13 +64,35 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
       }
       const current=await requireSession(req);
       if(req.method==='POST')store.checkCsrf(current,req.headers['x-veyra-csrf']);
+      if(req.method==='GET'&&url.pathname==='/v1/private/publication-readiness')return send(200,{readiness:await readPublicationReadiness(),publicationEnabled:false});
+      if(req.method==='POST'&&url.pathname==='/v1/private/publication-prepare'){
+        const input=await body(req);const context=await store.publicationContext(current,input.relationshipId);
+        const prepared=await publicationLedger.issue(context.address,context.relationshipId,Date.now(),{origin:context.origin,sessionHash:context.sessionHash});
+        return send(200,{status:'consent_prepared_publication_locked',consentPayload:prepared.consentPayload,
+          consentMessage:prepared.consentMessage,candidateRecord:prepared.candidate,recordHash:prepared.recordHash,
+          publicationEnabled:false,limitation:'Review only. Public writes remain disabled; no signature or storage submission was requested.'});
+      }
+      if(req.method==='POST'&&url.pathname==='/v1/private/publication-review'){
+        const input=await body(req);const prepared=await publicationLedger.get(input.consent,Date.now(),{origin,sessionHash:current.sessionHash});
+        if(!prepared)throw new RelationshipError(404,'Publication preparation unavailable for this browser session');
+        return send(200,{candidateRecord:prepared.candidate,consentPayload:prepared.consentPayload,consentMessage:prepared.consentMessage,recordHash:prepared.recordHash,publicationEnabled:false});
+      }
+      if(req.method==='GET'&&url.pathname==='/v1/private/publication-receipts')
+        return send(200,{receipts:await publicationLedger.getReceiptsForWallet(current.address)});
+      if(req.method==='GET'&&url.pathname==='/v1/private/publication-job'){
+        const nonce=url.searchParams.get('nonce');
+        if(typeof nonce!=='string'||!/^[a-f0-9]{32}$/.test(nonce))throw new RelationshipError(400,'Valid publication nonce required');
+        const job=await publicationLedger.getJob(nonce);
+        if(!job||job.address!==current.address)throw new RelationshipError(404,'Publication job not found');
+        return send(200,{job,exactVerification:await publicationLedger.getVerification(nonce),publicationEnabled:false});
+      }
       if(req.method==='POST'&&url.pathname==='/v1/private/logout'){
         await store.logout(current);res.setHeader('set-cookie',cookie(sessionName,'',0));return send(200,{status:'signed_out'});
       }
       if(req.method==='GET'&&url.pathname==='/v1/private/recipient-confirmations')return send(200,{confirmations:await store.received(current)});
       if(req.method==='GET'&&url.pathname==='/v1/private/export')return send(200,await store.exportContacts(current));
       if(req.method==='POST'&&url.pathname==='/v1/private/delete-contact'){
-        const input=await body(req);return send(200,await store.deleteContact(current,input.relationshipId,input.confirmLabel));
+        const input=await body(req);const deleted=await store.storageDriver().transaction(async()=>{const result=await store.deleteContact(current,input.relationshipId,input.confirmLabel);await publicationLedger.deleteUnsubmittedForRelationship(input.relationshipId);return result;});return send(200,deleted);
       }
       if(req.method==='GET'&&url.pathname==='/v1/private/relationships')return send(200,{relationships:await store.list(current)});
       if(req.method==='GET'&&url.pathname==='/v1/private/relationship-history')
@@ -88,5 +113,5 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
       return send(error instanceof RelationshipError?error.status:503,{error:error instanceof RelationshipError?error.message:'Private request could not be completed'});
     }
   }
-  return {enabled,storage:enabled?(databaseUrl?'postgres':'sqlite'):null,handle,relationshipPreflight,close:async()=>{await store?.close();}};
+  return {enabled,publicationLedger,storage:enabled?(databaseUrl?'postgres':'sqlite'):null,handle,relationshipPreflight,close:async()=>{await store?.close();}};
 }

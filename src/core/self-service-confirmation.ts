@@ -9,6 +9,7 @@ export type PublicationConsentInput = {
   network: "sui-mainnet";
   expiresAt: string;
   nonce: string;
+  origin?: string;
 };
 
 
@@ -25,6 +26,11 @@ export function validatePublicationConsent(input: PublicationConsentInput): void
     throw new Error("Invalid publication consent fields");
   }
   normalizeSuiAddress(input.address);
+  if(input.origin !== undefined) {
+    let url: URL; try { url = new URL(input.origin); } catch { throw new Error('Invalid publication origin'); }
+    if(url.origin !== input.origin || !(url.protocol === 'https:' || (url.protocol === 'http:' && url.hostname === '127.0.0.1')))
+      throw new Error('Invalid publication origin');
+  }
 }
 
 export type SignedPublicationConsent = {
@@ -43,6 +49,7 @@ export function buildPublicationConsentMessage(input: PublicationConsentInput): 
   const normalized = normalizeSuiAddress(input.address);
   return [
     "Veyra public recipient-confirmation publication consent",
+    ...(input.origin ? ["Origin: " + input.origin] : []),
     "Network: Sui Mainnet",
     "Scope: public_walrus_recipient_confirmation",
     "Receiving address: " + normalized,

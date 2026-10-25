@@ -88,9 +88,9 @@ test("M3: actual local HTTP preparation and pending status survive server restar
   assert.equal(prepared.status,"consent_prepared");
   await stop(server.child);
   // Explicit local reservation fixture: no signature/provider/store is claimed.
-  const ledger=new PublicationLedger(path,{maxDailyWritesPerWallet:3,maxGlobalDailyWrites:50});
-  assert.equal(ledger.get(prepared.consentPayload)?.candidateJson,JSON.stringify(prepared.candidateRecord));
-  ledger.reserve(prepared.consentPayload);ledger.close();
+  const ledger=await PublicationLedger.open(path,{maxDailyWritesPerWallet:3,maxGlobalDailyWrites:50});
+  assert.equal((await ledger.get(prepared.consentPayload))?.candidateJson,JSON.stringify(prepared.candidateRecord));
+  await ledger.reserve(prepared.consentPayload);await ledger.close();
   server=await launch(env,p);
   const status=await fetch(server.base+"/v1/self-service/jobs?nonce="+prepared.consentPayload.nonce);
   assert.equal(status.status,202);

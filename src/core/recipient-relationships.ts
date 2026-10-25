@@ -402,5 +402,19 @@ export class RecipientRelationships {
                 scope: "Removed from active private storage, including associated confirmations. Existing exports, backups and public immutable records are not erased by this action." };
         });
     }
+    // Server-only storage reference, never included in an HTTP response.
+    storageDriver() { return this.db; }
+    async publicationContext(session: RelationshipSession, relationshipId: string, now = Date.now()) {
+      return this.transaction(async () => {
+        await this.liveSession(session, now);
+        requireValue(id(relationshipId),404,'Accepted receiving confirmation not found');
+        const row = await this.db.prepare(`SELECT r.id,r.state,c.recipient,c.id AS claim_id
+          FROM rel_contacts r JOIN rel_claims c ON c.id=r.accepted_claim
+          WHERE r.id=? AND r.origin=? AND c.recipient=?`).get(relationshipId,this.origin,session.address);
+        requireValue(row && row.state === 'active',404,'Accepted receiving confirmation not found');
+        await this.limit('publication-prepare:'+session.address,3,now);
+        return {relationshipId:row.id,address:row.recipient,claimId:row.claim_id,origin:this.origin,sessionHash:session.sessionHash};
+      });
+    }
     async close() { await this.db.close(); }
 }

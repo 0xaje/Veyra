@@ -48,7 +48,7 @@ function client(base:string,origin:string){
 test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acceptance and scoped preflight', {timeout:20000},async t=>{
  const api=await launch(t),payer=client(api.base,api.origin),recipient=client(api.base,api.origin),stranger=client(api.base,api.origin);
  const p=await payer.login(),r=await recipient.login();await stranger.login();
- const storageHealth=await fetch(api.base+'/health').then(r=>r.json());assert.equal(storageHealth.privateRelationshipStorage,backend);
+ const storageHealth=await fetch(api.base+'/health').then(r=>r.json());assert.equal(storageHealth.privateRelationshipStorage,backend);assert.equal(storageHealth.publicationStateStorage,backend);assert.equal(storageHealth.selfServiceWritesEnabled,false);
  const invitation=await payer.call('/v1/private/invitations',{label:'Private name never sent to providers'});assert.equal(invitation.response.status,201);
  assert.equal(new URL(invitation.body.invitationUrl).search,'');
  assert.equal(new URL(invitation.body.invitationUrl).pathname,'/receive-private');
@@ -65,6 +65,16 @@ test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acce
  assert.equal((await payer.call('/v1/private/accept',acceptance,{'x-veyra-csrf':'wrong'})).response.status,403);
  assert.equal((await payer.call('/v1/private/accept',acceptance,{origin:'https://evil.example'})).response.status,403);
  const accepted=await payer.call('/v1/private/accept',acceptance);assert.equal(accepted.response.status,200);assert.equal(accepted.body.identityVerified,false);
+ assert.equal((await payer.call('/v1/private/publication-prepare',{relationshipId:rel})).response.status,404);
+ assert.equal((await stranger.call('/v1/private/publication-prepare',{relationshipId:rel})).response.status,404);
+ assert.equal((await recipient.call('/v1/private/publication-prepare',{relationshipId:rel},{'x-veyra-csrf':'wrong'})).response.status,403);
+ const publication=await recipient.call('/v1/private/publication-prepare',{relationshipId:rel,address:'0x3',counterpartyId:'another-alias'});
+ assert.equal(publication.response.status,200);assert.equal(publication.body.publicationEnabled,false);
+ assert.equal(publication.body.candidateRecord.address,r.key.toSuiAddress());assert.equal(publication.body.candidateRecord.counterpartyId,rel);
+ assert.equal(publication.body.consentPayload.origin,api.origin);assert.match(publication.body.consentMessage,/Origin:/);
+ assert.ok(!JSON.stringify(publication.body).includes('Private name never sent'));
+ assert.ok(!JSON.stringify(publication.body.candidateRecord).includes('sessionHash'));
+ assert.equal((await stranger.call('/v1/private/publication-review',{consent:publication.body.consentPayload})).response.status,404);
  const payload={relationshipId:rel,counterpartyId:'not-the-private-label',proposedAddress:r.key.toSuiAddress()};
  const preflight=await payer.call('/v1/preflight',payload);assert.equal(preflight.response.status,200);
  assert.equal(preflight.body.relationshipComparison.status,'matches_relationship_confirmation');assert.equal(preflight.body.conclusion.status,'matches_relationship_confirmation');assert.equal(preflight.body.walrusEvidenceConclusion.status,'no_evidence');assert.equal(preflight.body.paymentAuthorized,false);
@@ -76,6 +86,7 @@ test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acce
  const changed=await payer.call('/v1/preflight',{...payload,proposedAddress:'0x2'});assert.equal(changed.body.relationshipComparison.status,'differs_from_relationship_confirmation');
  await api.restart();
  const restored=await payer.call('/v1/private/session');assert.equal(restored.response.status,200);assert.equal(restored.body.address,p.key.toSuiAddress());
+ const restoredPublication=await recipient.call('/v1/private/publication-review',{consent:publication.body.consentPayload});assert.equal(restoredPublication.response.status,200);assert.equal(restoredPublication.body.recordHash,publication.body.recordHash);
  const contacts=await payer.call('/v1/private/relationships');assert.equal(contacts.body.relationships[0].acceptedAddress,r.key.toSuiAddress());
  const received=await recipient.call('/v1/private/recipient-confirmations');assert.equal(received.body.confirmations[0].verificationCode,claim.body.verificationCode);
  const exported=await payer.call('/v1/private/export');assert.equal(exported.response.status,200);
@@ -90,6 +101,7 @@ test('M3/M4: real HTTP wallet sessions, private invitation, trusted-channel acce
  assert.equal((await payer.call('/v1/private/delete-contact',deletion)).response.status,200);
  assert.equal((await payer.call('/v1/private/relationships')).body.relationships.length,0);
  assert.equal((await recipient.call('/v1/private/recipient-confirmations')).body.confirmations.length,0);
+ assert.equal((await recipient.call('/v1/private/publication-review',{consent:publication.body.consentPayload})).response.status,404);
  assert.equal((await payer.call('/v1/preflight',payload)).response.status,404);
  await api.restart();assert.equal((await payer.call('/v1/private/export')).body.contacts.length,0);
  await payer.call('/v1/private/logout',{});assert.equal((await payer.call('/v1/private/relationships')).response.status,401);

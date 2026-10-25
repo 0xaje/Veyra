@@ -6,7 +6,8 @@ import { Pool, type PoolClient, types } from 'pg';
 
 type Row = Record<string, any>;
 export interface RelationshipDatabase {
-  prepare(sql: string): { get(...args: any[]): Promise<Row | undefined>; all(...args: any[]): Promise<Row[]>; run(...args: any[]): Promise<void> };
+  readonly kind: "sqlite" | "postgres";
+  prepare(sql: string): { get(...args: any[]): Promise<Row | undefined>; all(...args: any[]): Promise<Row[]>; run(...args: any[]): Promise<{changes:number}> };
   exec(sql: string): Promise<void>;
   transaction<T>(fn: () => Promise<T>): Promise<T>;
   close(): Promise<void>;
@@ -17,7 +18,8 @@ export function postgresStatement(sql: string): string {
   let index = 0;
   let query = sql.replace(/\?/g, () => '$' + ++index).replace(/\browid\b/g, 'sort_seq')
     .replace(/\brel_([a-z_]+)\b/g, 'veyra_private.rel_$1')
-    .replace(/CREATE INDEX IF NOT EXISTS veyra_private\.(\w+)/g, 'CREATE INDEX IF NOT EXISTS $1');
+    .replace(/\b(preparations|publication_jobs|publication_meta|publication_verifications|publication_wallet)\b/g, 'veyra_publication.$1')
+    .replace(/CREATE INDEX IF NOT EXISTS (?:veyra_private|veyra_publication)\.(\w+)/g, 'CREATE INDEX IF NOT EXISTS $1');
   if (/INSERT OR IGNORE/i.test(query)) query = query.replace(/INSERT OR IGNORE/i, 'INSERT') + ' ON CONFLICT DO NOTHING';
   if (/INSERT OR REPLACE INTO veyra_private.rel_limits/i.test(query))
     query = query.replace(/INSERT OR REPLACE/i, 'INSERT') + ' ON CONFLICT(k) DO UPDATE SET start=excluded.start,n=excluded.n';
@@ -50,6 +52,7 @@ export function postgresOptions(value: string, allowLocal = false) {
 }
 
 export class PostgresRelationshipDatabase implements RelationshipDatabase {
+  readonly kind = "postgres" as const;
   private pool: Pool;
   private context = new AsyncLocalStorage<PoolClient>();
   constructor(connectionString: string, allowLocal = false) {
@@ -64,7 +67,7 @@ export class PostgresRelationshipDatabase implements RelationshipDatabase {
   prepare(sql: string) {
     return { get: async (...args: any[]) => (await this.query(sql, args)).rows[0],
       all: async (...args: any[]) => (await this.query(sql, args)).rows,
-      run: async (...args: any[]) => { await this.query(sql, args); } };
+      run: async (...args: any[]) => ({changes:(await this.query(sql,args)).rowCount||0}) };
   }
   async exec(sql: string) {
     const ddl = sql.replace(/\) STRICT/g, ')').replace(/\bINTEGER\b/g, 'BIGINT')
@@ -90,6 +93,7 @@ export class PostgresRelationshipDatabase implements RelationshipDatabase {
 }
 
 export class SqliteRelationshipDatabase implements RelationshipDatabase {
+  readonly kind = "sqlite" as const;
   private db: DatabaseSync;
   private context = new AsyncLocalStorage<boolean>();
   private queue: Promise<unknown> = Promise.resolve();
@@ -104,7 +108,7 @@ export class SqliteRelationshipDatabase implements RelationshipDatabase {
   prepare(sql: string) {
     return { get: async (...args: any[]) => this.db.prepare(sql).get(...args),
       all: async (...args: any[]) => this.db.prepare(sql).all(...args),
-      run: async (...args: any[]) => { this.db.prepare(sql).run(...args); } };
+      run: async (...args: any[]) => ({changes:Number(this.db.prepare(sql).run(...args).changes)}) };
   }
   async exec(sql: string) { this.db.exec(sql); }
   async transaction<T>(fn: () => Promise<T>): Promise<T> {

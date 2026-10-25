@@ -27,7 +27,7 @@ const accountSelect=node('select');accountSelect.setAttribute('aria-label','Wall
 const signIn=button('Sign in with your wallet',login),signOut=button('Sign out',logout);
 const refreshContacts=button('Refresh private contacts',async()=>{refreshContacts.disabled=true;try{await refresh();}catch(e){setStatus(e.message);}finally{refreshContacts.disabled=false;}});refreshContacts.hidden=true;
 signIn.disabled=true;signOut.hidden=true;controls.append(walletSelect,accountSelect,signIn,refreshContacts,signOut);
-const wallets=new Map();let session=null,selectedWallet=null,account=null,contacts=[],draft=null,generation=0,available=false,unsubscribe=null;
+const wallets=new Map();let session=null,selectedWallet=null,account=null,contacts=[],draft=null,generation=0,available=false,publicationPreparation=false,unsubscribe=null;
 const contactSelect=node('select');contactSelect.id='private-contact-select';contactSelect.setAttribute('aria-label','Private recipient contact');
 const form=document.getElementById('preflight');let contactLabel=null;
 if(form){contactLabel=node('label','Use a private contact (optional)');contactLabel.id='private-contact-label';contactLabel.hidden=true;contactLabel.append(contactSelect);form.prepend(contactLabel);contactSelect.disabled=true;}
@@ -148,12 +148,26 @@ function renderRecipient(){
  }catch(e){draft=null;confirm.disabled=true;setStatus(e.message+' Review a fresh confirmation before retrying.');}});confirm.disabled=true;
  box.append(prepare,review,statement,confirm);void received(box);
 }
+async function reviewPublication(relationshipId,host){
+ try{
+  const data=await request('/v1/private/publication-prepare',{relationshipId});
+  const box=node('section',undefined,'private-contact-card');box.append(node('h3','Review public Walrus disclosure (publication locked)'),
+   node('p','This optional record would publicly link your receiving wallet to an opaque relationship reference. Your private contact name, session and raw signatures are excluded. Public immutable records may remain accessible after deletion of private contacts.'));
+  const record=node('pre');record.className='private-record';record.textContent=JSON.stringify(data.candidateRecord,null,2);
+  const consent=node('pre');consent.className='private-record';consent.textContent=data.consentMessage;
+  box.append(record,node('p','Exact record SHA-256: '+data.recordHash),node('h3','Exact consent message'),consent,
+   node('p',data.limitation));
+  const submit=button('Public publication unavailable',()=>{});submit.disabled=true;box.append(submit);
+  box.append(button('Check exact-read readiness',async()=>{try{const result=await request('/v1/private/publication-readiness');setStatus('Exact-read readiness: '+result.readiness.status+'. '+(result.readiness.reason||'')+' Public publication remains locked.');}catch(e){setStatus(e.message);}}));
+  host.querySelector('.public-publication-review')?.remove();box.classList.add('public-publication-review');host.append(box);
+ }catch(e){setStatus(e.message);}
+}
 async function received(host){try{const data=await request('/v1/private/recipient-confirmations');if(!data.confirmations.length)return;
  const history=node('details');history.append(node('summary','Your previous private receiving confirmations'));
- for(const c of data.confirmations){const item=node('section',undefined,'private-contact-card');item.append(node('code',c.verificationCode),node('code',c.receivingAddress),node('p','Payer wallet: '+c.payerAddress+' · '+c.status));history.append(item);}host.append(history);
+ for(const c of data.confirmations){const item=node('section',undefined,'private-contact-card');item.append(node('code',c.verificationCode),node('code',c.receivingAddress),node('p','Payer wallet: '+c.payerAddress+' · '+c.status));if(c.status==='accepted'&&publicationPreparation)item.append(button('Review optional public publication',()=>reviewPublication(c.relationshipId,item)));history.append(item);}host.append(history);
  }catch(e){setStatus(e.message);}}
 (async()=>{try{
- const health=await fetch('/health',{cache:'no-store'}).then(r=>r.json());available=health.privateRelationshipsEnabled===true;signIn.disabled=!available;
+ const health=await fetch('/health',{cache:'no-store'}).then(r=>r.json());available=health.privateRelationshipsEnabled===true;publicationPreparation=health.publicationPreparationEnabled===true;signIn.disabled=!available;
  if(!available){controls.hidden=true;contactSelect.disabled=true;setStatus('Private contacts are disabled until persistent storage and deployment security are configured. Public read-only address checks remain available.');return;}
  controls.hidden=false;
  try{session=await request('/v1/private/session');await refresh();}catch{setStatus('Sign in with the wallet you want to use for this private relationship. No wallet transaction is requested.');}
