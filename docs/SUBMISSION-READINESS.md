@@ -13,9 +13,9 @@ Deadline: November 10, 2026, 17:00 UTC / 18:00 WAT. Submission form: https://rec
 | At least 10 Mainnet memories | Ten unique active Mainnet blobs listed after the genuine self-service assessment save. Purposes documented, including two historical SDK checks; no organizer eligibility ruling claimed. |
 | Genuine Tatum Sui Mainnet RPC | Verified; see INTEGRATION-EVIDENCE.md |
 | Public GitHub and working demo | Public main and Render verified; current code CI and six hosted checks pass |
-| Published technical blog | Pending |
-| 2–3 minute demo video | Pending |
-| Submission form and identifiers | Pending |
+| Published technical blog | Source prepared in TECHNICAL-BLOG.md; included on /docs#build-story; verify deployed page before marking published |
+| 2–3 minute demo video | Timed narration and shot list prepared in DEMO-RECORDING-SCRIPT.md; final recording/export and URL pending |
+| Submission form and identifiers | Copy prepared in SUBMISSION-COPY.md; account-owner identifiers and actual submission confirmation pending |
 
 See [the closeout audit](CLOSEOUT-AUDIT-2026-10-25.md) and [captured read-only results](evidence/2026-10-25-readonly-memory-audit.json). Private wallet signing, acceptance, match/mismatch and operator-reported restart have evidence; do not list them as entirely untested. Signed recipient-confirmation publication remains separately unfinished. Anonymous assessment saving is now live-tested: one new consented assessment was stored, recalled with matching bytes/hash through the relayer, and loaded after closing/reopening the browser tab. See SAVED-ASSESSMENTS.md and evidence/2026-10-25-saved-assessment-acceptance.json.
 
@@ -40,3 +40,7 @@ For an address change, preserve older records, show conflicts, and require revie
 Publish an accurate technical blog covering product purpose, Tatum gRPC observations, Walrus memory writes and recalls, and how real historical memories influence warnings. Record a 2–3 minute video. Confirm repository visibility, Mainnet memory evidence, submission identifiers, and working demo before November 10.
 
 Veyra never signs or authorizes payments. Walrus memory is not proof of address ownership.
+
+## Fixed release closeout
+
+Follow [RELEASE-ACCEPTANCE.md](RELEASE-ACCEPTANCE.md). Do not repeat every successful happy-path test or add unrelated features. Only physical-phone, real wallet cancellation/account switching, cross-device interactive recovery and final keyboard acceptance remain manual unless their actual results are recorded. The blog and script are source-controlled assets; no final video or form submission is claimed merely because copy exists.

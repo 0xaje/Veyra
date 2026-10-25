@@ -83,3 +83,7 @@ Keep Render Free and use Neon Free PostgreSQL for the existing wallet-authentica
 ### Walrus publication progress
 
 [Publication gates and the Mainnet SEAL access requirement](docs/WALRUS-PUBLICATION-GATES.md) track the current M2/M3 work. Neon now holds durable publication preparations/jobs/quotas/receipts as well as private contacts. Recipient-publication budgets stay at zero and those submit routes remain locked. Assessment saving has its own authenticated browser consent and bounded write policy; it does not open recipient-publication routes. The exact-reader uses supported Walrus/SEAL APIs; direct Mainnet committee access still needs an approved server-only credential. No genuine public write/read success is claimed by the lifecycle tests.
+
+## Build story and submission assets
+
+Read the [technical build story](https://veyra-rs1l.onrender.com/docs#build-story), [video narration and shot list](docs/DEMO-RECORDING-SCRIPT.md), and [fixed acceptance checklist](docs/RELEASE-ACCEPTANCE.md). Submission copy is in [SUBMISSION-COPY.md](docs/SUBMISSION-COPY.md). The final recorded video, real-device checks and actual submission confirmation remain distinct from these prepared assets.
