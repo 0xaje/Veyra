@@ -86,3 +86,6 @@ Users must never supply hosting credentials, database configuration, API keys or
 4. Independently finish public Walrus publication gates from the integrated contract: verified exact-ID retrieval, durable discovery, signed exact-record consent, authenticated wallet authorization, durable quotas/idempotency and spending limits, then a genuine write/read receipt. Existing flags must not bypass these requirements.
 
 The repository connector can publish application changes but does not expose the Neon account or Render service's environment administration. Do not claim that deployment configuration has changed based on a Git commit alone. No paid storage has been ordered by this change.
+
+
+Publication preparation now uses the shared database. After payer acceptance, recipients can review an optional public record from their previous receiving confirmations. That review has no storage side effect on Walrus. The source record excludes private contact labels, session bindings, verification codes and raw signatures. Hosted submit stays locked with zero budgets; exact-read access and remaining release work are tracked in WALRUS-PUBLICATION-GATES.md.

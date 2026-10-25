@@ -57,7 +57,9 @@ export function buildPublicationConsentMessage(input: PublicationConsentInput): 
     "Exact record SHA-256: " + input.recordHash.trim().toLowerCase(),
     "Consent nonce: " + input.nonce.trim(),
     "Expires at: " + input.expiresAt,
-    "Notice: Walrus storage is permanent and public. This publishes an intended receiving destination, NOT an identity proof or payment authorization.",
+    input.origin
+      ? "Notice: I authorize public disclosure of this exact record. Immutable copies may remain after withdrawal; availability depends on the storage lease. This states an intended receiving destination, NOT identity proof or payment authorization."
+      : "Notice: Walrus storage is permanent and public. This publishes an intended receiving destination, NOT an identity proof or payment authorization.",
   ].join("\n");
 }
 

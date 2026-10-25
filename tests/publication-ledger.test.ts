@@ -7,14 +7,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { PublicationLedger } from "../src/core/publication-ledger.ts";
+import { PublicationLedger, type PublicationLedgerConfig } from "../src/core/publication-ledger.ts";
 for(const backend of ['sqlite', ...(process.env.TEST_DATABASE_URL?['postgres']:[])]) {
 const test=(name:string, ...args:any[])=>{
  if(backend==='postgres'&&name.includes('corrupt database'))return;
  const fn=args.pop() as (t:TestContext)=>Promise<void>;
  return args.length?nodeTest(backend+': '+name,args[0],fn):nodeTest(backend+': '+name,fn);
 };
-const openStore=(path:string,config:{maxDailyWritesPerWallet:number;maxGlobalDailyWrites:number})=>backend==='postgres'?PublicationLedger.connect(path,config,true):PublicationLedger.open(path,config);
+const openStore=(path:string,config:PublicationLedgerConfig)=>backend==='postgres'?PublicationLedger.connect(path,config,true):PublicationLedger.open(path,config);
 const limits = { maxDailyWritesPerWallet: 1, maxGlobalDailyWrites: 2 };
 async function folder(t: {
     after: (fn: () => Promise<void>) => void;
@@ -188,4 +188,14 @@ test('M2/M3: durable public receipt index separates stored jobs from exact-byte 
   assert.equal((await db.getVerification(prepared.consentPayload.nonce))?.paymentAuthorized,false);
  }finally{await db.close();}
 });
+test('M3: lifetime write ceiling survives daily rollover and completed jobs',async (t:TestContext)=>{
+ const path=await folder(t),db=await openStore(path,{...limits,maxTotalWrites:1});
+ try{
+  const yesterday=Date.now()-86400000;
+  const first=await db.issue('0x1','local-one',yesterday);await db.reserve(first.consentPayload,yesterday);await db.markSubmitting(first.consentPayload.nonce,yesterday);await db.markAccepted(first.consentPayload.nonce,'local-job',yesterday);await db.complete(first.consentPayload.nonce,'local-job','local-blob',yesterday);
+  const second=await db.issue('0x2','local-two');
+  await assert.rejects(db.reserve(second.consentPayload),/Total.*ceiling/);
+ }finally{await db.close();}
+});
+
 }

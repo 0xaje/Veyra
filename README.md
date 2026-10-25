@@ -76,4 +76,8 @@ No invented onchain transactions, mocked provider success, fabricated stored mem
 
 ### Free private-contact hosting with Neon
 
-Keep Render Free and use Neon Free PostgreSQL for the existing wallet-authenticated private recipient workflow. Follow [the Neon setup guide](docs/NEON-SETUP.md). Configure the server-only `DATABASE_URL`; do not configure a local SQLite path alongside it. Hosted activation remains explicit and requires the storage/origin review. The same relationship state machine runs on PostgreSQL and local SQLite. CI runs its private journey against real PostgreSQL 17 as well as SQLite; no fabricated Mainnet writes are used. This integration does not enable public Walrus publication or migrate the local-only publication ledger.
+Keep Render Free and use Neon Free PostgreSQL for the existing wallet-authenticated private recipient workflow. Follow [the Neon setup guide](docs/NEON-SETUP.md). Configure the server-only `DATABASE_URL`; do not configure a local SQLite path alongside it. Hosted activation remains explicit and requires the storage/origin review. The same relationship state machine runs on PostgreSQL and local SQLite. CI runs its private journey against real PostgreSQL 17 as well as SQLite; no fabricated Mainnet writes are used. This integration does not enable public Walrus publication. The durable publication ledger now shares Neon, with hosted write budgets held at zero as described below.
+
+### Walrus publication progress
+
+[Publication gates and the Mainnet SEAL access requirement](docs/WALRUS-PUBLICATION-GATES.md) track the current M2/M3 work. Neon now holds durable publication preparations/jobs/quotas/receipts as well as private contacts. Hosted write budgets stay at zero and the public submit routes remain locked. The exact-reader uses supported Walrus/SEAL APIs; direct Mainnet committee access still needs an approved server-only credential. No genuine public write/read success is claimed by the lifecycle tests.

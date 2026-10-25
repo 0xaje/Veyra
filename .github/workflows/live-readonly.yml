@@ -8,6 +8,8 @@ on:
       - "scripts/private-relationships-api.mjs"
       - "src/core/recipient-relationships.ts"
       - "src/core/relationship-database.ts"
+      - "src/core/publication-ledger.ts"
+      - "src/core/exact-walrus-record.ts"
       - "apps/web/relationships.js"
       - "apps/web/*.html"
       - "scripts/preflight-api.mjs"

@@ -20,6 +20,7 @@ export type PublicationJob = {
 export type PublicationLedgerConfig = {
     maxDailyWritesPerWallet: number;
     maxGlobalDailyWrites: number;
+    maxTotalWrites?: number;
 };
 /** Shared durable publication staging, reservations and receipts. Hosted SQLite paths are not a shared budget. */
 export class PublicationLedger {
@@ -27,15 +28,15 @@ export class PublicationLedger {
     private ownsDatabase = false;
     private config: PublicationLedgerConfig;
     private constructor(db: RelationshipDatabase, config: PublicationLedgerConfig, ownsDatabase = false) {
-        for (const value of [config.maxDailyWritesPerWallet, config.maxGlobalDailyWrites])
+        for (const value of [config.maxDailyWritesPerWallet, config.maxGlobalDailyWrites, config.maxTotalWrites ?? 10_000])
             if (!Number.isSafeInteger(value) || value < 0 || value > 10000)
                 throw new Error('Invalid publication write ceiling');
         this.db = db;
-        this.config = {maxDailyWritesPerWallet:config.maxDailyWritesPerWallet,maxGlobalDailyWrites:config.maxGlobalDailyWrites};
+        this.config = {maxDailyWritesPerWallet:config.maxDailyWritesPerWallet,maxGlobalDailyWrites:config.maxGlobalDailyWrites,maxTotalWrites:config.maxTotalWrites??10_000};
         this.ownsDatabase = ownsDatabase;
     }
     static async open(path: string, config: PublicationLedgerConfig) {
-        for(const value of [config.maxDailyWritesPerWallet,config.maxGlobalDailyWrites])
+        for(const value of [config.maxDailyWritesPerWallet,config.maxGlobalDailyWrites,config.maxTotalWrites??10_000])
           if(!Number.isSafeInteger(value)||value<0||value>10_000)throw new Error('Invalid publication write ceiling');
         if(!path || path === ':memory:')throw new Error('A durable publication database path is required');
         const db = new SqliteRelationshipDatabase(path);
@@ -180,6 +181,8 @@ export class PublicationLedger {
                 throw new Error("Global publication write ceiling reached");
             if (wallet.n >= this.config.maxDailyWritesPerWallet)
                 throw new Error("Wallet publication write ceiling reached");
+            const lifetime=Number((await this.db.prepare('SELECT count(*) AS n FROM publication_jobs').get())?.n);
+            if(lifetime >= (this.config.maxTotalWrites ?? 10_000))throw new Error('Total publication write ceiling reached');
             const idempotencyKey = "veyra-publication-" + consent.nonce;
             await this.db.prepare(`INSERT INTO publication_jobs
         (nonce,address,counterparty_id,record_hash,idempotency_key,phase,reserved_at,updated_at)

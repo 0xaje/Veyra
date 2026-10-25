@@ -87,8 +87,10 @@ export class ExactWalrusReader {
     if(!this.delegateKey||!this.accountId)return result(blobId,'configuration_required',{reason:'Service MemWal credentials are not configured'});
     const signal=AbortSignal.timeout(25_000);
     const boundedFetch:typeof fetch=(input,init)=>fetch(input,{...init,redirect:'error',signal:init?.signal?AbortSignal.any([signal,init.signal]):signal});
+    let stage='Walrus download';
     try {
       const ciphertext=await bytesFrom(await boundedFetch(AGGREGATOR+'/v1/blobs/'+blobId));
+      stage='ciphertext parsing';
       const header=inspectMainnetCiphertext(ciphertext);
       if(!header.supported)return result(blobId,'unsupported_ciphertext',{ciphertextHash:header.ciphertextHash,reason:'Ciphertext package or SEAL committee profile is unsupported'});
       if(!this.sealApiKey)return result(blobId,'configuration_required',{ciphertextHash:header.ciphertextHash,reason:'Mainnet SEAL committee requires an Enoki API key (MEMWAL_SEAL_API_KEY)'});
@@ -96,19 +98,23 @@ export class ExactWalrusReader {
       const signer=Ed25519Keypair.fromSecretKey(/^(0x)?[a-f0-9]{64}$/i.test(key)?Uint8Array.from(Buffer.from(key.replace(/^0x/i,''),'hex')):key);
       const suiClient=new SuiGrpcClient({network:'mainnet',baseUrl:SUI_GRPC,fetch:boundedFetch});
       const accountId=normalizeSuiAddress(this.accountId);
+      stage='Mainnet account read';
       const account=await suiClient.getObject({objectId:accountId,include:{json:true}});
       const fields=account.object.json as Record<string,any>|null;
       if(account.object.type!==MAINNET_MEMORY_PACKAGE+'::account::MemWalAccount'||fields?.active!==true||
         typeof fields.owner!=='string'||header.parsed.id.slice(-80,-16)!==normalizeSuiAddress(fields.owner).slice(2))
         return result(blobId,'unavailable',{reason:'Ciphertext does not bind to the configured active MemWal account'});
+      stage='SEAL session creation';
       const session=await SessionKey.create({address:signer.toSuiAddress(),packageId:MAINNET_MEMORY_PACKAGE,ttlMin:2,signer,suiClient});
       await session.setPersonalMessageSignature((await signer.signPersonalMessage(session.getPersonalMessage())).signature);
       const tx=new Transaction();tx.moveCall({target:MAINNET_MEMORY_PACKAGE+'::account::seal_approve',arguments:[
         tx.pure.vector('u8',Array.from(Buffer.from(header.parsed.id,'hex'))),tx.object(MAINNET_MEMORY_REGISTRY),tx.object(accountId)]});
       // Build policy-call bytes only. This code never submits or executes a chain transaction.
+      stage='SEAL policy preparation';
       const txBytes=await tx.build({client:suiClient,onlyTransactionKind:true});
       const seal=new SealClient({suiClient,serverConfigs:[{objectId:MAINNET_SEAL_COMMITTEE,weight:1,
         aggregatorUrl:SEAL_AGGREGATOR,apiKeyName:'X-API-Key',apiKey:this.sealApiKey}],verifyKeyServers:true,timeout:10_000,fetch:boundedFetch});
+      stage='SEAL decryption';
       const plaintext=await seal.decrypt({data:ciphertext,sessionKey:session,txBytes,checkShareConsistency:true});
       if(plaintext.length>MAX_BYTES)throw new Error('Record exceeds limit');
       if(receipt)return {...verifyExactPublication(plaintext,receipt),ciphertextHash:header.ciphertextHash};
@@ -116,6 +122,6 @@ export class ExactWalrusReader {
       JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plaintext));
       return result(blobId,'read_unanchored',{recordHash:digest(plaintext),ciphertextHash:header.ciphertextHash,
         reason:'Exact blob downloaded and decrypted; no trusted historical publication receipt was supplied'});
-    } catch {return result(blobId,'unavailable',{reason:'Exact download, account read or SEAL decryption failed; no verification is claimed'});}
+    } catch {return result(blobId,'unavailable',{reason:'Exact '+stage+' failed; no verification is claimed'});}
   }
 }

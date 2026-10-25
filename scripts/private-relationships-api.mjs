@@ -3,7 +3,7 @@ import { RecipientRelationships, RelationshipError } from '../src/core/recipient
 import { PublicationLedger } from '../src/core/publication-ledger.ts';
 import { isAbsolute } from 'node:path';
 
-export async function createPrivateRelationshipsApi({publicMode,port,requestAllowed,readPublicationReadiness}) {
+export async function createPrivateRelationshipsApi({publicMode,port,requestAllowed,readPublicationReadiness,readPublicationReceipt}) {
   const databaseUrl=process.env.DATABASE_URL;
   const configuredPath=process.env.VEYRA_RELATIONSHIP_DB;
   const origin=publicMode?process.env.VEYRA_PUBLIC_ORIGIN:`http://127.0.0.1:${port}`;
@@ -17,7 +17,7 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
   const enabled=Boolean((configuredPath||databaseUrl)&&(!publicMode||process.env.VEYRA_ENABLE_PRIVATE_RELATIONSHIPS==='true'));
   const store=enabled?(databaseUrl?await RecipientRelationships.connect(databaseUrl,origin,!publicMode):await RecipientRelationships.open(configuredPath,origin)):null;
   // Hosted publication staging is durable, but its spending policy starts at zero.
-  const publicationLedger=store?await PublicationLedger.attach(store.storageDriver(),{maxDailyWritesPerWallet:0,maxGlobalDailyWrites:0}):null;
+  const publicationLedger=store?await PublicationLedger.attach(store.storageDriver(),{maxDailyWritesPerWallet:0,maxGlobalDailyWrites:0,maxTotalWrites:0}):null;
   const sessionName=publicMode?'__Host-veyra-session':'veyra-session';
   const bindingName=publicMode?'__Host-veyra-binding':'veyra-binding';
   const cookie=(name,value,seconds)=>`${name}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${seconds}${publicMode?'; Secure':''}`;
@@ -79,6 +79,12 @@ export async function createPrivateRelationshipsApi({publicMode,port,requestAllo
       }
       if(req.method==='GET'&&url.pathname==='/v1/private/publication-receipts')
         return send(200,{receipts:await publicationLedger.getReceiptsForWallet(current.address)});
+      if(req.method==='POST'&&url.pathname==='/v1/private/publication-verify'){
+        const input=await body(req);const job=typeof input.nonce==='string'?await publicationLedger.getJob(input.nonce):null;
+        if(!job?.receipt||job.address!==current.address)throw new RelationshipError(404,'Completed publication not found');
+        const verification=await readPublicationReceipt(job.receipt);await publicationLedger.recordVerification(job.nonce,verification);
+        return send(200,{receipt:job.receipt,exactVerification:verification,publicationEnabled:false});
+      }
       if(req.method==='GET'&&url.pathname==='/v1/private/publication-job'){
         const nonce=url.searchParams.get('nonce');
         if(typeof nonce!=='string'||!/^[a-f0-9]{32}$/.test(nonce))throw new RelationshipError(400,'Valid publication nonce required');

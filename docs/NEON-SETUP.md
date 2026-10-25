@@ -85,7 +85,7 @@ This is the hosted acceptance step still required after configuration. Do not re
 - Feature still disabled: check the exact deployed commit, both activation/review flags, `DATABASE_URL`, and canonical origin; ensure `VEYRA_RELATIONSHIP_DB` is absent.
 - If a secret is accidentally shared, rotate the database role password in Neon and update Render's private value.
 
-Private contacts can be tested without public Walrus publication. Public writes remain locked until supported exact-ID payload verification/discovery, signed publication consent, durable publication quotas/idempotency/receipts, spending controls and genuine hosted write/read acceptance are complete. This PostgreSQL integration covers the relationship/session store; the separate publication ledger remains SQLite/local-only and must be integrated with durable hosted storage before public writes.
+Private contacts can be tested without public Walrus publication. Public writes remain locked until supported exact-ID payload verification/discovery, signed publication consent, durable publication quotas/idempotency/receipts, spending controls and genuine hosted write/read acceptance are complete. This PostgreSQL integration covers the relationship/session store; publication preparations/jobs/quotas/receipts now share the Neon connection with zero hosted budgets. Authenticated hosted submission and genuine canary write/read acceptance remain locked/pending; see WALRUS-PUBLICATION-GATES.md.
 
 ## References
 

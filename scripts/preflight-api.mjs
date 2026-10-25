@@ -56,7 +56,7 @@ function privateRequestAllowed(ip,now=Date.now()) {
 const exactReader = new ExactWalrusReader({delegateKey:process.env.MEMWAL_PRIVATE_KEY||"",accountId:process.env.MEMWAL_ACCOUNT_ID||"",sealApiKey:process.env.MEMWAL_SEAL_API_KEY||""});
 let exactReadiness = {status:"not_checked",payloadHashVerified:false,paymentAuthorized:false,memoryWritten:false};
 async function checkExactReadiness() { exactReadiness=await exactReader.read(EXISTING_PUBLIC_BLOB);return exactReadiness; }
-const privateRelationships = await createPrivateRelationshipsApi({publicMode,port,requestAllowed:privateRequestAllowed,readPublicationReadiness:checkExactReadiness});
+const privateRelationships = await createPrivateRelationshipsApi({publicMode,port,requestAllowed:privateRequestAllowed,readPublicationReadiness:checkExactReadiness,readPublicationReceipt:(receipt)=>exactReader.read(receipt.blobId,receipt)});
 const publicationDbPath = process.env.VEYRA_PUBLICATION_DB || "";
 if (!publicMode && publicationDbPath &&
     existsSync(resolve(process.env.VEYRA_SAFEGUARDS_FILE || "data/safeguards-ledger.json")))
@@ -69,7 +69,11 @@ const publicationPolls = new Map();
 async function pollPublication(nonce) {
   if (!publicationLedger) return null;
   const job = await publicationLedger.getJob(nonce);
-  if (!job || job.phase === "stored" || !job.providerJobId) return job;
+  if (!job || !job.providerJobId) return job;
+  if(job.phase === 'stored'){
+    if(job.receipt)await publicationLedger.recordVerification(nonce,await exactReader.read(job.receipt.blobId,job.receipt));
+    return job;
+  }
   if (publicationPolls.has(nonce)) return publicationPolls.get(nonce);
   const task = (async () => {
     try {
@@ -673,7 +677,12 @@ async function handler(req, res) {
     ]);
     let indexedPublications=[];let publicationIndexStatus="not_configured";
     if(publicationLedger)try{indexedPublications=await publicationLedger.recordsForCounterparty(data.counterpartyId);publicationIndexStatus="service_index_window";}catch{publicationIndexStatus="unavailable";}
-    const verifiedPublications=indexedPublications.filter(item=>item.verification?.status==="verified"&&item.verification.payloadHashVerified===true&&item.verification.recordHash===item.receipt.recordHash&&item.verification.blobId===item.receipt.blobId);
+    // Verify only a bounded receipt window. Other memories stay explicitly unanchored/incomplete.
+    const refreshed=await Promise.all(indexedPublications.slice(0,3).map(async item=>{
+      try{const verification=await exactReader.read(item.receipt.blobId,item.receipt);await publicationLedger.recordVerification(item.nonce,verification);return {...item,verification};}
+      catch{return {...item,verification:null};}
+    }));
+    const verifiedPublications=refreshed.filter(item=>item.verification?.status==="verified"&&item.verification.payloadHashVerified===true&&item.verification.recordHash===item.receipt.recordHash&&item.verification.blobId===item.receipt.blobId);
     const indexedEvents=verifiedPublications.map(item=>({blobId:item.receipt.blobId,record:item.prepared.candidate}));
     const result = preflightWithEvidence({
       counterpartyId: data.counterpartyId, proposedAddress,
@@ -714,7 +723,7 @@ async function handler(req, res) {
       reasons: relationshipComparison ? [relationshipComparison.message,...result.reasons] : result.reasons,
       relationshipComparison, assessmentId, checkedAt, historyPersisted: Boolean(historyPath && !relationshipComparison), providers,
       retrieval: {
-        mode: "semantic_recall", completeness: "unknown", exactIdVerification: verifiedPublications.length?"verified_receipt_records":"not_performed",
+        mode: verifiedPublications.length ? "semantic_recall_with_receipt_index" : "semantic_recall", completeness: "unknown", exactIdVerification: verifiedPublications.length?"verified_receipt_records":"not_performed",
         receiptVerifiedBlobIds:verifiedPublications.map(item=>item.receipt.blobId),
         publicationIndex:{status:publicationIndexStatus,count:indexedPublications.length,verifiedCount:verifiedPublications.length,completeness:"service_only_bounded_window"},
         status: [memory.status, recipientEvidence.status, recipientEvidence.walletControlStatus].every(status => status === "observed") ? "observed" :

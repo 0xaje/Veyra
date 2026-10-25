@@ -104,3 +104,12 @@ M3 privacy controls: authenticated owners can export private contact summaries/h
 A shared asynchronous relationship state machine now supports PostgreSQL (including Neon pooled connections) and local SQLite. PostgreSQL uses a dedicated private schema, bound parameters, verified TLS, small connection pool and transaction-scoped advisory locking across service connections. Nonce consumption stays committed before signature verification; failed code attempts remain durable. Existing HTTP/session/CSRF/ownership/privacy rules apply to both backends. Database outages never fall back to public aliases or ephemeral storage.
 
 CI provisions real disposable PostgreSQL 17 databases and exercises both core and HTTP private journeys, restart persistence and cross-connection replay/revocation. Local testing without TEST_DATABASE_URL exercises SQLite, not hosted Neon. A genuine Neon connection and extension-wallet/user acceptance require the account owner to configure the private DATABASE_URL in Render; no credential was invented or requested in chat. See NEON-SETUP.md for the zero-cost setup and activation steps. No paid hosting was provisioned. Public Walrus writes and the SQLite-only publication ledger remain outside this activation.
+
+
+### M2/M3 — durable publication staging and exact-blob verification
+
+Publication state now shares the Neon store/transaction driver, with zero hosted daily and lifetime write ceilings, persisted policy checks, session/origin-bound preparation and an owner-scoped receipt/index path. Recipient review is integrated into previously accepted private receiving confirmations. Deleting a private contact removes unsubmitted preparations atomically.
+
+A bounded exact Walrus download + official SEAL decrypt + receipt-hash verification path is implemented. The actual existing public example ciphertext was downloaded and parsed; its Mainnet SEAL committee requires an Enoki API credential. Independent plaintext decryption is not claimed. Direct read readiness is visible in health and the authenticated private review flow. Public writes remain locked; authenticated submission/admission, provider allowance review and a genuine signed canary write/read remain open. See WALRUS-PUBLICATION-GATES.md for the concrete access requirement, evidence boundaries and remaining steps.
+
+Operator-supplied private-flow match/mismatch recordings and the reported restart test are recorded conservatively in that document, without publishing private recipient addresses or codes.
