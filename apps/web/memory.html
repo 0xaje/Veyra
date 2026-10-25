@@ -210,6 +210,35 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,html[data-theme=
  .sidebar,.sidebar nav,.veyra-mobile-menu,.veyra-bottom-nav,html[data-theme="dark"] .sidebar,html[data-theme="dark"] .sidebar nav,html[data-theme="dark"] .veyra-mobile-menu,html[data-theme="dark"] .veyra-bottom-nav{background:var(--veyra-chrome)!important;color:var(--veyra-chrome-text);border-color:var(--veyra-chrome-border)!important}
  .sidebar .nav-item.active,.veyra-bottom-nav a[aria-current="page"],html[data-theme="dark"] .sidebar .nav-item.active,html[data-theme="dark"] .veyra-bottom-nav a[aria-current="page"]{background:var(--veyra-active);color:var(--veyra-text)}
 }
+
+/* Consistent application scrolling: desktop chrome stays outside the content scroller. */
+@media(min-width:851px){
+ html,body{height:100%;overflow:hidden}
+ .shell{height:100dvh;min-height:0;overflow:hidden}
+ .sidebar{position:fixed!important;inset:0 auto 0 0;width:232px;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+ .workspace{grid-column:2;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+ .topbar{position:sticky!important;top:0;z-index:10}
+}
+@media(min-width:851px) and (max-width:1100px){.sidebar{width:190px}.shell{grid-template-columns:190px minmax(0,1fr)}}
+@media(max-width:850px){
+ html,body{height:auto;overflow-x:clip;overflow-y:visible}
+ .shell{display:block!important;height:auto!important;min-height:100dvh;overflow:visible!important}
+ .sidebar{display:flex!important;position:sticky!important;top:0!important;flex-direction:row!important;align-items:center;justify-content:space-between;gap:12px!important;width:100%;height:auto!important;overflow:visible!important}
+ .sidebar .brand{margin:0!important;padding:0!important}
+ .sidebar .side-label,.sidebar .side-note,.mobile-bar{display:none!important}
+ .veyra-mobile-menu{display:inline-flex!important;align-items:center;justify-content:center;min-height:44px!important}
+ .sidebar nav{display:none!important;flex-direction:column!important;max-height:calc(100dvh - 140px);overflow-y:auto;overscroll-behavior:contain}
+ .sidebar nav.veyra-nav-open{display:flex!important}
+ .sidebar nav .nav-item{display:block!important;min-height:44px}
+ .workspace{width:100%;height:auto!important;overflow:visible!important}
+ .topbar{position:relative!important;top:auto!important;height:auto;flex-wrap:wrap}
+ .main{min-width:0;max-width:100%}
+ .kv span:last-child{text-align:left!important}
+}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--veyra-focus);outline-offset:4px}
+.evidence-reference{display:block;padding:12px 0;text-align:left;border-bottom:1px solid var(--veyra-border);line-height:1.65}
+.evidence-reference strong,.evidence-reference small{display:block}.evidence-reference small{color:var(--veyra-muted)}
+.evidence-reference a,.source-link{display:inline-block;text-decoration:underline;text-underline-offset:4px;min-height:32px;padding:4px 0}
 </style>
 <script>
 (function(){
@@ -347,6 +376,9 @@ function truncate(str, len = 22) {
   return str.slice(0, 10) + "…" + str.slice(-8);
 }
 
+function sourceReference(value){
+ try{const url=new URL(value);if(url.protocol!=="https:"||url.username||url.password)throw new Error();return '<a class="source-link" href="'+escapeHtml(url.href)+'" target="_blank" rel="noopener noreferrer">Open supporting source</a>';}catch{return escapeHtml(value||"Not recorded");}
+}
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
 // 1. Fetch Live Walrus Memories Inventory
 async function loadInventory() {
@@ -452,8 +484,8 @@ evidenceForm.addEventListener("submit", async e => {
           <span>${escapeHtml(evt.source?.observedAt || 'Not recorded')}</span>
         </div>
         <div class="kv">
-          <span>Source Reference</span>
-          <span>${escapeHtml(evt.source?.reference || 'Not recorded')}</span>
+          <span>Supporting source</span>
+          <span>${sourceReference(evt.source?.reference)}</span>
         </div>
       `;
       evidenceHost.appendChild(card);
@@ -481,5 +513,5 @@ try {
   }
 } catch {}
 </script>
-<script>(function(){const sidebar=document.querySelector(".sidebar");const nav=sidebar?.querySelector("nav");const brand=sidebar?.querySelector(".brand");if(!nav||!brand)return;const button=document.createElement("button");button.type="button";button.className="veyra-mobile-menu";button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation");button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","veyra-mobile-navigation");nav.id="veyra-mobile-navigation";brand.after(button);function close(){nav.classList.remove("veyra-nav-open");button.setAttribute("aria-expanded","false");button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation")}button.addEventListener("click",()=>{const open=nav.classList.toggle("veyra-nav-open");button.setAttribute("aria-expanded",String(open));button.textContent=open?"✕ Close":"☰ Menu";button.setAttribute("aria-label",open?"Close navigation":"Open navigation")});nav.addEventListener("click",event=>{if(event.target.closest("a"))close()});document.addEventListener("keydown",event=>{if(event.key==="Escape")close()});})();</script><script>(function(){if(document.querySelector(".veyra-bottom-nav"))return;const nav=document.createElement("nav");nav.className="veyra-bottom-nav";nav.setAttribute("aria-label","Mobile primary navigation");const items=[["/","⌂","Preflight"],["/verify-wallet","◇","Verify"],["/memory","◎","Memory"],["/history","▤","History"]];for(const [href,icon,label] of items){const a=document.createElement("a");a.href=href;const current=location.pathname==="/"?href==="/":location.pathname===href;if(current)a.setAttribute("aria-current","page");const symbol=document.createElement("span");symbol.className="nav-symbol";symbol.setAttribute("aria-hidden","true");symbol.textContent=icon;const name=document.createElement("span");name.textContent=label;a.append(symbol,name);nav.append(a)}document.body.append(nav)})();</script></body>
+<script>(function(){const sidebar=document.querySelector(".sidebar");const nav=sidebar?.querySelector("nav");const brand=sidebar?.querySelector(".brand");if(!nav||!brand)return;const button=document.createElement("button");button.type="button";button.className="veyra-mobile-menu";button.textContent="Menu";button.setAttribute("aria-label","Open navigation");button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","veyra-mobile-navigation");nav.id="veyra-mobile-navigation";brand.after(button);function close(){nav.classList.remove("veyra-nav-open");button.setAttribute("aria-expanded","false");button.textContent="Menu";button.setAttribute("aria-label","Open navigation")}button.addEventListener("click",()=>{const open=nav.classList.toggle("veyra-nav-open");button.setAttribute("aria-expanded",String(open));button.textContent=open?"Close":"Menu";button.setAttribute("aria-label",open?"Close navigation":"Open navigation")});nav.addEventListener("click",event=>{if(event.target.closest("a"))close()});document.addEventListener("keydown",event=>{if(event.key==="Escape"&&nav.classList.contains("veyra-nav-open")){close();button.focus()}});document.addEventListener("click",event=>{if(!sidebar.contains(event.target))close()});})();</script><script>(function(){if(document.querySelector(".veyra-bottom-nav"))return;const nav=document.createElement("nav");nav.className="veyra-bottom-nav";nav.setAttribute("aria-label","Mobile primary navigation");const items=[["/","⌂","Preflight"],["/verify-wallet","◇","Verify"],["/memory","◎","Memory"],["/history","▤","History"]];for(const [href,icon,label] of items){const a=document.createElement("a");a.href=href;const current=location.pathname==="/"?href==="/":location.pathname===href;if(current)a.setAttribute("aria-current","page");const symbol=document.createElement("span");symbol.className="nav-symbol";symbol.setAttribute("aria-hidden","true");symbol.textContent=icon;const name=document.createElement("span");name.textContent=label;a.append(symbol,name);nav.append(a)}document.body.append(nav)})();</script></body>
 </html>

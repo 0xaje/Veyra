@@ -281,6 +281,35 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,html[data-theme=
 .private-contacts .secondary-btn{display:inline-block;background:var(--veyra-surface);color:var(--veyra-text);border:1px solid var(--veyra-border);border-radius:8px;padding:12px 16px;font:inherit;text-decoration:none}.private-contacts summary{cursor:pointer;padding:12px 0}.private-contacts input:focus-visible,.private-contacts summary:focus-visible{outline:2px solid var(--veyra-focus);outline-offset:3px}
 
 .saved-checks,.saved-check-card{margin-top:16px;padding:16px;border:1px solid var(--veyra-border);border-radius:8px;background:var(--veyra-surface);color:var(--veyra-text)}.saved-checks code,.saved-checks pre{display:block;overflow-wrap:anywhere;white-space:pre-wrap;font-size:12px;max-height:240px;overflow:auto}.saved-checks button{background:var(--veyra-surface);color:var(--veyra-text);border:1px solid var(--veyra-border);border-radius:8px;padding:10px 16px;margin:8px 8px 8px 0;font:inherit;cursor:pointer}.saved-checks button:hover{background:var(--veyra-inset)}.saved-checks button:focus-visible,.saved-checks input:focus-visible,.saved-checks textarea:focus-visible,.saved-checks a:focus-visible,.saved-checks summary:focus-visible{outline:2px solid var(--veyra-focus);outline-offset:2px}.saved-checks button:disabled{opacity:.55;cursor:default}.saved-checks label{display:block;margin-top:16px}.saved-checks input[type=checkbox]{width:auto;margin-right:8px}.saved-checks input[type=password],.saved-checks textarea{width:100%;max-width:100%;box-sizing:border-box;background:var(--veyra-surface);color:var(--veyra-text);border:1px solid var(--veyra-border);padding:10px;border-radius:8px}.saved-checks h3{margin:0 0 8px;font-size:16px}.saved-checks a{color:var(--veyra-link)}
+
+/* Consistent application scrolling: desktop chrome stays outside the content scroller. */
+@media(min-width:851px){
+ html,body{height:100%;overflow:hidden}
+ .shell{height:100dvh;min-height:0;overflow:hidden}
+ .sidebar{position:fixed!important;inset:0 auto 0 0;width:232px;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+ .workspace{grid-column:2;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+ .topbar{position:sticky!important;top:0;z-index:10}
+}
+@media(min-width:851px) and (max-width:1100px){.sidebar{width:190px}.shell{grid-template-columns:190px minmax(0,1fr)}}
+@media(max-width:850px){
+ html,body{height:auto;overflow-x:clip;overflow-y:visible}
+ .shell{display:block!important;height:auto!important;min-height:100dvh;overflow:visible!important}
+ .sidebar{display:flex!important;position:sticky!important;top:0!important;flex-direction:row!important;align-items:center;justify-content:space-between;gap:12px!important;width:100%;height:auto!important;overflow:visible!important}
+ .sidebar .brand{margin:0!important;padding:0!important}
+ .sidebar .side-label,.sidebar .side-note,.mobile-bar{display:none!important}
+ .veyra-mobile-menu{display:inline-flex!important;align-items:center;justify-content:center;min-height:44px!important}
+ .sidebar nav{display:none!important;flex-direction:column!important;max-height:calc(100dvh - 140px);overflow-y:auto;overscroll-behavior:contain}
+ .sidebar nav.veyra-nav-open{display:flex!important}
+ .sidebar nav .nav-item{display:block!important;min-height:44px}
+ .workspace{width:100%;height:auto!important;overflow:visible!important}
+ .topbar{position:relative!important;top:auto!important;height:auto;flex-wrap:wrap}
+ .main{min-width:0;max-width:100%}
+ .kv span:last-child{text-align:left!important}
+}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--veyra-focus);outline-offset:4px}
+.evidence-reference{display:block;padding:12px 0;text-align:left;border-bottom:1px solid var(--veyra-border);line-height:1.65}
+.evidence-reference strong,.evidence-reference small{display:block}.evidence-reference small{color:var(--veyra-muted)}
+.evidence-reference a,.source-link{display:inline-block;text-decoration:underline;text-underline-offset:4px;min-height:32px;padding:4px 0}
 </style><script>(function(){
 const key="veyra.theme.v1";
 const automatic=()=>{const hour=new Date().getHours();return hour>=7&&hour<19?"light":"dark"};
@@ -289,7 +318,7 @@ const resolved=()=>preference==="auto"?automatic():preference;
 function apply(){
  const theme=resolved();document.documentElement.setAttribute("data-theme",theme);
  const b=document.getElementById("veyra-theme-toggle");
- if(b){b.textContent=theme==="dark"?"☾":"☀";b.title="Appearance: "+(preference==="auto"?"automatic ("+theme+")":theme)+". Click to switch; double-click for automatic.";b.setAttribute("aria-label",b.title);b.setAttribute("aria-pressed",String(preference!=="auto"))}
+ if(b){b.textContent=theme==="dark"?"":"";b.title="Appearance: "+(preference==="auto"?"automatic ("+theme+")":theme)+". Click to switch; double-click for automatic.";b.setAttribute("aria-label",b.title);b.setAttribute("aria-pressed",String(preference!=="auto"))}
 }
 apply();
 document.addEventListener("DOMContentLoaded",()=>{
@@ -317,10 +346,10 @@ document.addEventListener("DOMContentLoaded",()=>{
 <div id="empty" class="preflight-empty"><div class="glyph" aria-hidden="true">◇</div><h3>Results appear here</h3><p>Enter a recipient and address above to check records.</p></div>
 <div id="results" hidden aria-live="polite"><div class="result-intro"><div class="shield">!</div><div><strong>Assessment completed</strong><p>Always verify independently before sending funds.</p></div></div><div class="result-content"><section class="consumer-summary" id="consumerSummary" aria-labelledby="consumerHeadline"><h3 id="consumerHeadline">Review before paying</h3><p id="consumerMessage">Veyra checks recorded history, but cannot guarantee address ownership.</p><strong>Next steps</strong><ol id="consumerSteps"></ol></section><div class="assessment-status"><span class="assessment-status-dot" aria-hidden="true"></span><span>Manual verification required before payment</span></div><details class="assessment-details" id="assessmentDetails"><summary>View evidence and details <span aria-hidden="true">⌄</span></summary><div class="assessment-details-body"><div class="verdict" id="verdict" hidden>Manual review required</div><div class="kv"><span>Recipient record</span><span id="recipientVerdict"></span></div><div class="kv"><span>Tatum evidence</span><span id="tatum"></span></div><div class="kv"><span>Walrus Memory</span><span id="walrus"></span></div><div class="kv"><span>Walrus memory comparison</span><span id="memoryComparison"></span></div><div id="memoryExplanation" class="reason" hidden></div><div class="kv"><span>Historical address participation</span><span id="historical"></span></div><div class="kv"><span>Payment authorization</span><span>Not authorized</span></div><div class="reason-title">Assessment rationale</div><div id="reasons"></div><div class="evidence-box"><h3>Evidence trace</h3><div class="kv"><span>Transaction reference</span><span id="evidenceDigest">Not provided</span></div><div class="kv"><span>Provider verification</span><span id="verificationLevel">Not independently verified</span></div><div class="kv"><span>Memory record</span><span id="memoryReference">Not available</span></div><p>Evidence is provider-observed context and does not authorize payments.</p></div><div class="evidence-box" id="investigation" hidden><h3>Transaction details</h3><div class="kv"><span>Transaction digest</span><span id="txDigest"></span></div><div class="kv"><span>Observed sender</span><span id="txSender"></span></div><div class="kv"><span>Execution status</span><span id="txExecution"></span></div><div class="kv"><span>Evidence captured</span><span id="txChecked"></span></div><div class="kv"><span>Transport</span><span id="txTransport"></span></div><div class="reason-title">Balance changes</div><div id="txChanges"></div><p>Raw onchain units. Observation does not establish address control.</p></div></div></details></div></div></section></div>
 <div class="quick-examples" style="margin-top:16px;padding:14px 18px;border:1px solid var(--veyra-border);border-radius:10px;background:var(--veyra-surface);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-  <div style="font-size:13px;font-weight:600;color:var(--veyra-text)">⚡ Try a live scenario:</div>
+  <div style="font-size:13px;font-weight:600;color:var(--veyra-text)">Try a live scenario:</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button type="button" id="example-friend" style="background:var(--veyra-surface);border:1px solid var(--veyra-border);color:var(--veyra-text);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600">✓ Recipient Match</button>
-    <button type="button" id="example-lookalike" style="background:var(--veyra-surface);border:1px solid var(--veyra-border);color:var(--veyra-text);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600">⚠ Lookalike Address</button>
+    <button type="button" id="example-friend" style="background:var(--veyra-surface);border:1px solid var(--veyra-border);color:var(--veyra-text);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600">Recipient Match</button>
+    <button type="button" id="example-lookalike" style="background:var(--veyra-surface);border:1px solid var(--veyra-border);color:var(--veyra-text);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600">Lookalike Address</button>
   </div>
 </div>
 <section class="panel" style="margin-top:20px;border-left:4px solid var(--veyra-border)"><div class="panel-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px">
@@ -415,8 +444,17 @@ setText("historical",data.historicalAddressObserved?"Observed · participation o
 const evidence=data.chainEvidence?.evidence?.find(item=>item.source==="tatum");
 setText("evidenceDigest",evidence?.reference||"Not provided");
 setText("verificationLevel",evidence?.verified===true?"Independently verified":"Not independently verified");
-const trace=(data.unifiedEvidence?.entries||[]).map(entry=>entry.blobId+" · "+entry.kind+" · "+entry.provenance+" · "+entry.observedAt+" · "+entry.sourceReference+" · "+entry.freshness);
-setText("memoryReference",trace.join("; ")||"Not available; retrieval may be incomplete");
+const memoryReference=document.getElementById("memoryReference");memoryReference.replaceChildren();
+const entries=data.unifiedEvidence?.entries||[];
+if(!entries.length)memoryReference.textContent="Not available; retrieval may be incomplete";
+for(const entry of entries){
+ const card=document.createElement("span");card.className="evidence-reference";
+ const title=document.createElement("strong");title.textContent=({recipient_claim:"Recipient address claim",recipient_observation:"Recipient observation",wallet_control:"Historical wallet-control claim",informational_observation:"Informational source observation"})[entry.kind]||entry.kind.replaceAll("_"," ");card.append(title);
+ for(const [label,value] of [["How recorded",entry.provenance?.replaceAll("_"," ")],["Recorded at",entry.observedAt],["Validity",entry.freshness?.replaceAll("_"," ")]]){const line=document.createElement("small");line.textContent=label+": "+(value||"Not recorded");card.append(line)}
+ const reference=document.createElement("small");
+ try{const url=new URL(entry.sourceReference);if(url.protocol!=="https:"||url.username||url.password)throw new Error();const link=document.createElement("a");link.href=url.href;link.textContent="Open supporting source";link.target="_blank";link.rel="noopener noreferrer";reference.append(link)}catch{reference.textContent="Source note: "+(entry.sourceReference||"Not recorded")}
+ card.append(reference);const detail=document.createElement("details"),summary=document.createElement("summary"),id=document.createElement("code");summary.textContent="Storage reference";id.textContent=entry.blobId;detail.append(summary,id);card.append(detail);memoryReference.append(card);
+}
 const investigation=data.transactionInvestigation;
 const investigationPanel=document.getElementById("investigation");
 investigationPanel.hidden=!investigation;
@@ -445,4 +483,4 @@ for(const reason of data.reasons||[]){const node=document.createElement("div");n
 }catch(e){error.textContent=e instanceof Error?e.message:"Request failed";error.hidden=false}
 finally{button.disabled=false;button.textContent="Run recipient assessment ↗"}
 });
-</script><script>(function(){const sidebar=document.querySelector(".sidebar");const nav=sidebar?.querySelector("nav");const brand=sidebar?.querySelector(".brand");if(!nav||!brand)return;const button=document.createElement("button");button.type="button";button.className="veyra-mobile-menu";button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation");button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","veyra-mobile-navigation");nav.id="veyra-mobile-navigation";brand.after(button);function close(){nav.classList.remove("veyra-nav-open");button.setAttribute("aria-expanded","false");button.textContent="☰ Menu";button.setAttribute("aria-label","Open navigation")}button.addEventListener("click",()=>{const open=nav.classList.toggle("veyra-nav-open");button.setAttribute("aria-expanded",String(open));button.textContent=open?"✕ Close":"☰ Menu";button.setAttribute("aria-label",open?"Close navigation":"Open navigation")});nav.addEventListener("click",event=>{if(event.target.closest("a"))close()});document.addEventListener("keydown",event=>{if(event.key==="Escape")close()});})();</script><script>(function(){if(document.querySelector(".veyra-bottom-nav"))return;const nav=document.createElement("nav");nav.className="veyra-bottom-nav";nav.setAttribute("aria-label","Mobile primary navigation");const items=[["/","⌂","Preflight"],["/verify-wallet","◇","Verify"],["/memory","◎","Memory"],["/history","▤","History"]];for(const [href,icon,label] of items){const a=document.createElement("a");a.href=href;const current=location.pathname==="/"?href==="/":location.pathname===href;if(current)a.setAttribute("aria-current","page");const symbol=document.createElement("span");symbol.className="nav-symbol";symbol.setAttribute("aria-hidden","true");symbol.textContent=icon;const name=document.createElement("span");name.textContent=label;a.append(symbol,name);nav.append(a)}document.body.append(nav)})();</script><script src="/relationships.js" defer></script><script src="/saved-checks.js" defer></script></body></html>
+</script><script>(function(){const sidebar=document.querySelector(".sidebar");const nav=sidebar?.querySelector("nav");const brand=sidebar?.querySelector(".brand");if(!nav||!brand)return;const button=document.createElement("button");button.type="button";button.className="veyra-mobile-menu";button.textContent="Menu";button.setAttribute("aria-label","Open navigation");button.setAttribute("aria-expanded","false");button.setAttribute("aria-controls","veyra-mobile-navigation");nav.id="veyra-mobile-navigation";brand.after(button);function close(){nav.classList.remove("veyra-nav-open");button.setAttribute("aria-expanded","false");button.textContent="Menu";button.setAttribute("aria-label","Open navigation")}button.addEventListener("click",()=>{const open=nav.classList.toggle("veyra-nav-open");button.setAttribute("aria-expanded",String(open));button.textContent=open?"Close":"Menu";button.setAttribute("aria-label",open?"Close navigation":"Open navigation")});nav.addEventListener("click",event=>{if(event.target.closest("a"))close()});document.addEventListener("keydown",event=>{if(event.key==="Escape"&&nav.classList.contains("veyra-nav-open")){close();button.focus()}});document.addEventListener("click",event=>{if(!sidebar.contains(event.target))close()});})();</script><script>(function(){if(document.querySelector(".veyra-bottom-nav"))return;const nav=document.createElement("nav");nav.className="veyra-bottom-nav";nav.setAttribute("aria-label","Mobile primary navigation");const items=[["/","⌂","Preflight"],["/verify-wallet","◇","Verify"],["/memory","◎","Memory"],["/history","▤","History"]];for(const [href,icon,label] of items){const a=document.createElement("a");a.href=href;const current=location.pathname==="/"?href==="/":location.pathname===href;if(current)a.setAttribute("aria-current","page");const symbol=document.createElement("span");symbol.className="nav-symbol";symbol.setAttribute("aria-hidden","true");symbol.textContent=icon;const name=document.createElement("span");name.textContent=label;a.append(symbol,name);nav.append(a)}document.body.append(nav)})();</script><script src="/relationships.js" defer></script><script src="/saved-checks.js" defer></script></body></html>

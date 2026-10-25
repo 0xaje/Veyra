@@ -1,89 +1,122 @@
+<p align="center"><img src="docs/assets/veyra-banner.svg" alt="Veyra — check the destination, remember the evidence" width="100%"></p>
+
+<p align="center"><a href="https://veyra-rs1l.onrender.com/">Open Veyra</a> · <a href="https://veyra-rs1l.onrender.com/docs#build-story">Read the build story</a> · <a href="docs/INTEGRATION-EVIDENCE.md">Inspect integration evidence</a></p>
+
 # Veyra
 
-**Intelligence that remembers. Protection that evolves.**
+Veyra helps people review a **Sui Mainnet recipient address before sending funds**. It compares the full destination with remembered evidence, explains differences or uncertainty, and lets visitors save their own assessment to Walrus without wallet sign-in or builder assistance.
 
-Veyra is a **read-only Sui Mainnet recipient preflight application** for the Tatum × Walrus Total Recall hackathon. It helps people spot a proposed payment destination that differs from a previously remembered recipient claim. It does **not** sign transactions, establish identity, guarantee safety, or authorize payments.
+A familiar prefix or suffix can hide a different address. Transaction history can also contain misleading entries. Veyra preserves the source and meaning of a remembered claim instead of treating every past interaction as approval.
 
-## Working product
+**Veyra never signs, executes or authorizes payments.** A matching record is evidence to review, not proof of identity, current ownership or recipient intent.
 
-- Browser-based recipient assessment with a plain-language warning and next steps.
-- Real Walrus Memory SDK integration for consented recipient registration and recall.
-- Optional historical Sui Mainnet transaction investigation through Tatum gRPC.
-- Exact-address comparison, conflicting-memory detection, and fail-closed manual-review outcomes.
-- Session history, documentation, memory-claim timeline, and compact automatic day/night appearance.
-- Conservative recipient-update validation; a newer claim never automatically supersedes an older address.
-- Self-service assessment saving with durable pending/completed receipts and returning-browser history; signed recipient-confirmation publication remains separately disabled.
-- Expandable technical evidence alongside the consumer-facing assessment.
+## Use the product
 
-**Verification (25 October 2026):** Self-service assessment saving at `9a6fc0c` passed **191/191 tests** in GitHub CI, including real disposable PostgreSQL 17 and SQLite journeys, plus TypeScript and syntax checks. Hosted read-only acceptance passed all six checks. A fresh local check passed 161/161 tests (without PostgreSQL). Automated fixtures are not Mainnet write evidence.
+| Journey | What happens | Sign-in |
+|---|---|---|
+| [Check an address](https://veyra-rs1l.onrender.com/) | Compare a recipient identifier and full Sui address with available Walrus evidence. Optionally inspect a real historical transaction through Tatum. | None |
+| Save this check | Review the exact assessment and disclosure, consent, then follow a genuine storage job to its completed Walrus receipt. | None; protected browser access |
+| [Activity History](https://veyra-rs1l.onrender.com/history) | Return to saved receipts, request a fresh Walrus recall, or obtain a private rotating recovery code. Temporary session history is separately labelled. | Same browser or recovery code |
+| [Saved recipients](https://veyra-rs1l.onrender.com/contacts) | Invite a recipient, obtain a signed receiving statement, independently verify and accept it; recheck or revoke the relationship. | Sui wallet |
+| [Receive & Verify](https://veyra-rs1l.onrender.com/verify-wallet) | Inspect wallet-control verification separately from recipient identity and public publication. | Wallet for signing |
+| [Memory & Records](https://veyra-rs1l.onrender.com/memory) | Inspect namespace metadata and recalled evidence, including source and record type. | None for public evidence |
 
-Hosted Render + Neon private contacts are enabled. A payer creates a private invitation, the recipient signs a relationship-bound receiving statement, and the payer independently checks the full address and code before accepting. Accepted contacts feed the address-check form. Labels stay private; this journey does not publish to Walrus. Revocation invalidates unsubmitted publication preparations and remains effective after restart.
+A new address with no evidence receives an unknown/manual-review result. Checking it does not silently register a recipient or save a memory. Optional assessment saving preserves what was checked; it does not create a trusted recipient baseline.
 
-Fresh inventory now lists **ten unique active Mainnet memory blobs** in the configured namespace. The existing nine-record audit is followed by one genuine consented self-service assessment save, completed receipt, matching-hash relayer recall and new-tab history return. Two of the historical records are SDK integration checks, not recipient confirmations. See [live saved-assessment acceptance](docs/evidence/2026-10-25-saved-assessment-acceptance.json) and [the updated inventory](docs/evidence/2026-10-25-inventory-after-save.json). These results do not claim independent ciphertext decryption or an organizer eligibility ruling.
+## Why memory matters
 
-**Self-service assessment saving is implemented:** check an address, review the exact record, consent, save to Walrus and return to Activity History without wallet sign-in. A secure browser credential and durable Neon index retain access, with a rotating recovery code for another browser. Records retain a genuine completed job/blob receipt; a separate recall action checks exact returned bytes/hash through the MemWal relayer. See [saved assessment workflow and acceptance](docs/SAVED-ASSESSMENTS.md).
+Walrus recipient evidence changes the next check: no baseline, a matching remembered claim, a different address, or conflicting claims each produce a different explanation. A newer claim does not silently replace an older accepted address.
 
-Signed recipient-confirmation publication remains separately disabled; saving an assessment is never proof of recipient approval or ownership. Independent exact ciphertext decryption lacks approved Mainnet committee access and is not claimed by relayer verification. No paid service is required by the saved assessment implementation.
+Saved assessment memories serve a separate purpose: revisit the finding, timestamp and evidence references used for that check. They explicitly retain `recipientConfirmed:false`, `identityVerified:false` and `paymentAuthorized:false`. Private relationship labels and browser credentials are excluded from the Walrus record.
 
-See [private workflow and security boundaries](docs/PRIVATE-RECIPIENT-RELATIONSHIPS.md) and [publication gates](docs/WALRUS-PUBLICATION-GATES.md).
+Read the [sourced problem analysis and build story](docs/TECHNICAL-BLOG.md). It covers documented incidents, recovery outcomes and academic research without claiming Veyra prevented those historical losses.
 
-## Quick start
+## Genuine integration evidence
 
-Requires Node.js 24 and a locally configured environment file with legitimate provider credentials. Do not commit credentials.
+| Evidence | Verified result | Boundary |
+|---|---|---|
+| Hosted self-service save, 25 October 2026 | One consented assessment completed with a real MemWal job and Mainnet blob. | A saved assessment, not a payment or recipient approval. |
+| Recall and return | Expected blob and exact record hash matched through MemWal; saved history survived a new tab and deployment. | Relayer verification; independent ciphertext decryption is not claimed. |
+| Mainnet inventory | Ten unique active blobs in the captured namespace snapshot. | Includes two SDK checks and three package observations; not ten verified recipients. |
+| Tatum Sui Mainnet | Genuine transaction observations and hosted match/mismatch checks. | Historical participation does not prove intended payee or ownership. |
+| Automated verification | Last verified release: 191 CI tests with PostgreSQL 17 and SQLite; six hosted read-only checks. | Local lifecycle fixtures are explicitly not Mainnet success evidence. |
+
+Inspect the [completed save and exact record](docs/evidence/2026-10-25-saved-assessment-acceptance.json), [ten-record inventory](docs/evidence/2026-10-25-inventory-after-save.json), [integration history](docs/INTEGRATION-EVIDENCE.md) and [saved-assessment design](docs/SAVED-ASSESSMENTS.md).
+
+## Architecture
+
+```mermaid
+flowchart TD
+    UI[Browser interface] --> API[Node API and evidence interpretation]
+    API --> T[Tatum Sui Mainnet observations]
+    API --> W[MemWal SDK and Walrus Mainnet]
+    API --> P[Neon PostgreSQL]
+    P --> I[Private contacts and saved receipt index]
+```
+
+- `apps/web/` contains the consumer interface, theme, contacts, history and documentation.
+- `scripts/preflight-api.mjs` serves the UI and integrated assessment routes.
+- `src/core/unified-recipient-evidence.ts` interprets supported record types without rewriting stored memories.
+- `scripts/saved-assessments-api.mjs` and `src/core/saved-assessments.ts` enforce exact-record consent, browser isolation, durable quotas, idempotency, receipt status and recovery rotation.
+- `scripts/private-relationships-api.mjs` and `src/core/recipient-relationships.ts` manage wallet-authenticated private relationships.
+- `src/core/relationship-database.ts` supports persistent PostgreSQL hosting and local SQLite, with transactional coordination and verified hosted TLS.
+
+The browser holds an HttpOnly access cookie; the server stores hashed credentials and a private history index in Neon. Walrus receives the reviewed assessment record through the existing account policy. This is not user-controlled end-to-end encryption: the service can read its account’s memories.
+
+## Run locally
+
+Requires **Node.js 24**, npm, and legitimate provider credentials for live integrations. An unconfigured service must report missing providers, not invent results.
 
 ```bash
-npm install
+npm ci
 npm run check
 npm test
+cp .env.example .env.local
 ```
 
-Run the local API and web UI from the repository root, adapting the environment-file path to your machine:
+Fill `.env.local` privately, then run:
 
 ```bash
-VEYRA_HISTORY_FILE="$PWD/.veyra-data/assessments.jsonl" \
-node --experimental-strip-types \
---env-file=../Veyra/.env.local \
-scripts/preflight-api.mjs
+node --experimental-strip-types --env-file=.env.local scripts/preflight-api.mjs
 ```
 
-Open `http://127.0.0.1:8787`.
+Open `http://127.0.0.1:8787`. Never commit the environment file or database credentials.
 
-A recipient assessment is read-only. **Storing a recipient on Walrus is a separate, real write requiring explicit approval**; do not use the registration form for sample data or unverified recipient information.
+| Configuration | Purpose |
+|---|---|
+| `TATUM_API_KEY`, `SUI_PROTO_DIR` | Genuine Tatum Sui gRPC observations; use the official Sui proto definitions described in the deployment guide. |
+| `MEMWAL_PRIVATE_KEY`, `MEMWAL_ACCOUNT_ID` | Server-only delegated Walrus Memory access. |
+| `MEMWAL_SERVER_URL`, `MEMWAL_NAMESPACE` | Reviewed relayer endpoint and application namespace. |
+| `VEYRA_RELATIONSHIP_DB` | Absolute private SQLite path for local persistent contacts and saved checks. |
+| `DATABASE_URL` | Hosted Neon alternative. Configure either PostgreSQL or SQLite, never both. |
+| Hosted origin and review flags | Explicit activation described in the deployment guides; never enable by guessing values. |
 
-## How it works
+See [.env.example](.env.example), [Render deployment](docs/RENDER-DEPLOYMENT.md), [free Neon setup](docs/NEON-SETUP.md) and [private relationship security](docs/PRIVATE-RECIPIENT-RELATIONSHIPS.md).
 
-1. Enter a recipient identifier and proposed Sui Mainnet address.
-2. Veyra recalls relevant Walrus recipient claims and compares complete normalized addresses.
-3. Optionally supply a **real historical transaction digest** for a Tatum provider observation.
-4. Review the plain-language outcome, recommended actions, and expandable evidence.
-5. Independently confirm the recipient before any payment. Veyra never authorizes a transfer.
+`npm test` exercises real local SQLite persistence and labelled crypto/lifecycle fixtures. Set `TEST_DATABASE_URL` to a disposable PostgreSQL test database to run its database journeys; CI does this with PostgreSQL 17. Never point tests at production. Live SDK write scripts create real Mainnet records and must only be used for an intentional, reviewed save.
 
-Walrus memory is not an identity oracle. Historical onchain participation does not prove current ownership. Missing or conflicting data never becomes a safety guarantee.
+## Security and practical limits
 
-## Evidence and architecture
+- Same-origin POSTs, CSRF, bounded JSON requests, protected cookies and current-credential checks guard saved history. Recovery rotates access and invalidates the previous browser credential/code.
+- Server-authenticated assessment tickets and exact record hashes bind consent. Durable idempotency and limits prevent browser rotation or restart from resetting storage allowance.
+- Current save limits: three submissions per browser per day, twenty across the service per day and one hundred total. Failed/uncertain submissions consume allowance. Provider outages and exhausted allowances are reported; no paid fallback is initiated.
+- Unknown provider acceptance is not blindly retried. The crash window between provider acceptance and saving its job ID needs reconciliation rather than a duplicate write.
+- Similarity recall is non-exhaustive. Walrus storage leases can expire. A browser cookie lasting up to 180 days does not guarantee 180 days of Walrus storage.
+- Keep recovery codes and exports private. Clearing browser data without retaining recovery access can lose access through the app.
+- Signed **public recipient-confirmation publication remains disabled** independently of available assessment saving. Direct independent SEAL ciphertext decryption remains unavailable without approved Mainnet access; no paid Enoki subscription is required for the deployed save/relayer-recall journey.
 
-- [Integration evidence and outstanding submission checks](docs/INTEGRATION-EVIDENCE.md)
-- `src/core/evidence-preflight.ts` — provider observations and informational memory comparison.
-- `src/core/recipient-preflight.ts` — exact record authorization and recipient verdicts.
-- `src/core/recipient-memory-timeline.ts` — read-only history and conflicting-address interpretation.
-- `src/core/recipient-update.ts` — fail-closed validation of recipient updates before writer initialization.
-- `scripts/preflight-api.mjs` — read-only assessment and explicit Walrus write endpoints.
-- `scripts/memwal-smoke.mjs` — genuine SDK write-and-recall smoke test; **creates a real memory**.
-- `scripts/memwal-recall.mjs` — read-only cross-process recall of an existing smoke-test record.
-- `apps/web/` — consumer UI, history, memory, and documentation.
+Review the [integrated product contract](docs/INTEGRATED-PRODUCT-CONTRACT.md), [publication gates](docs/WALRUS-PUBLICATION-GATES.md) and [fixed acceptance checklist](docs/RELEASE-ACCEPTANCE.md). Automated coverage does not replace physical-device or real-wallet failure acceptance.
 
-## Product integrity
+## Appearance and accessibility
 
-No invented onchain transactions, mocked provider success, fabricated stored memories, or private keys in public blobs. Evidence sources and limitations are shown explicitly. All payment decisions remain with the user after independent verification.
+The interface follows the settled Pokter reference treatment: cream canvas and dark ink in light mode, charcoal surfaces and light text in dark mode, with restrained green status indicators. Navigation, readable evidence sections, visible keyboard focus and responsive layouts support the same workflow across screen sizes. The coloured banner above uses that product palette; it is branding, not a safety indicator.
 
-### Free private-contact hosting with Neon
+## Total Recall submission
 
-Keep Render Free and use Neon Free PostgreSQL for the existing wallet-authenticated private recipient workflow. Follow [the Neon setup guide](docs/NEON-SETUP.md). Configure the server-only `DATABASE_URL`; do not configure a local SQLite path alongside it. Hosted activation remains explicit and requires the storage/origin review. The same relationship state machine runs on PostgreSQL and local SQLite. CI runs its private journey against real PostgreSQL 17 as well as SQLite; no fabricated Mainnet writes are used. This integration does not enable public Walrus publication. The recipient-publication ledger shares Neon with zero recipient-publication budgets; saved assessments use a separate, bounded consent/admission policy described in SAVED-ASSESSMENTS.md.
+Recommended track: **Consumer Finance Apps**. Walrus supplies durable memory; Tatum supplies relevant Sui blockchain observations. Tatum AI Builder is not claimed as the primary development platform.
 
-### Walrus publication progress
+The [official rules](https://thewalrussessions.wal.app/tatum-total-recall) require Mainnet memory writes, at least ten memories, relevant Tatum usage, a published blog, working demo/public repository and a two-to-three-minute video. The [published article](https://veyra-rs1l.onrender.com/docs#build-story) and evidence are available. The actual video and final form submission remain outstanding; meeting the captured inventory count is not an organizer eligibility ruling.
 
-[Publication gates and the Mainnet SEAL access requirement](docs/WALRUS-PUBLICATION-GATES.md) track the current M2/M3 work. Neon now holds durable publication preparations/jobs/quotas/receipts as well as private contacts. Recipient-publication budgets stay at zero and those submit routes remain locked. Assessment saving has its own authenticated browser consent and bounded write policy; it does not open recipient-publication routes. The exact-reader uses supported Walrus/SEAL APIs; direct Mainnet committee access still needs an approved server-only credential. No genuine public write/read success is claimed by the lifecycle tests.
+See [submission readiness](docs/SUBMISSION-READINESS.md), [submission copy](docs/SUBMISSION-COPY.md) and [recording plan](docs/DEMO-RECORDING-SCRIPT.md). Deadline: **10 November 2026, 17:00 UTC / 18:00 WAT**.
 
-## Build story and submission assets
-
-Read the [technical build story](https://veyra-rs1l.onrender.com/docs#build-story), [video narration and shot list](docs/DEMO-RECORDING-SCRIPT.md), and [fixed acceptance checklist](docs/RELEASE-ACCEPTANCE.md). Submission copy is in [SUBMISSION-COPY.md](docs/SUBMISSION-COPY.md). The final recorded video, real-device checks and actual submission confirmation remain distinct from these prepared assets.
+Built by **Aje Oluwaseun Isaac ([0xaje](https://github.com/0xaje))**.

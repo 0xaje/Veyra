@@ -2,8 +2,17 @@
 
 By Aje Oluwaseun Isaac (0xaje) · 25 October 2026
 
-A familiar-looking address is not necessarily the intended destination. In May 2024, an Ethereum address-poisoning incident involving 1,155 WBTC was reported at approximately $71 million. Later reporting documented recovery of nearly all available funds. Chainalysis describes the underlying mechanism: a lookalike address is inserted into transaction history and later copied by mistake. This is a real example of the broader problem, not a Sui incident or evidence that Veyra would certainly have prevented it. [1][2]
+A transfer can be technically successful and still reach the wrong person. The blockchain records the destination that was submitted; it does not know which person the sender meant to pay. Veyra starts at that gap: remembering the evidence behind a recipient address and making a changed destination visible before the next transfer.
 
+## The problem is documented, not hypothetical
+
+**May 2024: a lookalike destination and approximately $71 million in WBTC.** An Ethereum user sent 1,155 WBTC to an address resembling an intended destination. Chainalysis values the initial transfer at about $68 million; reporting also used approximately $71 million as prices changed. The attacker later returned funds, and The Block reported recovery of nearly all available funds. Recovery matters: this should not be presented as a permanent $71 million loss. [1][2]
+
+**August 2023: $20 million in USDT and an emergency freeze.** Crypto Briefing documented a transfer to a lookalike address after a zero-value phishing entry appeared in transaction history. Tether blacklisted the destination quickly. This was a misdirected transfer followed by intervention, not evidence that all such mistakes are reversible. [5]
+
+**A wider pattern, including ordinary typing errors.** A USENIX Security 2025 study of Ethereum and BSC, covering July 2022–June 2024, identified 6,633 successful address-poisoning transfers totaling at least $83.8 million. Separately, its Appendix D classified 681 transfers from 501 users as likely accidental typing errors, with approximately $5.5 million in losses. These are research classifications, not interviews establishing each sender’s intent. The poisoning total excludes the WBTC incident because the study’s loss measurement focused on major stablecoins; the figures should not be casually combined into a new headline total. [6]
+
+These sources document deceptive history, confusing addresses and probable typing mistakes. They do not establish that victims lacked a memory product, and they do not prove Veyra would have prevented a particular incident. They concern Ethereum/BSC; Veyra currently supports Sui Mainnet. The design lesson is narrower and practical: preserve the origin of a recipient claim, compare the full address, and make uncertainty visible.
 Veyra helps a payer compare a proposed Sui Mainnet destination with available recipient evidence before sending funds. It does not execute transfers, establish identity or guarantee that an address is safe. Its practical question is: what do the available records say about this destination, and what still needs independent confirmation?
 
 ## One check, with evidence people can inspect
@@ -46,12 +55,16 @@ Relayer-returned exact-blob/hash verification is explicitly labelled as such. In
 
 Veyra's goal is to make useful evidence and uncertainty understandable before a person decides to send. The interface stays simple; the receipts and limitations remain inspectable.
 
-## Try it and inspect the evidence
+## Try Veyra and inspect the evidence
 
-- Product: https://veyra-rs1l.onrender.com/
-- Saved history: https://veyra-rs1l.onrender.com/history
-- Source: https://github.com/0xaje/Veyra
-- [1] Chainalysis, Anatomy of an Address Poisoning Scam, 23 October 2024: https://www.chainalysis.com/blog/address-poisoning-scam/
-- [2] The Block, recovery report, 11 May 2024: https://www.theblock.co/news/ecosystems/2024-05-11-victim-of-71-million-address-poisoning-attack-recovers-funds-following-negotiations-293908
-- [3] Genuine receipt and record: https://github.com/0xaje/Veyra/blob/main/docs/evidence/2026-10-25-saved-assessment-acceptance.json
-- [4] Inventory capture: https://github.com/0xaje/Veyra/blob/main/docs/evidence/2026-10-25-inventory-after-save.json
+Every link below has a specific purpose. External incident research explains the problem; product receipts document what Veyra actually did. Neither is a substitute for confirming your intended recipient.
+
+- **[Open the address checker](https://veyra-rs1l.onrender.com/)** — compare a proposed Sui destination with available evidence; no sign-in required.
+- **[Open saved checks](https://veyra-rs1l.onrender.com/history)** — return to this browser’s stored assessment receipts and request a fresh Walrus recall.
+- **[Explore the source code](https://github.com/0xaje/Veyra)** — inspect the implementation, tests, security boundaries and setup instructions.
+- **[1 · Read the Chainalysis investigation](https://www.chainalysis.com/blog/address-poisoning-scam/)** — how the May 2024 Ethereum incident unfolded; published 23 October 2024.
+- **[2 · Read the recovery report](https://www.theblock.co/news/ecosystems/2024-05-11-victim-of-71-million-address-poisoning-attack-recovers-funds-following-negotiations-293908)** — The Block’s 11 May 2024 account of the funds returned after that incident.
+- **[3 · Inspect Veyra’s completed save receipt](https://github.com/0xaje/Veyra/blob/main/docs/evidence/2026-10-25-saved-assessment-acceptance.json)** — the genuine job, blob, exact record and hash from the hosted self-service save; no payment was made.
+- **[4 · Inspect the ten-record inventory](https://github.com/0xaje/Veyra/blob/main/docs/evidence/2026-10-25-inventory-after-save.json)** — the captured Mainnet metadata inventory, including the disclosed SDK checks and package observations.
+- **[5 · Read the USDT incident report](https://cryptobriefing.com/tether-swiftly-blacklists-phishing-address/)** — Crypto Briefing, 1 August 2023: the $20 million misdirection and Tether’s blacklist response.
+- **[6 · Read the USENIX research](https://www.usenix.org/conference/usenixsecurity25/presentation/tsuchiya)** — Blockchain Address Poisoning, 2025; open-access paper, methodology and accidental-transfer analysis in Appendix D.

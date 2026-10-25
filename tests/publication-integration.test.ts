@@ -112,7 +112,7 @@ test("M3: completed lifecycle accepts the installed SDK's actual return type", (
 });
 
 test("M5: all shipped inline scripts parse, including escaped evidence rendering", async () => {
-  for (const page of ["index", "memory", "history", "verify-wallet", "docs"]) {
+  for (const page of ["index", "memory", "history", "verify-wallet", "docs", "contacts", "receive-private"]) {
     const html = await readFile(new URL("../apps/web/" + page + ".html", import.meta.url), "utf8");
     for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) new Script(match[1], { filename: page + ".html" });
   }
@@ -123,7 +123,16 @@ test("M5: all shipped inline scripts parse, including escaped evidence rendering
     "&lt;img src=x onerror=&quot;bad()&quot;&gt; &amp;");
   for (const match of html.matchAll(/\.innerHTML\s*=\s*`([\s\S]*?)`;/g)) {
     for (const value of match[1].matchAll(/\$\{([^}]+)\}/g))
-      assert.ok(value[1].startsWith("escapeHtml("), "Dynamic evidence must be escaped");
+      assert.ok(value[1].startsWith("escapeHtml(") || value[1].startsWith("sourceReference("), "Dynamic evidence must use an escaping renderer");
+  }
+  const sourceHelper = html.match(/function sourceReference\(value\)\{[\s\S]*?\n\}/);
+  assert.ok(sourceHelper);
+  const render = (value: string) => runInNewContext(helper[0] + sourceHelper[0] + ';sourceReference(input)', { URL, input:value });
+  assert.match(render('https://example.com/report?x="<img>'), /^<a class="source-link" href="https:\/\/example\.com/);
+  assert.ok(!render('https://example.com/report?x="<img>').includes('<img>'));
+  for (const value of ['javascript:alert(1)', 'data:text/html,<img src=x>', 'https://user:secret@example.com/', '<img src=x onerror="bad()">']) {
+    assert.ok(!render(value).includes('<a '), 'Unsafe URLs must never become links');
+    assert.ok(!render(value).includes('<img'), 'Source notes must be escaped');
   }
   assert.ok(!html.includes('onclick="copy('));
 });
