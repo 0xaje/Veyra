@@ -48,7 +48,7 @@ The repository and evidence reviewed here do not establish that Tatum AI Builder
 - Public repository: https://github.com/0xaje/Veyra
 - Technical blog: https://veyra-rs1l.onrender.com/docs#build-story (verify after publication)
 - Evidence: https://github.com/0xaje/Veyra/blob/main/docs/evidence/2026-10-25-saved-assessment-acceptance.json
-- Demo video: supply the actual public viewing URL after recording; no placeholder URL should be submitted.
+- Demo video: https://youtu.be/fZ2HohfF0RM
 
 ## Account-owner fields
 

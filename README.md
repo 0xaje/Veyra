@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/assets/veyra-banner.svg" alt="Veyra — check the destination, remember the evidence" width="100%"></p>
 
-<p align="center"><a href="https://veyra-rs1l.onrender.com/">Open Veyra</a> · <a href="https://veyra-rs1l.onrender.com/docs#build-story">Read the build story</a> · <a href="docs/INTEGRATION-EVIDENCE.md">Inspect integration evidence</a></p>
+<p align="center"><a href="https://veyra-rs1l.onrender.com/">Open Veyra</a> · <a href="https://youtu.be/fZ2HohfF0RM">Watch the demo</a> · <a href="https://veyra-rs1l.onrender.com/docs#build-story">Read the build story</a> · <a href="docs/INTEGRATION-EVIDENCE.md">Inspect integration evidence</a></p>
 
 # Veyra
 
@@ -115,7 +115,7 @@ The interface follows the settled Pokter reference treatment: cream canvas and d
 
 Recommended track: **Consumer Finance Apps**. Walrus supplies durable memory; Tatum supplies relevant Sui blockchain observations. Tatum AI Builder is not claimed as the primary development platform.
 
-The [official rules](https://thewalrussessions.wal.app/tatum-total-recall) require Mainnet memory writes, at least ten memories, relevant Tatum usage, a published blog, working demo/public repository and a two-to-three-minute video. The [published article](https://veyra-rs1l.onrender.com/docs#build-story) and evidence are available. The actual video and final form submission remain outstanding; meeting the captured inventory count is not an organizer eligibility ruling.
+The [official rules](https://thewalrussessions.wal.app/tatum-total-recall) require Mainnet memory writes, at least ten memories, relevant Tatum usage, a published blog, working demo/public repository and a two-to-three-minute video. The [published article](https://veyra-rs1l.onrender.com/docs#build-story) and evidence are available. The [demo video](https://youtu.be/fZ2HohfF0RM) is available on YouTube. Final form submission remains outstanding; meeting the captured inventory count is not an organizer eligibility ruling.
 
 See [submission readiness](docs/SUBMISSION-READINESS.md), [submission copy](docs/SUBMISSION-COPY.md) and [recording plan](docs/DEMO-RECORDING-SCRIPT.md). Deadline: **10 November 2026, 17:00 UTC / 18:00 WAT**.
 

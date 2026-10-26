@@ -1,6 +1,6 @@
 # Veyra — news opening and complete product journey
 
-Production brief and laptop recording guide. Prepared 25 October 2026 against deployed product revision `df63262`. This replaces the earlier single-incident 2:40 outline. Target final duration: **2:55**, within the official **2–3 minute** requirement. The video has not yet been recorded or rendered.
+Production brief and laptop recording guide. Prepared 25 October 2026 against deployed product revision `df63262`. This replaces the earlier single-incident 2:40 outline. Target final duration: **2:55**, within the official **2–3 minute** requirement. Uploaded demo: [Watch Veyra on YouTube](https://youtu.be/fZ2HohfF0RM) (link added 27 October 2026). The production plan below is retained as reference, not certification that every planned shot appears in the uploaded edit.
 
 ## Creative direction
 
@@ -208,7 +208,7 @@ Editor brief:
 | At least ten Mainnet memories | Current genuine inventory count, with record purposes disclosed | [Captured inventory](evidence/2026-10-25-inventory-after-save.json) |
 | Published technical blog | Brief real build-story view and link in description | [Published build story](https://veyra-rs1l.onrender.com/docs#build-story) |
 | Working demo and public repo | Real deployed screen recording and end-card links | [Product](https://veyra-rs1l.onrender.com/) · [Repository](https://github.com/0xaje/Veyra) |
-| Two-to-three-minute video | Verify exported duration and playable public link | Actual export still pending |
+| Two-to-three-minute video | Verify exported duration and signed-out playback of the uploaded edit | [YouTube demo](https://youtu.be/fZ2HohfF0RM) |
 
 Source: [official event rules](https://thewalrussessions.wal.app/tatum-total-recall), rechecked 25 October 2026. The inventory count does not itself constitute an organizer eligibility ruling. Tatum AI Builder is optional for its dedicated bonus; do not claim it was the primary platform. This video does not claim payments were executed or that Veyra prevented the historical incidents.
 
